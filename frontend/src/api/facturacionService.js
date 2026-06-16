@@ -1,6 +1,5 @@
 import { normalizeDocument, sanitizeText } from '../utils/validators'
-
-const GRAPHQL_URL = 'http://localhost:3003/graphql'
+import {API_GRAPHQL} from '../config/api'
 
 /**
  * Función centralizada para enviar queries y mutations al servidor GraphQL.
@@ -16,7 +15,7 @@ async function fetchGraphQL(query, variables = {}, token = '') {
         headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`
     }
 
-    const response = await fetch(GRAPHQL_URL, {
+    const response = await fetch(API_GRAPHQL, {
         method: 'POST',
         headers,
         body: JSON.stringify({ query, variables })
