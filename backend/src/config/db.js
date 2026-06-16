@@ -17,11 +17,11 @@ const sequelize = new Sequelize(
 
 async function probarConexion() {
   try {
+    await sequelize.sync({ force: false });
     await sequelize.authenticate();
     console.log('✅ Conexión a Postgres establecida correctamente.');
   } catch (error) {
     console.error('❌ No se pudo conectar a Postgres:', error.message);
-    process.exit(1);
   }
 }
 

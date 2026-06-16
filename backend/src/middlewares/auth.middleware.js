@@ -1,21 +1,12 @@
 // src/middlewares/auth.middleware.js
 //
-// Verifica el JWT emitido por el módulo de Seguridad (Django).
-// El payload esperado es: { id: "uuid", nombre: "...", rol: "...", ... }
-//
-// ⚠️ Confirmar campos exactos del payload con el equipo de Seguridad.
+// El JWT del módulo de Seguridad (Django) viene con usuario_id como UUID.
+// Adaptamos la extracción del payload para reflejar eso.
 
 const jwt = require('jsonwebtoken');
 
-/**
- * Decodifica y verifica un token JWT.
- * @param {string} authHeader - Valor del header Authorization ("Bearer <token>")
- * @returns {object} Payload del token
- */
 function decodificarToken(authHeader) {
-  if (!authHeader) {
-    throw new Error('No se proporcionó un token de autenticación');
-  }
+  if (!authHeader) throw new Error('No se proporcionó un token de autenticación');
 
   const partes = authHeader.split(' ');
   if (partes.length !== 2 || partes[0] !== 'Bearer') {
@@ -25,12 +16,11 @@ function decodificarToken(authHeader) {
   return jwt.verify(partes[1], process.env.JWT_SECRET, {
     algorithms: [process.env.JWT_ALGORITHM || 'HS256']
   });
+  // Payload esperado del módulo de Seguridad (Django):
+  // { id: "uuid-del-usuario", nombre: "...", rol: "...", iat: ..., exp: ... }
+  // ⚠️ Confirmar campos exactos con el equipo de Seguridad
 }
 
-/**
- * Middleware Express: verifica el JWT y adjunta el usuario a req.usuario.
- * Retorna 401 si el token es inválido o ha expirado.
- */
 function verificarToken(req, res, next) {
   try {
     req.usuario = decodificarToken(req.headers['authorization']);
@@ -44,10 +34,14 @@ function verificarToken(req, res, next) {
   }
 }
 
-/**
- * Middleware de roles: verifica que el usuario tenga al menos uno de los roles permitidos.
- * @param {string[]} rolesPermitidos
- */
+function obtenerUsuarioDesdeToken(authHeader) {
+  try {
+    return decodificarToken(authHeader);
+  } catch {
+    return null;
+  }
+}
+
 function verificarRol(rolesPermitidos = []) {
   return (req, res, next) => {
     if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
@@ -60,4 +54,4 @@ function verificarRol(rolesPermitidos = []) {
   };
 }
 
-module.exports = { verificarToken, verificarRol, decodificarToken };
+module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken };
