@@ -1,38 +1,46 @@
-// server.js
+// server.js — Entry point del módulo de Administración de Clientes
+//
+// Flujo de inicio:
+//   1. Conectar a PostgreSQL
+//   2. Sincronizar tabla clientes (ALTER para no destruir datos existentes)
+//   3. Sincronizar tabla pistas_auditoria (si no existe)
+//   4. Arrancar el servidor HTTP
+
 require('dotenv').config();
 
 const crearApp = require('./src/app');
 const { sequelize, probarConexion } = require('./src/config/db');
 
-// Registrar modelos propios (Facturación gestiona estas tablas)
-require('./src/models/factura.model');
-require('./src/models/detalleFactura.model');
+// Registrar modelos para que Sequelize los conozca antes de sincronizar
+require('./src/models/cliente.model');
 require('./src/models/pistaAuditoria.model');
 
-// Registrar modelo de Clientes SIN sincronizarlo (lo gestiona el otro módulo)
-require('./src/models/cliente.model');
-
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3001;
 
 async function iniciar() {
+  // 1. Verificar conexión a Postgres
   await probarConexion();
 
-  // Solo sincronizamos las tablas propias de Facturación.
-  // La tabla 'clientes' ya existe (creada por el módulo de Clientes),
-  // y Sequelize la usará para JOINs sin intentar crearla/modificarla.
+  // 2. Sincronizar SOLO las tablas que este módulo gestiona:
+  //    - clientes        (dueño: módulo de Clientes/Torres)
+  //    - pistas_auditoria (compartida, se crea si no existe)
+  //
+  // Usamos { alter: true } para ajustar columnas sin borrar datos.
   await sequelize.sync({ alter: true });
-  console.log('✅ Tablas de Facturación sincronizadas (facturas, detalle_facturas, pistas_auditoria).');
+  console.log('✅ Tabla "clientes" sincronizada correctamente.');
 
-  const app = await crearApp();
+  // 3. Arrancar la app Express
+  const app = crearApp();
 
   app.listen(PORT, () => {
-    console.log(`🚀 Módulo de Facturación en http://localhost:${PORT}`);
-    console.log(`   GraphQL Playground: http://localhost:${PORT}/graphql`);
-    console.log(`   Health check:       http://localhost:${PORT}/health`);
+    console.log(`🚀 Módulo de Clientes en http://localhost:${PORT}`);
+    console.log(`   Swagger Docs:  http://localhost:${PORT}/api/docs`);
+    console.log(`   Health check:  http://localhost:${PORT}/health`);
+    console.log(`   Ambiente:      ${process.env.NODE_ENV || 'development'}`);
   });
 }
 
 iniciar().catch((err) => {
-  console.error('Error al iniciar:', err);
+  console.error('❌ Error al iniciar el servidor:', err);
   process.exit(1);
 });

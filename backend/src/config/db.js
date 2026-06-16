@@ -21,6 +21,7 @@ async function probarConexion() {
     console.log('✅ Conexión a Postgres establecida correctamente.');
   } catch (error) {
     console.error('❌ No se pudo conectar a Postgres:', error.message);
+    process.exit(1);
   }
 }
 

@@ -1,36 +1,67 @@
 // src/services/cliente.service.js
 //
-// Lógica de negocio para la administración de clientes.
-// Cubre HU1: crear, buscar, actualizar e inactivar clientes.
+// Lógica de negocio para la Administración de Clientes (HU1 – Torres).
 //
-// REGLAS DE NEGOCIO:
-//   - No se elimina físicamente un cliente (CA3 HU1): se cambia estado a 'Inactivo'
-//   - La cédula debe ser única (CA2 HU1)
-//   - Todas las validaciones de formato se manejan en el modelo (Sequelize)
+// Operaciones:
+//   - registrarCliente   → POST /api/clientes
+//   - listarClientes     → GET  /api/clientes
+//   - obtenerPorId       → GET  /api/clientes/:id
+//   - obtenerPorCedula   → GET  /api/clientes/cedula/:cedula
+//   - actualizarCliente  → PUT  /api/clientes/:id
+//   - cambiarEstado      → PATCH /api/clientes/:id/estado
+//
+// Todas las mutaciones registran pistas de auditoría en la BD.
 
 const { Op } = require('sequelize');
 const Cliente = require('../models/cliente.model');
 const PistaAuditoria = require('../models/pistaAuditoria.model');
-const auditoriaGrpc = require('../grpc/auditoria.client');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Registra un nuevo cliente en la BD de Facturación.
- * CA4 HU1: guarda el registro y retorna mensaje de éxito.
- * CA2 HU1: lanza error si la cédula ya existe.
- *
- * @param {object} datos  - campos del cliente
- * @param {object} usuario - payload del JWT
+ * Lanza un error con código HTTP adjunto.
  */
-async function crearCliente(datos, usuario) {
-  // CA2: verificar cédula duplicada
-  const existe = await Cliente.findOne({ where: { cedula: datos.cedula } });
-  if (existe) {
-    const error = new Error(`Ya existe un cliente con la cédula ${datos.cedula}`);
-    error.codigo = 409;
-    throw error;
+function crearError(mensaje, codigo) {
+  const e = new Error(mensaje);
+  e.codigo = codigo;
+  return e;
+}
+
+/**
+ * Registra una pista de auditoría (fire-and-forget, no bloquea la operación).
+ */
+async function registrarAuditoria({ usuarioId, accion, detalles }) {
+  try {
+    await PistaAuditoria.create({
+      usuario_id: usuarioId,
+      accion,
+      detalles: detalles || null
+    });
+  } catch (error) {
+    console.error(`⚠️ No se pudo registrar auditoría [${accion}]:`, error.message);
+  }
+}
+
+// ── Servicio ─────────────────────────────────────────────────────────────────
+
+/**
+ * Registra un nuevo cliente en la BD.
+ *
+ * @param {object} datos   - Campos del cliente (cedula, nombre, fecha_nacimiento, etc.)
+ * @param {object} usuario - Payload del JWT (para auditoría)
+ * @returns {Promise<Cliente>}
+ */
+async function registrarCliente(datos, usuario) {
+  // Verificar cédula duplicada con mensaje claro
+  const existente = await Cliente.findOne({ where: { cedula: datos.cedula } });
+  if (existente) {
+    throw crearError(
+      `Ya existe un cliente registrado con la cédula "${datos.cedula}"`,
+      409
+    );
   }
 
-  const cliente = await Cliente.create({
+  const nuevoCliente = await Cliente.create({
     cedula:           datos.cedula,
     nombre:           datos.nombre,
     fecha_nacimiento: datos.fecha_nacimiento,
@@ -38,135 +69,182 @@ async function crearCliente(datos, usuario) {
     direccion:        datos.direccion,
     telefono:         datos.telefono,
     email:            datos.email,
-    estado:           datos.estado || 'Activo'
+    estado:           'Activo'  // siempre inicia activo
   });
 
-  // Auditoría local
-  await _auditoria(usuario.id, 'CLIENTE_CREADO', {
-    cliente_id: cliente.id,
-    cedula: cliente.cedula,
-    nombre: cliente.nombre
-  });
-
-  // Auditoría gRPC a Seguridad (best effort)
-  auditoriaGrpc.registrarEvento({
-    accion: 'CLIENTE_CREADO',
+  await registrarAuditoria({
     usuarioId: usuario.id,
-    entidadId: cliente.id,
-    detalle: `Cliente ${cliente.cedula} - ${cliente.nombre}`
+    accion: 'CLIENTE_CREADO',
+    detalles: {
+      cliente_id: nuevoCliente.id,
+      cedula:     nuevoCliente.cedula,
+      nombre:     nuevoCliente.nombre,
+      tipo_cliente: nuevoCliente.tipo_cliente
+    }
   });
 
-  return cliente;
+  return nuevoCliente;
 }
 
 /**
- * Busca clientes por cédula o nombre (búsqueda parcial, case-insensitive).
- * CA1 HU2: retorna coincidencias o lista vacía (el resolver muestra el mensaje).
+ * Lista clientes con filtros opcionales.
  *
- * @param {string} termino - texto a buscar (cédula o nombre)
+ * @param {object} filtros - { nombre?, cedula?, estado? }
+ * @returns {Promise<Cliente[]>}
  */
-async function buscarClientes(termino) {
-  if (!termino || termino.trim() === '') {
-    const error = new Error('Debe ingresar un término de búsqueda');
-    error.codigo = 400;
-    throw error;
+async function listarClientes(filtros = {}) {
+  const where = {};
+
+  if (filtros.nombre) {
+    where.nombre = { [Op.iLike]: `%${filtros.nombre}%` }; // búsqueda parcial, case-insensitive
+  }
+  if (filtros.cedula) {
+    where.cedula = filtros.cedula; // cédula exacta
+  }
+  if (filtros.estado) {
+    where.estado = filtros.estado;
   }
 
-  const clientes = await Cliente.findAll({
-    where: {
-      estado: 'Activo',
-      [Op.or]: [
-        { cedula: { [Op.iLike]: `%${termino}%` } },
-        { nombre:  { [Op.iLike]: `%${termino}%` } }
-      ]
-    },
-    order: [['nombre', 'ASC']],
-    limit: 20
+  return Cliente.findAll({
+    where,
+    order: [['nombre', 'ASC']]
   });
-
-  return clientes;
 }
 
 /**
- * Obtiene un cliente por su ID (UUID).
+ * Obtiene un cliente por su UUID.
+ *
+ * @param {string} id - UUID del cliente
+ * @returns {Promise<Cliente>}
  */
 async function obtenerClientePorId(id) {
   const cliente = await Cliente.findByPk(id);
   if (!cliente) {
-    const error = new Error('Cliente no encontrado');
-    error.codigo = 404;
-    throw error;
+    throw crearError('Cliente no encontrado', 404);
   }
   return cliente;
 }
 
 /**
- * Actualiza los datos de un cliente existente.
- * CA3 HU1: si estado pasa a 'Inactivo', NO elimina — solo actualiza.
+ * Obtiene un cliente por su número de cédula (búsqueda exacta).
+ *
+ * @param {string} cedula
+ * @returns {Promise<Cliente>}
+ */
+async function obtenerClientePorCedula(cedula) {
+  const cliente = await Cliente.findOne({ where: { cedula } });
+  if (!cliente) {
+    throw crearError(`No se encontró un cliente con la cédula "${cedula}"`, 404);
+  }
+  return cliente;
+}
+
+/**
+ * Actualiza los datos editables de un cliente.
+ * Solo permite modificar: nombre, fecha_nacimiento, tipo_cliente,
+ * direccion, telefono, email. NO permite cambiar cédula ni estado.
  *
  * @param {string} id     - UUID del cliente
- * @param {object} datos  - campos a actualizar
- * @param {object} usuario - payload del JWT
+ * @param {object} datos  - Campos a actualizar
+ * @param {object} usuario - Payload JWT
+ * @returns {Promise<Cliente>}
  */
 async function actualizarCliente(id, datos, usuario) {
   const cliente = await obtenerClientePorId(id);
 
-  // Verificar cédula duplicada si se está cambiando
+  // Si intenta cambiar cédula a una ya existente, verificar
   if (datos.cedula && datos.cedula !== cliente.cedula) {
-    const existe = await Cliente.findOne({ where: { cedula: datos.cedula } });
-    if (existe) {
-      const error = new Error(`Ya existe un cliente con la cédula ${datos.cedula}`);
-      error.codigo = 409;
-      throw error;
+    const duplicado = await Cliente.findOne({ where: { cedula: datos.cedula } });
+    if (duplicado) {
+      throw crearError(
+        `Ya existe un cliente registrado con la cédula "${datos.cedula}"`,
+        409
+      );
     }
   }
 
-  const camposActualizables = [
-    'cedula', 'nombre', 'fecha_nacimiento',
-    'tipo_cliente', 'direccion', 'telefono', 'email', 'estado'
+  const camposPermitidos = [
+    'cedula', 'nombre', 'fecha_nacimiento', 'tipo_cliente',
+    'direccion', 'telefono', 'email'
   ];
 
-  camposActualizables.forEach((campo) => {
-    if (datos[campo] !== undefined) cliente[campo] = datos[campo];
+  const datosAntes = { ...cliente.toJSON() };
+
+  camposPermitidos.forEach((campo) => {
+    if (datos[campo] !== undefined) {
+      cliente[campo] = datos[campo];
+    }
   });
 
   await cliente.save();
 
-  // Auditoría
-  const accion = datos.estado === 'Inactivo' ? 'CLIENTE_INACTIVADO' : 'CLIENTE_ACTUALIZADO';
-  await _auditoria(usuario.id, accion, {
-    cliente_id: cliente.id,
-    cedula: cliente.cedula,
-    nombre: cliente.nombre,
-    cambios: datos
-  });
-
-  auditoriaGrpc.registrarEvento({
-    accion,
+  await registrarAuditoria({
     usuarioId: usuario.id,
-    entidadId: cliente.id,
-    detalle: `Cliente ${cliente.cedula} - ${cliente.nombre}`
+    accion: 'CLIENTE_ACTUALIZADO',
+    detalles: {
+      cliente_id: cliente.id,
+      cedula:     cliente.cedula,
+      cambios: camposPermitidos.reduce((acc, campo) => {
+        if (datos[campo] !== undefined && datos[campo] !== datosAntes[campo]) {
+          acc[campo] = { antes: datosAntes[campo], despues: datos[campo] };
+        }
+        return acc;
+      }, {})
+    }
   });
 
   return cliente;
 }
 
 /**
- * Lista todos los clientes (con filtro opcional de estado).
+ * Activa o inactiva un cliente.
+ * Un cliente inactivo solo puede cambiar a activo, y viceversa.
+ *
+ * @param {string} id          - UUID del cliente
+ * @param {string} nuevoEstado - 'Activo' o 'Inactivo'
+ * @param {object} usuario     - Payload JWT
+ * @returns {Promise<Cliente>}
  */
-async function listarClientes(estado) {
-  const where = {};
-  if (estado) where.estado = estado;
-  return Cliente.findAll({ where, order: [['nombre', 'ASC']] });
-}
-
-// ── Helper privado ──────────────────────────────────────────────────────────
-async function _auditoria(usuarioId, accion, detalles) {
-  try {
-    await PistaAuditoria.create({ usuario_id: usuarioId, accion, detalles });
-  } catch (err) {
-    console.error(`⚠️ Auditoría [${accion}] falló:`, err.message);
+async function cambiarEstadoCliente(id, nuevoEstado, usuario) {
+  if (!['Activo', 'Inactivo'].includes(nuevoEstado)) {
+    throw crearError("El estado debe ser 'Activo' o 'Inactivo'", 400);
   }
+
+  const cliente = await obtenerClientePorId(id);
+
+  if (cliente.estado === nuevoEstado) {
+    throw crearError(
+      `El cliente ya se encuentra en estado "${nuevoEstado}"`,
+      400
+    );
+  }
+
+  const estadoAnterior = cliente.estado;
+  cliente.estado = nuevoEstado;
+  await cliente.save();
+
+  const accion = nuevoEstado === 'Inactivo' ? 'CLIENTE_INACTIVADO' : 'CLIENTE_ACTIVADO';
+
+  await registrarAuditoria({
+    usuarioId: usuario.id,
+    accion,
+    detalles: {
+      cliente_id:      cliente.id,
+      cedula:          cliente.cedula,
+      nombre:          cliente.nombre,
+      estado_anterior: estadoAnterior,
+      estado_nuevo:    nuevoEstado
+    }
+  });
+
+  return cliente;
 }
 
-module.exports = { crearCliente, buscarClientes, obtenerClientePorId, actualizarCliente, listarClientes };
+module.exports = {
+  registrarCliente,
+  listarClientes,
+  obtenerClientePorId,
+  obtenerClientePorCedula,
+  actualizarCliente,
+  cambiarEstadoCliente
+};

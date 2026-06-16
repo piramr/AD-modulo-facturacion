@@ -1,18 +1,11 @@
 // src/models/pistaAuditoria.model.js
 //
-// Tabla local de auditoría. Cada acción importante en Facturación
-// (crear factura, anular factura, etc.) genera un registro aquí.
+// Tabla de auditoría local: registra todas las acciones importantes
+// sobre clientes (crear, editar, activar, inactivar).
 //
-// Campos:
-//   - usuario_id: UUID del usuario (viene del payload del JWT de Seguridad)
-//   - accion: texto descriptivo ('FACTURA_CREADA', 'FACTURA_ANULADA', etc.)
-//   - detalles: JSONB — Postgres permite guardar un objeto JSON completo.
-//     Útil para registrar qué cambió exactamente (ej: estado anterior/nuevo,
-//     número de factura, monto total, etc.)
-//
-// Nota: esta tabla está en la misma BD de Facturación, no en Seguridad.
-// Si el módulo de Seguridad también quiere registrar estos eventos vía gRPC,
-// lo harán en su propia BD. Nosotros guardamos la nuestra copia local.
+// IMPORTANTE: Esta tabla pertenece a la BD compartida del proyecto.
+// El módulo de Facturación también tiene su propia tabla pistas_auditoria
+// para los eventos de facturación. Ambas conviven en la misma BD.
 
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
@@ -36,16 +29,16 @@ const PistaAuditoria = sequelize.define('PistaAuditoria', {
   accion: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    comment: 'Ej: FACTURA_CREADA, FACTURA_ANULADA, FACTURA_PAGADA'
+    comment: 'Ej: CLIENTE_CREADO, CLIENTE_ACTUALIZADO, CLIENTE_INACTIVADO'
   },
   detalles: {
-    type: DataTypes.JSONB, // solo disponible en Postgres
+    type: DataTypes.JSONB,
     allowNull: true,
-    comment: 'JSON con información adicional del evento (número factura, total, etc.)'
+    comment: 'JSON con información adicional del evento'
   }
 }, {
   tableName: 'pistas_auditoria',
-  timestamps: false // la fecha la manejamos con fecha_hora
+  timestamps: false
 });
 
 module.exports = PistaAuditoria;
