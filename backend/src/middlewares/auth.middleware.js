@@ -1,21 +1,7 @@
-// src/middlewares/auth.middleware.js
-//
-// Verifica el JWT emitido por el módulo de Seguridad (Django).
-// El payload esperado es: { id: "uuid", nombre: "...", rol: "...", ... }
-//
-// ⚠️ Confirmar campos exactos del payload con el equipo de Seguridad.
-
 const jwt = require('jsonwebtoken');
 
-/**
- * Decodifica y verifica un token JWT.
- * @param {string} authHeader - Valor del header Authorization ("Bearer <token>")
- * @returns {object} Payload del token
- */
 function decodificarToken(authHeader) {
-  if (!authHeader) {
-    throw new Error('No se proporcionó un token de autenticación');
-  }
+  if (!authHeader) throw new Error('No se proporcionó un token de autenticación');
 
   const partes = authHeader.split(' ');
   if (partes.length !== 2 || partes[0] !== 'Bearer') {
@@ -27,10 +13,6 @@ function decodificarToken(authHeader) {
   });
 }
 
-/**
- * Middleware Express: verifica el JWT y adjunta el usuario a req.usuario.
- * Retorna 401 si el token es inválido o ha expirado.
- */
 function verificarToken(req, res, next) {
   try {
     req.usuario = decodificarToken(req.headers['authorization']);
@@ -44,10 +26,14 @@ function verificarToken(req, res, next) {
   }
 }
 
-/**
- * Middleware de roles: verifica que el usuario tenga al menos uno de los roles permitidos.
- * @param {string[]} rolesPermitidos
- */
+function obtenerUsuarioDesdeToken(authHeader) {
+  try {
+    return decodificarToken(authHeader);
+  } catch {
+    return null;
+  }
+}
+
 function verificarRol(rolesPermitidos = []) {
   return (req, res, next) => {
     if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
@@ -56,8 +42,7 @@ function verificarRol(rolesPermitidos = []) {
         mensaje: 'No tiene permisos suficientes para esta acción'
       });
     }
-    next();
-  };
+  }
 }
 
-module.exports = { verificarToken, verificarRol, decodificarToken };
+module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken };
