@@ -12,7 +12,7 @@ require('./src/models/pistaAuditoria.model');
 // Registrar modelo de Clientes SIN sincronizarlo (lo gestiona el otro módulo)
 require('./src/models/cliente.model');
 
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3001;
 
 async function iniciar() {
   await probarConexion();

@@ -1,7 +1,9 @@
 // src/app.js
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const authController = require('./controllers/authController');
 const { ApolloServer } = require('apollo-server-express');
 
 const schema = require('./graphql/schema');
@@ -12,6 +14,7 @@ const { verificarApiKey } = require('./middlewares/apiKey.middleware');
 // Definir relación Factura ↔ Cliente (misma BD)
 const Factura = require('./models/factura.model');
 const Cliente = require('./models/cliente.model');
+const { status } = require('@grpc/grpc-js');
 Factura.belongsTo(Cliente, { foreignKey: 'cliente_id', as: 'cliente' });
 Cliente.hasMany(Factura, { foreignKey: 'cliente_id', as: 'facturas' });
 
@@ -25,6 +28,10 @@ async function crearApp() {
   app.get('/health', (_, res) => {
     res.status(200).json({ status: 'ok', servicio: 'modulo-facturacion' });
   });
+
+  // Obtener test token de 24h
+  app.post('/auth/test-token', authController.getTestToken);
+  app.use('/graphl/docs', express.static(path.join(__dirname, '../public')));
 
   // ── REST: webhook que Inventario llama con API-Key ───────────────────────
   app.post('/api/inventario/webhooks/producto-actualizado', verificarApiKey, (req, res) => {
