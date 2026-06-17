@@ -31,7 +31,7 @@ async function crearApp() {
 
   // Obtener test token de 24h
   app.post('/auth/test-token', authController.getTestToken);
-  app.use('/graphl/docs', express.static(path.join(__dirname, '../public')));
+  app.use('/docs', express.static(path.join(__dirname, '../public')));
 
   // ── REST: webhook que Inventario llama con API-Key ───────────────────────
   app.post('/api/inventario/webhooks/producto-actualizado', verificarApiKey, (req, res) => {
