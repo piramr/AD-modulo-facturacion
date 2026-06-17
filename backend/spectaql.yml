@@ -1,0 +1,13 @@
+spectaql:
+  displayAllServers: true
+
+introspection:
+  url: http://localhost:3003/graphql
+
+info:
+  title: API Facturación GraphQL
+  description: Documentación de la API
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:3003/graphql
