@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Facturación GraphQL</title>
+    <title>API de Facturación y Clientes</title>
     <link rel="stylesheet" href="stylesheets/spectaql.min.css" />
     <script src="javascripts/spectaql.min.js"></script>
   </head>
@@ -33,12 +33,11 @@
                   <a href="#group-Operations-Queries">Queries</a>
                 </h5>
                 <ul class="nav-group-section-items">
-                  <li><a href="#query-catalogoProductos">catalogoProductos</a></li>
                   <li><a href="#query-cliente">cliente</a></li>
                   <li><a href="#query-clientes">clientes</a></li>
                   <li><a href="#query-factura">factura</a></li>
                   <li><a href="#query-facturas">facturas</a></li>
-                  <li><a href="#query-pistasAuditoria">pistasAuditoria</a></li>
+                  <li><a href="#query-productos">productos</a></li>
                 </ul>
               </li>
               <li class="nav-group-section">
@@ -63,16 +62,21 @@
               <li><a href="#definition-Boolean">Boolean</a></li>
               <li><a href="#definition-Cliente">Cliente</a></li>
               <li><a href="#definition-ClienteResumen">ClienteResumen</a></li>
+              <li><a href="#definition-Clientes">Clientes</a></li>
+              <li><a href="#definition-ClientesFilter">ClientesFilter</a></li>
               <li><a href="#definition-CrearClienteInput">CrearClienteInput</a></li>
               <li><a href="#definition-CrearFacturaInput">CrearFacturaInput</a></li>
+              <li><a href="#definition-DateTime">DateTime</a></li>
               <li><a href="#definition-DetalleFactura">DetalleFactura</a></li>
               <li><a href="#definition-DetalleInput">DetalleInput</a></li>
               <li><a href="#definition-Factura">Factura</a></li>
+              <li><a href="#definition-Facturas">Facturas</a></li>
+              <li><a href="#definition-FacturasFilter">FacturasFilter</a></li>
               <li><a href="#definition-Float">Float</a></li>
               <li><a href="#definition-ID">ID</a></li>
               <li><a href="#definition-Int">Int</a></li>
-              <li><a href="#definition-PistaAuditoria">PistaAuditoria</a></li>
-              <li><a href="#definition-ProductoCatalogo">ProductoCatalogo</a></li>
+              <li><a href="#definition-PageInfo">PageInfo</a></li>
+              <li><a href="#definition-Producto">Producto</a></li>
               <li><a href="#definition-String">String</a></li>
             </ul>
           </div>
@@ -86,17 +90,32 @@
           </button>
         </div>
         <article id="content">
-          <h1 class="doc-heading">API Facturación GraphQL</h1>
+          <h1 class="doc-heading">API de Facturación y Clientes</h1>
           <div id="introduction" data-traverse-target="introduction">
             <div id="welcome" class="doc-row">
               <div class="doc-copy">
-                <p>Documentación de la API</p>
+                <p>Documentación oficial de la API. Antes de comenzar a realizar pruebas, necesitas configurar tu entorno de desarrollo.</p>
+                <hr>
+                <h3 id="autenticación-de-pruebas">Autenticación de Pruebas</h3>
+                <p>Para consumir los endpoints protegidos, puedes generar un JSON Web Token (JWT) temporal haciendo una petición <code>GET</code> al siguiente servicio de identidad:</p>
+                <ul>
+                  <li><strong>Endpoint de Token:</strong> <code>https://ad-modulo-facturacion.onrender.com/auth/test-token</code></li>
+                  <li><strong>Ejemplo de uso:</strong></li>
+                </ul>
+                <pre><code class="hljs language-bash">curl -X GET [https://ad-modulo-facturacion.onrender.com/auth/test-token](https://ad-modulo-facturacion.onrender.com/auth/test-token) \
+  -H <span class="hljs-string">&quot;Content-Type: application/json&quot;</span>
+</code></pre>
+                <hr>
+                <h3 id="entorno-de-pruebas">Entorno de Pruebas</h3>
+                <p>Si prefieres armar tus consultas visualmente y probar los resolvers en tiempo real, puedes acceder al entorno interactivo de Apollo Server:</p>
+                <p><a href="https://ad-modulo-facturacion.onrender.com/graphql">Abrir Apollo Server Sandbox</a></p>
+                <p><em>Nota: Recuerda añadir el token generado en las cabeceras de Apollo Sandbox como <code>{&quot;Authorization&quot;: &quot;Bearer TU_TOKEN&quot;}</code>.</em></p>
               </div>
               <div class="doc-examples">
                 <div class="example-section welcome-api-endpoints-section example-section-is-code">
                   <h5>API Endpoints</h5>
-                  <pre><code># Endpoint:
-http://localhost:3003/graphql
+                  <pre><code># Servidor de Producción / Staging (Render):
+https://ad-modulo-facturacion.onrender.com/graphql
 </code></pre>
                 </div>
                 <div class="example-section welcome-version-section">
@@ -107,61 +126,7 @@ http://localhost:3003/graphql
             </div>
           </div>
           <h1 id="group-Operations-Queries" class="group-heading" data-traverse-target="group-Operations-Queries">Queries</h1>
-          <section id="query-catalogoProductos" class="operation operation-query" data-traverse-target="query-catalogoProductos">
-            <h2 class="operation-heading ">
-              <code>catalogoProductos</code>
-            </h2>
-            <div class="doc-row">
-              <div class="doc-copy">
-                <div class="operation-response doc-copy-section">
-                  <h5>Response</h5>
-                  <p> Returns <a href="#definition-ProductoCatalogo"><code>[ProductoCatalogo!]!</code></a>
-                  </p>
-                </div>
-              </div>
-              <div class="doc-examples">
-                <h4 class="example-heading">Example</h4>
-                <div class="example-section example-section-is-code operation-query-example">
-                  <h5>Query</h5>
-                  <pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> catalogoProductos <span class="hljs-tag">{
-  <span class="hljs-symbol">catalogoProductos <span class="hljs-tag">{
-    <span class="hljs-symbol">codigo</span>
-    <span class="hljs-symbol">nombre</span>
-    <span class="hljs-symbol">descripcion</span>
-    <span class="hljs-symbol">pvp</span>
-    <span class="hljs-symbol">grabaIva</span>
-    <span class="hljs-symbol">porcentajeIvaAplicado</span>
-    <span class="hljs-symbol">stockActual</span>
-  }</span></span>
-}</span></span>
-</code></pre>
-                </div>
-                <div class="example-section example-section-is-code operation-response-example">
-                  <h5>Response</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"catalogoProductos"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-      <span class="hljs-punctuation">{</span>
-        <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"descripcion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"porcentajeIvaAplicado"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"stockActual"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span>
-      <span class="hljs-punctuation">}</span>
-    <span class="hljs-punctuation">]</span>
-  <span class="hljs-punctuation">}</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-                </div>
-              </div>
-            </div>
-          </section>
           <section id="query-cliente" class="operation operation-query" data-traverse-target="query-cliente">
-            <div class="operation-group-name">
-              <a href="#group-Operations-Queries">Queries</a>
-            </div>
             <h2 class="operation-heading ">
               <code>cliente</code>
             </h2>
@@ -225,16 +190,16 @@ http://localhost:3003/graphql
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
@@ -254,7 +219,7 @@ http://localhost:3003/graphql
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
-                  <p> Returns <a href="#definition-Cliente"><code>[Cliente!]!</code></a>
+                  <p> Returns a <a href="#definition-Clientes"><code>Clientes!</code></a>
                   </p>
                 </div>
                 <div class="operation-arguments doc-copy-section">
@@ -269,28 +234,21 @@ http://localhost:3003/graphql
                     <tbody>
                       <tr>
                         <td>
-                          <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>filter</code></span> - <span class="property-type"><a href="#definition-ClientesFilter"><code>ClientesFilter</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
                         <td>
-                          <span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>page</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
                         <td>
-                          <span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
-                        </td>
-                        <td>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>limit</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -304,61 +262,40 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code operation-query-example">
                   <h5>Query</h5>
                   <pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> clientes<span class="hljs-tag">(
-  <span class="hljs-code">$estado</span>:<span class="hljs-type"> String,</span>
-  <span class="hljs-code">$cedula</span>:<span class="hljs-type"> String,</span>
-  <span class="hljs-code">$nombre</span>:<span class="hljs-type"> String,</span>
-  <span class="hljs-code">$tipoCliente</span>:<span class="hljs-type"> String
+  <span class="hljs-code">$filter</span>:<span class="hljs-type"> ClientesFilter,</span>
+  <span class="hljs-code">$page</span>:<span class="hljs-type"> Int,</span>
+  <span class="hljs-code">$limit</span>:<span class="hljs-type"> Int
 </span>)</span> <span class="hljs-tag">{
   <span class="hljs-symbol">clientes<span class="hljs-tag">(
-    estado: <span class="hljs-code">$estado</span>,
-    cedula: <span class="hljs-code">$cedula</span>,
-    nombre: <span class="hljs-code">$nombre</span>,
-    tipoCliente: <span class="hljs-code">$tipoCliente</span>
+    filter: <span class="hljs-code">$filter</span>,
+    page: <span class="hljs-code">$page</span>,
+    limit: <span class="hljs-code">$limit</span>
   )</span> <span class="hljs-tag">{
-    <span class="hljs-symbol">id</span>
-    <span class="hljs-symbol">cedula</span>
-    <span class="hljs-symbol">nombre</span>
-    <span class="hljs-symbol">fechaNacimiento</span>
-    <span class="hljs-symbol">tipoCliente</span>
-    <span class="hljs-symbol">direccion</span>
-    <span class="hljs-symbol">telefono</span>
-    <span class="hljs-symbol">email</span>
-    <span class="hljs-symbol">estado</span>
-    <span class="hljs-symbol">createdAt</span>
-    <span class="hljs-symbol">updatedAt</span>
+    <span class="hljs-symbol">totalCount</span>
+    <span class="hljs-symbol">pageInfo <span class="hljs-tag">{
+      <span class="hljs-type">...PageInfoFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">items <span class="hljs-tag">{
+      <span class="hljs-type">...ClienteFragment</span>
+    }</span></span>
   }</span></span>
 }</span></span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
-<span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClientesFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
                   <h5>Response</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"clientes"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-      <span class="hljs-punctuation">{</span>
-        <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
-      <span class="hljs-punctuation">}</span>
-    <span class="hljs-punctuation">]</span>
+    <span class="hljs-attr">"clientes"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Cliente</span><span class="hljs-punctuation">]</span>
+    <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -438,14 +375,14 @@ http://localhost:3003/graphql
     <span class="hljs-attr">"factura"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
@@ -466,7 +403,7 @@ http://localhost:3003/graphql
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
-                  <p> Returns <a href="#definition-Factura"><code>[Factura!]!</code></a>
+                  <p> Returns a <a href="#definition-Facturas"><code>Facturas!</code></a>
                   </p>
                 </div>
                 <div class="operation-arguments doc-copy-section">
@@ -481,21 +418,21 @@ http://localhost:3003/graphql
                     <tbody>
                       <tr>
                         <td>
-                          <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>filter</code></span> - <span class="property-type"><a href="#definition-FacturasFilter"><code>FacturasFilter</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
                         <td>
-                          <span class="property-name"><code>clienteId</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>page</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
                         <td>
-                          <span class="property-name"><code>tipoPago</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                          <span class="property-name"><code>limit</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -509,29 +446,21 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code operation-query-example">
                   <h5>Query</h5>
                   <pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> facturas<span class="hljs-tag">(
-  <span class="hljs-code">$estado</span>:<span class="hljs-type"> String,</span>
-  <span class="hljs-code">$clienteId</span>:<span class="hljs-type"> String,</span>
-  <span class="hljs-code">$tipoPago</span>:<span class="hljs-type"> String
+  <span class="hljs-code">$filter</span>:<span class="hljs-type"> FacturasFilter,</span>
+  <span class="hljs-code">$page</span>:<span class="hljs-type"> Int,</span>
+  <span class="hljs-code">$limit</span>:<span class="hljs-type"> Int
 </span>)</span> <span class="hljs-tag">{
   <span class="hljs-symbol">facturas<span class="hljs-tag">(
-    estado: <span class="hljs-code">$estado</span>,
-    clienteId: <span class="hljs-code">$clienteId</span>,
-    tipoPago: <span class="hljs-code">$tipoPago</span>
+    filter: <span class="hljs-code">$filter</span>,
+    page: <span class="hljs-code">$page</span>,
+    limit: <span class="hljs-code">$limit</span>
   )</span> <span class="hljs-tag">{
-    <span class="hljs-symbol">id</span>
-    <span class="hljs-symbol">numeroFactura</span>
-    <span class="hljs-symbol">clienteId</span>
-    <span class="hljs-symbol">cliente <span class="hljs-tag">{
-      <span class="hljs-type">...ClienteResumenFragment</span>
+    <span class="hljs-symbol">totalCount</span>
+    <span class="hljs-symbol">pageInfo <span class="hljs-tag">{
+      <span class="hljs-type">...PageInfoFragment</span>
     }</span></span>
-    <span class="hljs-symbol">tipoPago</span>
-    <span class="hljs-symbol">fechaEmision</span>
-    <span class="hljs-symbol">subtotal</span>
-    <span class="hljs-symbol">totalIva</span>
-    <span class="hljs-symbol">total</span>
-    <span class="hljs-symbol">estado</span>
-    <span class="hljs-symbol">detalles <span class="hljs-tag">{
-      <span class="hljs-type">...DetalleFacturaFragment</span>
+    <span class="hljs-symbol">items <span class="hljs-tag">{
+      <span class="hljs-type">...FacturaFragment</span>
     }</span></span>
   }</span></span>
 }</span></span>
@@ -539,32 +468,18 @@ http://localhost:3003/graphql
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
-<span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">FacturasFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
                   <h5>Response</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"facturas"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-      <span class="hljs-punctuation">{</span>
-        <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
-      <span class="hljs-punctuation">}</span>
-    <span class="hljs-punctuation">]</span>
+    <span class="hljs-attr">"facturas"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Factura</span><span class="hljs-punctuation">]</span>
+    <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -572,72 +487,51 @@ http://localhost:3003/graphql
               </div>
             </div>
           </section>
-          <section id="query-pistasAuditoria" class="operation operation-query" data-traverse-target="query-pistasAuditoria">
+          <section id="query-productos" class="operation operation-query" data-traverse-target="query-productos">
             <div class="operation-group-name">
               <a href="#group-Operations-Queries">Queries</a>
             </div>
             <h2 class="operation-heading ">
-              <code>pistasAuditoria</code>
+              <code>productos</code>
             </h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
-                  <p> Returns <a href="#definition-PistaAuditoria"><code>[PistaAuditoria!]!</code></a>
+                  <p> Returns <a href="#definition-Producto"><code>[Producto!]!</code></a>
                   </p>
-                </div>
-                <div class="operation-arguments doc-copy-section">
-                  <h5>Arguments</h5>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <span class="property-name"><code>accion</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
-                        </td>
-                        <td>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
               </div>
               <div class="doc-examples">
                 <h4 class="example-heading">Example</h4>
                 <div class="example-section example-section-is-code operation-query-example">
                   <h5>Query</h5>
-                  <pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> pistasAuditoria<span class="hljs-tag">(<span class="hljs-code">$accion</span>:<span class="hljs-type"> String)</span> {
-  pistasAuditoria(accion: <span class="hljs-code">$accion</span>)</span> <span class="hljs-tag">{
-    <span class="hljs-symbol">id</span>
-    <span class="hljs-symbol">usuarioId</span>
-    <span class="hljs-symbol">fechaHora</span>
-    <span class="hljs-symbol">accion</span>
-    <span class="hljs-symbol">detalles</span>
+                  <pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> productos <span class="hljs-tag">{
+  <span class="hljs-symbol">productos <span class="hljs-tag">{
+    <span class="hljs-symbol">codigo</span>
+    <span class="hljs-symbol">nombre</span>
+    <span class="hljs-symbol">descripcion</span>
+    <span class="hljs-symbol">grabaIva</span>
+    <span class="hljs-symbol">costo</span>
+    <span class="hljs-symbol">pvp</span>
+    <span class="hljs-symbol">estado</span>
   }</span></span>
-}
-</code></pre>
-                </div>
-                <div class="example-section example-section-is-code operation-variables-example">
-                  <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"accion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">}</span>
+}</span></span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
                   <h5>Response</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"pistasAuditoria"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-attr">"productos"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
       <span class="hljs-punctuation">{</span>
-        <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"usuarioId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"fechaHora"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"accion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+        <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"descripcion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
       <span class="hljs-punctuation">}</span>
     <span class="hljs-punctuation">]</span>
   <span class="hljs-punctuation">}</span>
@@ -727,14 +621,14 @@ http://localhost:3003/graphql
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
@@ -818,10 +712,7 @@ http://localhost:3003/graphql
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
-<span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
@@ -831,14 +722,14 @@ http://localhost:3003/graphql
     <span class="hljs-attr">"actualizarEstadoFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
@@ -914,17 +805,17 @@ http://localhost:3003/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"crearCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
@@ -1008,11 +899,11 @@ http://localhost:3003/graphql
       <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
@@ -1088,17 +979,17 @@ http://localhost:3003/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"inactivarCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
+      <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
 <span class="hljs-punctuation">}</span>
@@ -1186,14 +1077,14 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1213,6 +1104,11 @@ http://localhost:3003/graphql
                 </div>
               </div>
               <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-json"><span class="hljs-literal"><span class="hljs-keyword">true</span></span>
+</code></pre>
+                </div>
               </div>
             </div>
           </section>
@@ -1288,13 +1184,13 @@ http://localhost:3003/graphql
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>createdAt</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>createdAt</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>updatedAt</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>updatedAt</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -1307,17 +1203,17 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1376,7 +1272,130 @@ http://localhost:3003/graphql
   <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="definition-Clientes" class="definition definition-object" data-traverse-target="definition-Clientes">
+            <div class="definition-group-name">
+              <a href="#group-Types">Types</a>
+            </div>
+            <h2 class="definition-heading">Clientes</h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="definition-properties doc-copy-section">
+                  <h5>Fields</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Field Name</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>totalCount</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>pageInfo</code></span> - <span class="property-type"><a href="#definition-PageInfo"><code>PageInfo!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>items</code></span> - <span class="property-type"><a href="#definition-Cliente"><code>[Cliente!]!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Cliente</span><span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="definition-ClientesFilter" class="definition definition-input-object" data-traverse-target="definition-ClientesFilter">
+            <div class="definition-group-name">
+              <a href="#group-Types">Types</a>
+            </div>
+            <h2 class="definition-heading">ClientesFilter</h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="definition-properties doc-copy-section">
+                  <h5>Fields</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Input Field</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>search</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"search"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1467,11 +1486,11 @@ http://localhost:3003/graphql
   <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1525,9 +1544,26 @@ http://localhost:3003/graphql
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleInput</span><span class="hljs-punctuation">]</span>
 <span class="hljs-punctuation">}</span>
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="definition-DateTime" class="definition definition-scalar" data-traverse-target="definition-DateTime">
+            <div class="definition-group-name">
+              <a href="#group-Types">Types</a>
+            </div>
+            <h2 class="definition-heading">DateTime</h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+              </div>
+              <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"2007-12-03T10:15:30Z"</span>
 </code></pre>
                 </div>
               </div>
@@ -1601,12 +1637,12 @@ http://localhost:3003/graphql
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"productoCodigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"productoNombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"productoCodigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"productoNombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cantidad"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"precioUnitario"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"precioUnitario"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"subtotalLinea"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span>
+  <span class="hljs-attr">"subtotalLinea"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1708,7 +1744,7 @@ http://localhost:3003/graphql
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>fechaEmision</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>fechaEmision</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime!</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -1751,17 +1787,132 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="definition-Facturas" class="definition definition-object" data-traverse-target="definition-Facturas">
+            <div class="definition-group-name">
+              <a href="#group-Types">Types</a>
+            </div>
+            <h2 class="definition-heading">Facturas</h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="definition-properties doc-copy-section">
+                  <h5>Fields</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Field Name</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>totalCount</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>pageInfo</code></span> - <span class="property-type"><a href="#definition-PageInfo"><code>PageInfo!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>items</code></span> - <span class="property-type"><a href="#definition-Factura"><code>[Factura!]!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Factura</span><span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section id="definition-FacturasFilter" class="definition definition-input-object" data-traverse-target="definition-FacturasFilter">
+            <div class="definition-group-name">
+              <a href="#group-Types">Types</a>
+            </div>
+            <h2 class="definition-heading">FacturasFilter</h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="definition-properties doc-copy-section">
+                  <h5>Fields</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Input Field</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>clienteId</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>tipoPago</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="property-name"><code>search</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="doc-examples">
+                <div class="example-section example-section-is-code">
+                  <h5>Example</h5>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"search"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1783,7 +1934,7 @@ http://localhost:3003/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-number">987.65</span>
+                  <pre><code class="hljs language-json"><span class="hljs-number">123.45</span>
 </code></pre>
                 </div>
               </div>
@@ -1804,7 +1955,7 @@ http://localhost:3003/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"4"</span>
+                  <pre><code class="hljs language-json"><span class="hljs-number">4</span>
 </code></pre>
                 </div>
               </div>
@@ -1825,17 +1976,17 @@ http://localhost:3003/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-number">123</span>
+                  <pre><code class="hljs language-json"><span class="hljs-number">987</span>
 </code></pre>
                 </div>
               </div>
             </div>
           </section>
-          <section id="definition-PistaAuditoria" class="definition definition-object" data-traverse-target="definition-PistaAuditoria">
+          <section id="definition-PageInfo" class="definition definition-object" data-traverse-target="definition-PageInfo">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">PistaAuditoria</h2>
+            <h2 class="definition-heading">PageInfo</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
@@ -1849,31 +2000,25 @@ http://localhost:3003/graphql
                     </thead>
                     <tbody>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>hasNextPage</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>usuarioId</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>hasPreviousPage</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>fechaHora</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>currentPage</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>accion</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
-                        </td>
-                        <td>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td data-property-name=""><span class="property-name"><code>detalles</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>totalPages</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -1886,22 +2031,21 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"usuarioId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"fechaHora"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"accion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"hasNextPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"hasPreviousPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"currentPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"totalPages"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
               </div>
             </div>
           </section>
-          <section id="definition-ProductoCatalogo" class="definition definition-object" data-traverse-target="definition-ProductoCatalogo">
+          <section id="definition-Producto" class="definition definition-object" data-traverse-target="definition-Producto">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">ProductoCatalogo</h2>
+            <h2 class="definition-heading">Producto</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
@@ -1933,25 +2077,25 @@ http://localhost:3003/graphql
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>pvp</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
-                        </td>
-                        <td>
-                        </td>
-                      </tr>
-                      <tr>
                         <td data-property-name=""><span class="property-name"><code>grabaIva</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>porcentajeIvaAplicado</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>costo</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
                         <td>
                         </td>
                       </tr>
                       <tr>
-                        <td data-property-name=""><span class="property-name"><code>stockActual</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
+                        <td data-property-name=""><span class="property-name"><code>pvp</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td data-property-name=""><span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -1964,13 +2108,13 @@ http://localhost:3003/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"descripcion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"porcentajeIvaAplicado"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"stockActual"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span>
+  <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1992,7 +2136,7 @@ http://localhost:3003/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"abc123"</span>
+                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"xyz789"</span>
 </code></pre>
                 </div>
               </div>

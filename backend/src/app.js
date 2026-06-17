@@ -30,7 +30,7 @@ async function crearApp() {
   });
 
   // Obtener test token de 24h
-  app.post('/auth/test-token', authController.getTestToken);
+  app.get('/auth/test-token', authController.getTestToken);
   app.use('/docs', express.static(path.join(__dirname, '../public')));
 
   // ── REST: webhook que Inventario llama con API-Key ───────────────────────
