@@ -34,26 +34,52 @@ const resolvers = {
   Query: {
     clientes: async (_, args, ctx) => {
       requiereAuth(ctx);
-      
-      const resultado = await clienteService.listarClientes({
-        estado: args.estado,
-        cedula: args.cedula,
-        nombre: args.nombre,
-        tipo_cliente: args.tipoCliente
+      const MAX_LIMIT = 1_000; // El tope máximo permitido para devolver todos los registros
+      const {filter = {}} = args;
+
+      const totalRegistros = await clienteService.contarClientesConFiltro({
+        estado: filter.estado,
+        cedula: filter.cedula,
+        nombre: filter.nombre,
+        tipo_cliente: filter.tipoCliente,
+        search: filter.search
       });
 
-      const lista = Array.isArray(resultado) ? resultado : (resultado?.rows || []);
+      const limiteSolicitado = args.limit || totalRegistros;
+      
+      if (limiteSolicitado > MAX_LIMIT && totalRegistros > MAX_LIMIT) {
+        const error = new Error(`(${totalRegistros} registros) Demasiado grande, use paginación con limit menor o igual a ${MAX_LIMIT}`);
+        error.code = 'REQUEST_ENTITY_TOO_LARGE';
+        error.status = 413;
+        throw error;
+      }
 
-      return lista
-        .map(mapearCliente)
-        .filter(cliente => cliente !== null);
-    },
+      const limitePorPagina = args.limit ? parseInt(args.limit, 10) : 10;
+      const paginaActual = Math.max(1, args.page || 1);
+      const offset = (paginaActual - 1) * limitePorPagina;
 
-    // Buscar un único cliente por ID
-    cliente: async (_, { id }, ctx) => {
-      requiereAuth(ctx);
-      const c = await clienteService.obtenerClientePorId(id);
-      return mapearCliente(c);
+      const resultado = await clienteService.listarClientes({
+        estado: filter.estado,
+        cedula: filter.cedula,
+        nombre: filter.nombre,
+        tipo_cliente: filter.tipoCliente,
+        search: filter.search,
+        limit: limitePorPagina,
+        offset: offset
+      });
+
+      const totalPaginas = Math.ceil(totalRegistros / limitePorPagina);
+
+      return {
+        totalCount: totalRegistros,
+        pageInfo: {
+          hasNextPage: paginaActual < totalPaginas,
+          hasPreviousPage: paginaActual > 1,
+          currentPage: paginaActual,
+          totalPages: totalPaginas
+        },
+        items: (resultado?.rows || []).map(mapearCliente)
+      };
     }
   },
 

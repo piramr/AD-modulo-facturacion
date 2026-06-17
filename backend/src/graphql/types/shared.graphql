@@ -1,0 +1,7 @@
+# Tipos y metadatos reutilizables por cualquier módulo
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  currentPage: Int!
+  totalPages: Int!
+}

@@ -4,9 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { ApolloServer } = require('apollo-server-express');
 
-const typeDefs = require('./graphql/typeDefs');
-const facturaResolvers = require('./graphql/resolvers/factura.resolver');
-const clienteResolvers = require('./graphql/resolvers/cliente.resolver');
+const schema = require('./graphql/schema');
 
 const { obtenerUsuarioDesdeToken } = require('./middlewares/auth.middleware');
 const { verificarApiKey } = require('./middlewares/apiKey.middleware');
@@ -58,19 +56,7 @@ async function crearApp() {
   // ── Apollo Server (GraphQL) ──────────────────────────────────────────────
   // 2. En la configuración de Apollo, fusiónalos así:
 const apolloServer = new ApolloServer({
-  typeDefs,
-  resolvers: {
-    Query: {
-      ...facturaResolvers.Query,
-      ...clienteResolvers.Query,
-    },
-    Mutation: {
-      ...facturaResolvers.Mutation,
-      ...clienteResolvers.Mutation,
-    },
-    ...facturaResolvers.Factura ? { Factura: facturaResolvers.Factura } : {},
-    ...clienteResolvers.Cliente ? { Cliente: clienteResolvers.Cliente } : {},
-  },
+  schema,
   context: ({ req }) => {
     const authHeader = req.headers.authorization;
     return {

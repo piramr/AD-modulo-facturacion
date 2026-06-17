@@ -8,6 +8,9 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@graphql-tools/load-files": "^7.0.1",
+    "@graphql-tools/merge": "^9.1.9",
+    "@graphql-tools/schema": "^10.0.33",
     "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "^0.7.13",
     "apollo-server-express": "^3.13.0",

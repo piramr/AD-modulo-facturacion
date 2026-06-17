@@ -1,4 +1,3 @@
-// src/graphql/resolvers/factura.resolver.js
 const facturaService = require('../../services/factura.service');
 const inventarioService = require('../../services/inventario.service');
 const PistaAuditoria = require('../../models/pistaAuditoria.model');
@@ -60,38 +59,6 @@ const resolvers = {
       const f = await facturaService.obtenerFacturaPorId(id);
       return mapearFactura(f);
     },
-
-    // Query que consulta Inventario en tiempo real para mostrar el catálogo
-    catalogoProductos: async (_, __, ctx) => {
-      requiereAuth(ctx);
-      const productos = await inventarioService.obtenerCatalogo(ctx.token);
-      return productos.map((p) => ({
-        codigo: p.codigo,
-        nombre: p.nombre,
-        descripcion: p.descripcion,
-        pvp: p.pvp,
-        grabaIva: p.graba_iva,
-        porcentajeIvaAplicado: p.porcentaje_iva_aplicado,
-        stockActual: p.stock_actual
-      }));
-    },
-
-    pistasAuditoria: async (_, { accion }, ctx) => {
-      requiereAuth(ctx);
-      const where = accion ? { accion } : {};
-      const pistas = await PistaAuditoria.findAll({
-        where,
-        order: [['fecha_hora', 'DESC']],
-        limit: 100
-      });
-      return pistas.map((p) => ({
-        id: p.id,
-        usuarioId: p.usuario_id,
-        fechaHora: p.fecha_hora,
-        accion: p.accion,
-        detalles: p.detalles ? JSON.stringify(p.detalles) : null
-      }));
-    }
   },
 
   Mutation: {

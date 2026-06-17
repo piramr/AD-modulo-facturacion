@@ -2,28 +2,46 @@ const { Op } = require('sequelize');
 const Cliente = require('../models/cliente.model');
 const PistaAuditoria = require('../models/pistaAuditoria.model');
 
-/**
- * HU1 & HU2: Listar clientes aplicando filtros opcionales (Búsqueda parcial en texto)
- */
-async function listarClientes(filtros = {}) {
+function construirWhere(filtros = {}) {
   const where = {};
 
+  // Filtros tradicionales
   if (filtros.estado) where.estado = filtros.estado;
   if (filtros.tipo_cliente) where.tipo_cliente = filtros.tipo_cliente;
 
-  // Búsqueda flexible por cédula (HU2 - CA1)
-  if (filtros.cedula) {
-    where.cedula = { [Op.like]: `%${filtros.cedula}%` };
+  // Filtros por campo (Búsqueda parcial)
+  if (filtros.cedula) where.cedula = { [Op.like]: `%${filtros.cedula}%` };
+  if (filtros.nombre) where.nombre = { [Op.iLike]: `%${filtros.nombre}%` };
+
+  // BÚSQUEDA MULTI-ATRIBUTO
+  if (filtros.search) {
+    const termino = `%${filtros.search}%`;
+    
+    where[Op.or] = [
+      { nombre: { [Op.iLike]: termino } },  // Coincide con nombre (Case-Insensitive)
+      { cedula: { [Op.like]: termino } },   // Coincide con cédula
+    ];
   }
 
-  // Búsqueda flexible por nombre (HU2 - CA1)
-  if (filtros.nombre) {
-    where.nombre = { [Op.iLike]: `%${filtros.nombre}%` }; // iLike es Case-Insensitive en PostgreSQL
-  }
+  return where;
+}
 
-  return Cliente.findAll({
+async function contarClientesConFiltro(filtros = {}) {
+  const where = construirWhere(filtros);
+  return Cliente.count({ where });
+}
+
+async function listarClientes(filtros = {}) {
+  const where = construirWhere(filtros);
+
+  const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
+  const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
+
+  return Cliente.findAndCountAll({
     where,
-    order: [['created_at', 'DESC']] // Alineado al nombre de columna exacto de tu SQL
+    limit,
+    offset,
+    order: [['created_at', 'DESC']]
   });
 }
 
@@ -119,6 +137,7 @@ async function actualizarEstadoCliente(id, nuevoEstado, usuarioDictante) {
 }
 
 module.exports = {
+  contarClientesConFiltro,
   listarClientes,
   obtenerClientePorId,
   crearCliente,

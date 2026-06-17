@@ -1,0 +1,48 @@
+scalar DateTime
+
+type DetalleFactura {
+  id: ID!
+  productoCodigo: String!
+  productoNombre: String!
+  cantidad: Int!
+  precioUnitario: Float!
+  grabaIva: Boolean!
+  subtotalLinea: Float!
+}
+
+type Factura {
+  id: ID!
+  numeroFactura: String!
+  clienteId: String!
+  cliente: ClienteResumen
+  tipoPago: String!
+  fechaEmision: DateTime!
+  subtotal: Float!
+  totalIva: Float!
+  total: Float!
+  estado: String!
+  detalles: [DetalleFactura!]!
+}
+
+input DetalleInput {
+  productoCodigo: String!
+  cantidad: Int!
+}
+
+input CrearFacturaInput {
+  clienteId: String!
+  tipoPago: String!
+  detalles: [DetalleInput!]!
+}
+
+# Módulo de Facturas
+type Query {
+  facturas(estado: String, clienteId: String, tipoPago: String): [Factura!]!
+  factura(id: ID!): Factura
+}
+
+# Operaciones de Facturas
+type Mutation {
+  crearFactura(input: CrearFacturaInput!): Factura!
+  actualizarEstadoFactura(id: ID!, estado: String!): Factura!
+}
