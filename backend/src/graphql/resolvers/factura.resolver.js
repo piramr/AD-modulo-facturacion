@@ -1,4 +1,3 @@
-// src/graphql/resolvers/factura.resolver.js
 const facturaService = require('../../services/factura.service');
 const inventarioService = require('../../services/inventario.service');
 const PistaAuditoria = require('../../models/pistaAuditoria.model');
@@ -47,12 +46,64 @@ const resolvers = {
   Query: {
     facturas: async (_, args, ctx) => {
       requiereAuth(ctx);
-      const lista = await facturaService.listarFacturas({
-        estado: args.estado,
-        cliente_id: args.clienteId,
-        tipo_pago: args.tipoPago
+      
+      const MAX_LIMIT = 1_000;
+      const { facturasFilter = {} } = args;
+
+      // 1. Conteo dinámico previo (Saber cuántos hay en tiempo real)
+      const totalRegistros = await facturaService.contarFacturasConFiltro({
+        estado: facturasFilter.estado,
+        cliente_id: facturasFilter.clienteId,
+        tipo_pago: facturasFilter.tipoPago,
+        search: facturasFilter.search
       });
-      return lista.map(mapearFactura);
+
+      // 2. Control dinámico de volumen (Tu regla 413)
+      const limiteSolicitado = args.limit || totalRegistros;
+      if (limiteSolicitado > MAX_LIMIT && totalRegistros > MAX_LIMIT) {
+        const error = new Error(`El volumen de datos solicitado (${totalRegistros} facturas encontradas) es demasiado grande. Use paginación con un 'limit' menor o igual a ${MAX_LIMIT}.`);
+        error.code = 'REQUEST_ENTITY_TOO_LARGE';
+        error.status = 413;
+        throw error;
+      }
+
+      const limitePorPagina = args.limit ? Math.max(1, parseInt(args.limit, 10)) : 10;
+
+      // Calcular cuántas páginas reales existirían con este límite
+      const totalPaginas = Math.ceil(totalRegistros / limitePorPagina) || 1;
+
+      let paginaActual = args.page ? parseInt(args.page, 10) : 1;
+      if (paginaActual > totalPaginas) {
+        paginaActual = totalPaginas;
+      }
+      if (paginaActual < 1) {
+        paginaActual = 1;
+      }
+
+      // 4. Calcular el offset real y seguro
+      const offset = (paginaActual - 1) * limitePorPagina;
+
+      // 5. Extraer los datos exactos sin riesgo de arrays vacíos indeseados
+      const resultado = await facturaService.listarFacturas({
+        estado: facturasFilter.estado,
+        cliente_id: facturasFilter.clienteId,
+        tipo_pago: facturasFilter.tipoPago,
+        search: facturasFilter.search,
+        limit: limitePorPagina,
+        offset: offset
+      });
+
+      // 6. Retorno consistente. 'currentPage' reflejará la página real a la que fue enviado
+      return {
+        totalCount: totalRegistros,
+        pageInfo: {
+          hasNextPage: paginaActual < totalPaginas,
+          hasPreviousPage: paginaActual > 1,
+          currentPage: paginaActual, // Si fue recalculada, el frontend se entera aquí
+          totalPages: totalPaginas
+        },
+        items: (resultado?.rows || []).map(mapearFactura)
+      };
     },
 
     factura: async (_, { id }, ctx) => {
@@ -60,38 +111,6 @@ const resolvers = {
       const f = await facturaService.obtenerFacturaPorId(id);
       return mapearFactura(f);
     },
-
-    // Query que consulta Inventario en tiempo real para mostrar el catálogo
-    catalogoProductos: async (_, __, ctx) => {
-      requiereAuth(ctx);
-      const productos = await inventarioService.obtenerCatalogo(ctx.token);
-      return productos.map((p) => ({
-        codigo: p.codigo,
-        nombre: p.nombre,
-        descripcion: p.descripcion,
-        pvp: p.pvp,
-        grabaIva: p.graba_iva,
-        porcentajeIvaAplicado: p.porcentaje_iva_aplicado,
-        stockActual: p.stock_actual
-      }));
-    },
-
-    pistasAuditoria: async (_, { accion }, ctx) => {
-      requiereAuth(ctx);
-      const where = accion ? { accion } : {};
-      const pistas = await PistaAuditoria.findAll({
-        where,
-        order: [['fecha_hora', 'DESC']],
-        limit: 100
-      });
-      return pistas.map((p) => ({
-        id: p.id,
-        usuarioId: p.usuario_id,
-        fechaHora: p.fecha_hora,
-        accion: p.accion,
-        detalles: p.detalles ? JSON.stringify(p.detalles) : null
-      }));
-    }
   },
 
   Mutation: {

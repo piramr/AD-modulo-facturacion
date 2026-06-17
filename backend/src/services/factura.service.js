@@ -18,6 +18,28 @@ const cxcService = require('./cxc.service');
 const auditoriaService = require('./auditoria.service');
 const auditoriaGrpc = require('../grpc/auditoria.client');
 
+
+function construirWhere(filtros = {}) {
+  const where = {};
+
+  if (filtros.estado) where.estado = filtros.estado;
+  if (filtros.cliente_id) where.cliente_id = filtros.cliente_id;
+  if (filtros.tipo_pago) where.tipo_pago = filtros.tipo_pago;
+
+  // 🚀 Barra de búsqueda global dedicada al número de factura (Ej: "001-001")
+  if (filtros.search) {
+    const { Op } = require('sequelize');
+    where.numero_factura = { [Op.like]: `%${filtros.search}%` };
+  }
+
+  return where;
+}
+
+async function contarFacturasConFiltro(filtros = {}) {
+  const where = construirWhere(filtros);
+  return Factura.count({ where });
+}
+
 /**
  * Genera número de factura formato XXX-XXX-XXXXXXXXX
  * Ej: 001-001-000000001
@@ -174,13 +196,15 @@ async function crearFactura(datos, usuario, token) {
 }
 
 async function listarFacturas(filtros = {}) {
-  const where = {};
-  if (filtros.estado) where.estado = filtros.estado;
-  if (filtros.cliente_id) where.cliente_id = filtros.cliente_id;
-  if (filtros.tipo_pago) where.tipo_pago = filtros.tipo_pago;
+  const where = construirWhere(filtros);
 
-  return Factura.findAll({
+  const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
+  const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
+
+  return Factura.findAndCountAll({
     where,
+    limit,
+    offset,
     include: [
       { model: DetalleFactura, as: 'detalles' },
       { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipo_cliente'] }
@@ -241,6 +265,7 @@ async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
 }
 
 module.exports = {
+  contarFacturasConFiltro,
   crearFactura,
   listarFacturas,
   obtenerFacturaPorId,

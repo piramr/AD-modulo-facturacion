@@ -1,0 +1,63 @@
+scalar DateTime
+
+type DetalleFactura {
+  id: ID!
+  productoCodigo: String!
+  productoNombre: String!
+  cantidad: Int!
+  precioUnitario: Float!
+  grabaIva: Boolean!
+  subtotalLinea: Float!
+}
+
+type Factura {
+  id: ID!
+  numeroFactura: String!
+  clienteId: String!
+  cliente: ClienteResumen
+  tipoPago: String!
+  fechaEmision: DateTime!
+  subtotal: Float!
+  totalIva: Float!
+  total: Float!
+  estado: String!
+  detalles: [DetalleFactura!]!
+}
+
+type Facturas {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  items: [Factura!]!
+}
+
+input DetalleInput {
+  productoCodigo: String!
+  cantidad: Int!
+}
+
+input CrearFacturaInput {
+  clienteId: String!
+  tipoPago: String!
+  detalles: [DetalleInput!]!
+}
+
+# Filtros
+input FacturasFilter {
+  estado: String
+  clienteId: String
+  tipoPago: String
+  search: String # Barra de búsqueda para el número de factura
+}
+
+
+# Módulo de Facturas
+type Query {
+  facturas(filter: FacturasFilter, page: Int, limit: Int): Facturas!
+  factura(id: ID!): Factura
+}
+
+# Operaciones de Facturas
+type Mutation {
+  crearFactura(input: CrearFacturaInput!): Factura!
+  actualizarEstadoFactura(id: ID!, estado: String!): Factura!
+}

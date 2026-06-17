@@ -1,0 +1,14 @@
+# Viene desde módulo de inventario
+type Producto {
+  codigo: String!
+  nombre: String!
+  descripcion: String
+  grabaIva: Boolean!
+  costo: Float!
+  pvp: Float!
+  estado: String!
+}
+
+type Query {
+  productos: [Producto!]!
+}

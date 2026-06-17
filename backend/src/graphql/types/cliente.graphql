@@ -1,0 +1,72 @@
+scalar DateTime
+
+type ClienteResumen {
+  id: ID!
+  nombre: String!
+  cedula: String!
+  tipoCliente: String!
+}
+
+type Cliente {
+  id: ID!
+  cedula: String!
+  nombre: String!
+  fechaNacimiento: String!
+  tipoCliente: String!     # 'Contado' o 'Crédito' (HU1)
+  direccion: String!
+  telefono: String!
+  email: String!
+  estado: String!         # 'Activo' o 'Inactivo' (HU1)
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Contenedor nativo para la paginación de clientes
+type Clientes {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  items: [Cliente!]!
+}
+
+input CrearClienteInput {
+  cedula: String!
+  nombre: String!
+  fechaNacimiento: String!
+  tipoCliente: String!   # 'Contado' o 'Crédito'
+  direccion: String!
+  telefono: String!
+  email: String!
+  estado: String         # Default 'Activo'
+}
+
+input ActualizarClienteInput {
+  cedula: String
+  nombre: String
+  fechaNacimiento: String
+  tipoCliente: String
+  direccion: String
+  telefono: String
+  email: String
+  estado: String
+}
+
+input ClientesFilter {
+  estado: String
+  cedula: String
+  nombre: String
+  tipoCliente: String
+  search: String
+}
+
+
+type Query {
+  clientes(filter: ClientesFilter, page: Int, limit: Int): Clientes!
+  cliente(id: ID!): Cliente
+}
+
+# Operaciones de Clientes
+type Mutation {
+  crearCliente(input: CrearClienteInput!): Cliente!
+  actualizarCliente(id: ID!, input: ActualizarClienteInput!): Cliente!
+  inactivarCliente(id: ID!): Cliente!
+}
