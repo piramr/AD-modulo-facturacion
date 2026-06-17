@@ -26,7 +26,7 @@ function construirWhere(filtros = {}) {
   if (filtros.cliente_id) where.cliente_id = filtros.cliente_id;
   if (filtros.tipo_pago) where.tipo_pago = filtros.tipo_pago;
 
-  // 🚀 Barra de búsqueda global dedicada al número de factura (Ej: "001-001")
+  // BUsqueda al número de factura coincidencias (Ej: "001-001")
   if (filtros.search) {
     const { Op } = require('sequelize');
     where.numero_factura = { [Op.like]: `%${filtros.search}%` };

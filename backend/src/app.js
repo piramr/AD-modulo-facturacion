@@ -64,6 +64,12 @@ async function crearApp() {
   // 2. En la configuración de Apollo, fusiónalos así:
 const apolloServer = new ApolloServer({
   schema,
+  introspection: true,
+  playground: {
+    settings: {
+      'schema.polling.enable': true,
+    },
+  },
   context: ({ req }) => {
     const authHeader = req.headers.authorization;
     return {
@@ -72,9 +78,15 @@ const apolloServer = new ApolloServer({
     };
   },
   formatError: (err) => {
-    console.error('GraphQL Error:', err.message);
-    return { message: err.message };
-  }
+      const codigoOriginal = err.originalError?.code || err.extensions?.code || 'INTERNAL_SERVER_ERROR';
+      const statusOriginal = err.originalError?.status || err.extensions?.status || 500;
+
+      return {
+        message: err.message,
+        code: codigoOriginal,
+        status: statusOriginal,
+      };
+    }
 });
 
   await apolloServer.start();
