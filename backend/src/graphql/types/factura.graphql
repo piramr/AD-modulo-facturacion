@@ -24,6 +24,12 @@ type Factura {
   detalles: [DetalleFactura!]!
 }
 
+type Facturas {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  items: [Factura!]!
+}
+
 input DetalleInput {
   productoCodigo: String!
   cantidad: Int!
@@ -35,9 +41,18 @@ input CrearFacturaInput {
   detalles: [DetalleInput!]!
 }
 
+# Filtros
+input FacturasFilter {
+  estado: String
+  clienteId: String
+  tipoPago: String
+  search: String # Barra de búsqueda para el número de factura
+}
+
+
 # Módulo de Facturas
 type Query {
-  facturas(estado: String, clienteId: String, tipoPago: String): [Factura!]!
+  facturas(filter: FacturasFilter, page: Int, limit: Int): Facturas!
   factura(id: ID!): Factura
 }
 

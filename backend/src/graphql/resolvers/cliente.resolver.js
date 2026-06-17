@@ -34,28 +34,39 @@ const resolvers = {
   Query: {
     clientes: async (_, args, ctx) => {
       requiereAuth(ctx);
-      const MAX_LIMIT = 1_000; // El tope máximo permitido para devolver todos los registros
-      const {filter = {}} = args;
+      
+      const MAX_LIMIT = 1_000;
+      const { filter = {} } = args;
 
       const totalRegistros = await clienteService.contarClientesConFiltro({
         estado: filter.estado,
         cedula: filter.cedula,
         nombre: filter.nombre,
         tipo_cliente: filter.tipoCliente,
-        search: filter.search
+        search: filter.search // búsqueda dinámica
       });
 
       const limiteSolicitado = args.limit || totalRegistros;
-      
       if (limiteSolicitado > MAX_LIMIT && totalRegistros > MAX_LIMIT) {
-        const error = new Error(`(${totalRegistros} registros) Demasiado grande, use paginación con limit menor o igual a ${MAX_LIMIT}`);
+        const error = new Error(`El volumen de datos solicitado (${totalRegistros} clientes encontrados) es demasiado grande. Use paginación con un 'limit' menor o igual a ${MAX_LIMIT}.`);
         error.code = 'REQUEST_ENTITY_TOO_LARGE';
         error.status = 413;
         throw error;
       }
 
-      const limitePorPagina = args.limit ? parseInt(args.limit, 10) : 10;
-      const paginaActual = Math.max(1, args.page || 1);
+      const limitePorPagina = args.limit ? Math.max(1, parseInt(args.limit, 10)) : 10;
+
+      const totalPaginas = Math.ceil(totalRegistros / limitePorPagina) || 1;
+
+      let paginaActual = args.page ? parseInt(args.page, 10) : 1;
+      if (paginaActual > totalPaginas) {
+        paginaActual = totalPaginas; // Última página real disponible
+      }
+      if (paginaActual < 1) {
+        paginaActual = 1;
+      }
+
+      // Calcular el offset real
       const offset = (paginaActual - 1) * limitePorPagina;
 
       const resultado = await clienteService.listarClientes({
@@ -67,8 +78,6 @@ const resolvers = {
         limit: limitePorPagina,
         offset: offset
       });
-
-      const totalPaginas = Math.ceil(totalRegistros / limitePorPagina);
 
       return {
         totalCount: totalRegistros,
