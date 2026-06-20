@@ -41,14 +41,33 @@ input CrearFacturaInput {
   detalles: [DetalleInput!]!
 }
 
-# Filtros
+"""
+Criterios de filtrado y búsqueda unificados para la consulta de facturas.
+"""
 input FacturasFilter {
+  """
+  Filtra por el estado actual de la factura.
+  Valores válidos: 'Emitida', 'Anulada', 'Pagada'.
+  """
   estado: String
-  clienteId: String
-  tipoPago: String
-  search: String # Barra de búsqueda para el número de factura
-}
 
+  """
+  Filtra las facturas pertenecientes a un cliente específico mediante su UUID.
+  """
+  clienteId: String
+
+  """
+  Filtra por la modalidad de pago de la transacción.
+  Valores esperados: 'Efectivo', 'Crédito'.
+  """
+  tipoPago: String
+
+  """
+  Realiza una coincidencia parcial (LIKE) 
+  únicamente sobre el campo 'numeroFactura' (Ej: '001-001').
+  """
+  search: String
+}
 
 # Módulo de Facturas
 type Query {
