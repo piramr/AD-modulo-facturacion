@@ -2,35 +2,50 @@ spectaql:
   displayAllServers: true
 
 introspection:
-  url: http://localhost:3001/graphql
+  url: "http://localhost:3001/graphql"
 
 info:
-    title: "API de Facturación y Clientes"
-    version: "1.0.0"
-    description: """
-    Bienvenido a la documentación oficial de la API. Antes de comenzar a realizar pruebas, necesitas configurar tu entorno de desarrollo.
+  title: "API de Facturación y Clientes"
+  version: "1.0.0"
+  description: |
+    Bienvenido a la documentación oficial de la API.
+
+    Antes de comenzar a realizar pruebas, necesitas configurar tu entorno de desarrollo.
 
     ---
 
     ### Autenticación de Pruebas
+
     Para consumir los endpoints protegidos, puedes generar un JSON Web Token (JWT) temporal (24h):
-    * **Endpoint de Token:** `https://ad-modulo-facturacion.onrender.com/auth/test-token`
-    * **Ejemplo de uso:**
+
+    **Endpoint de Token**
+    https://ad-modulo-facturacion.onrender.com/auth/test-token
+
+    **Ejemplo de uso**
+
     ```bash
-    curl -X POST [https://ad-modulo-facturacion.onrender.com/auth/test-token] \\
-      -H "Content-Type: application/json" \\
+    curl -X POST https://ad-modulo-facturacion.onrender.com/auth/test-token \
+      -H "Content-Type: application/json"
     ```
 
     ---
 
-    ###  Entorno de Pruebas
-    Si prefieres armar tus consultas visualmente y probar los resolvers en tiempo real, puedes acceder al entorno interactivo de Apollo Server:
-    
-    [Abrir Apollo Server Sandbox](https://ad-modulo-facturacion.onrender.com/graphql)
-    
-    _Nota: Recuerda añadir el token generado en las cabeceras de Apollo Sandbox como `{"Authorization": "Bearer TU_TOKEN"}`._
-    """
+    ### Entorno de Pruebas
+
+    Si prefieres armar tus consultas visualmente y probar los resolvers en tiempo real:
+
+    Apollo Sandbox:
+    https://ad-modulo-facturacion.onrender.com/graphql
+
+    Nota:
+    Añade el token generado en las cabeceras:
+
+    ```json
+    {
+      "Authorization": "Bearer TU_TOKEN"
+    }
+    ``` 
 
 servers:
-  - url: https://ad-modulo-facturacion.onrender.com/graphql
+  - url: "https://ad-modulo-facturacion.onrender.com/graphql"
     description: "Servidor de Producción / Staging (Render)"
