@@ -2,7 +2,7 @@ spectaql:
   displayAllServers: true
 
 introspection:
-  url: http://localhost:3001/graphql
+  url: http://localhost:3003/graphql
 
 info:
     title: "API de Facturación y Clientes"

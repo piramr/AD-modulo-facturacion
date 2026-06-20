@@ -1,7 +1,12 @@
 # Tipos y metadatos reutilizables por cualquier módulo
+"""Información de paginación utilizada por los resultados paginados."""
 type PageInfo {
+  """Indica si existe una página siguiente."""
   hasNextPage: Boolean!
+  """Indica si existe una página anterior."""
   hasPreviousPage: Boolean!
+  """Número de página actual devuelto."""
   currentPage: Int!
+  """Número total de páginas disponibles."""
   totalPages: Int!
 }

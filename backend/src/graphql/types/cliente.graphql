@@ -1,72 +1,144 @@
 scalar DateTime
 
+"""Representa un resumen ligero de un cliente para listados y relaciones."""
 type ClienteResumen {
+  """Identificador único del cliente."""
   id: ID!
+  """Nombre completo del cliente."""
   nombre: String!
+  """Documento de identificación del cliente."""
   cedula: String!
+  """Tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String!
 }
 
+"""Detalle completo de un cliente."""
 type Cliente {
+  """Identificador único del cliente."""
   id: ID!
+  """Documento de identificación del cliente."""
   cedula: String!
+  """Nombre completo del cliente."""
   nombre: String!
+  """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String!
+  """Tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String!     # 'Contado' o 'Crédito' (HU1)
+  """Dirección postal o fiscal del cliente."""
   direccion: String!
+  """Teléfono de contacto del cliente."""
   telefono: String!
+  """Correo electrónico del cliente."""
   email: String!
+  """Estado del cliente: 'Activo' o 'Inactivo'."""
   estado: String!         # 'Activo' o 'Inactivo' (HU1)
+  """Fecha y hora de creación del registro."""
   createdAt: DateTime
+  """Fecha y hora de la última actualización."""
   updatedAt: DateTime
 }
 
 # Contenedor nativo para la paginación de clientes
+"""Contenedor paginado de clientes."""
 type Clientes {
+  """Número total de clientes que coinciden con el filtro."""
   totalCount: Int!
+  """Información de paginación para navegar los resultados."""
   pageInfo: PageInfo!
+  """Lista de clientes devueltos en esta página."""
   items: [Cliente!]!
 }
 
+"""Datos necesarios para crear un cliente."""
 input CrearClienteInput {
+  """Documento de identificación del cliente."""
   cedula: String!
+  """Nombre completo del cliente."""
   nombre: String!
+  """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String!
+  """Tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String!   # 'Contado' o 'Crédito'
+  """Dirección postal o fiscal del cliente."""
   direccion: String!
+  """Teléfono de contacto del cliente."""
   telefono: String!
+  """Correo electrónico del cliente."""
   email: String!
+  """Estado del cliente. Si se omite, se asume 'Activo'."""
   estado: String         # Default 'Activo'
 }
 
+"""Campos opcionales para actualizar un cliente."""
 input ActualizarClienteInput {
+  """Documento de identificación del cliente."""
   cedula: String
+  """Nombre completo del cliente."""
   nombre: String
+  """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String
+  """Tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String
+  """Dirección postal o fiscal del cliente."""
   direccion: String
+  """Teléfono de contacto del cliente."""
   telefono: String
+  """Correo electrónico del cliente."""
   email: String
+  """Estado del cliente: 'Activo' o 'Inactivo'."""
   estado: String
 }
 
+"""Criterios de búsqueda y filtrado para clientes."""
 input ClientesFilter {
+  """Filtra por estado del cliente: 'Activo' o 'Inactivo'."""
   estado: String
+  """Filtra por cédula o documento de identificación."""
   cedula: String
+  """Filtra por nombre completo del cliente."""
   nombre: String
+  """Filtra por tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String
+  """Búsqueda libre sobre campos relevantes del cliente."""
   search: String
 }
 
-
+"""Consultas disponibles para clientes."""
 type Query {
-  clientes(filter: ClientesFilter, page: Int, limit: Int): Clientes!
-  cliente(id: ID!): Cliente
+  """Devuelve una página de clientes según filtros y paginación."""
+  clientes(
+    """Filtro opcional para limitar los clientes devueltos."""
+    filter: ClientesFilter,
+    """Número de página a obtener para la paginación."""
+    page: Int,
+    """Cantidad máxima de clientes por página."""
+    limit: Int
+  ): Clientes!
+  """Devuelve un cliente por su ID único."""
+  cliente(
+    """ID único del cliente."""
+    id: ID!
+  ): Cliente
 }
 
 # Operaciones de Clientes
+"""Operaciones de creación y actualización de clientes."""
 type Mutation {
-  crearCliente(input: CrearClienteInput!): Cliente!
-  actualizarCliente(id: ID!, input: ActualizarClienteInput!): Cliente!
-  inactivarCliente(id: ID!): Cliente!
+  """Crea un cliente nuevo y devuelve el registro creado."""
+  crearCliente(
+    """Datos del cliente a crear."""
+    input: CrearClienteInput!
+  ): Cliente!
+  """Actualiza un cliente existente y devuelve el cliente actualizado."""
+  actualizarCliente(
+    """ID único del cliente."""
+    id: ID!,
+    """Datos a actualizar del cliente."""
+    input: ActualizarClienteInput!
+  ): Cliente!
+  """Marca un cliente como inactivo y devuelve el registro actualizado."""
+  inactivarCliente(
+    """ID único del cliente."""
+    id: ID!
+  ): Cliente!
 }

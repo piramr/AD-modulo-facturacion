@@ -132,6 +132,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             </h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Devuelve un cliente por su ID único.</p>
+                </div>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
                   <p> Returns a <a href="#definition-Cliente"><code>Cliente</code></a>
@@ -151,8 +159,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> ID único del cliente. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -192,12 +199,12 @@ https://ad-modulo-facturacion.onrender.com/graphql
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
@@ -215,6 +222,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>clientes</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Devuelve una página de clientes según filtros y paginación.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -236,22 +251,19 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>filter</code></span> - <span class="property-type"><a href="#definition-ClientesFilter"><code>ClientesFilter</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtro opcional para limitar los clientes devueltos. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>page</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número de página a obtener para la paginación. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>limit</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Cantidad máxima de clientes por página. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -284,7 +296,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClientesFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClientesFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
@@ -292,7 +304,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"clientes"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Cliente</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
@@ -310,6 +322,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>factura</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Devuelve una factura por su ID único.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -331,8 +351,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> ID único de la factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -365,7 +384,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
@@ -373,15 +392,15 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"factura"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
@@ -399,6 +418,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>facturas</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Devuelve una página de facturas según filtros y paginación.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -420,22 +447,19 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>filter</code></span> - <span class="property-type"><a href="#definition-FacturasFilter"><code>FacturasFilter</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtro opcional para limitar las facturas devueltas. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>page</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número de página a obtener para la paginación. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>limit</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Cantidad máxima de facturas por página. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -468,7 +492,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 </div>
                 <div class="example-section example-section-is-code operation-variables-example">
                   <h5>Variables</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">FacturasFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">}</span>
+                  <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"filter"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">FacturasFilter</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"page"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
                 <div class="example-section example-section-is-code operation-response-example">
@@ -476,7 +500,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"facturas"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Factura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
@@ -494,6 +518,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>productos</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Devuelve la lista completa de productos.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -525,13 +557,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"productos"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
       <span class="hljs-punctuation">{</span>
-        <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
         <span class="hljs-attr">"descripcion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-        <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
+        <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+        <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
       <span class="hljs-punctuation">}</span>
     <span class="hljs-punctuation">]</span>
   <span class="hljs-punctuation">}</span>
@@ -546,6 +578,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>actualizarCliente</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Actualiza un cliente existente y devuelve el cliente actualizado.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -567,15 +607,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> ID único del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-ActualizarClienteInput"><code>ActualizarClienteInput!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Datos a actualizar del cliente. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -623,11 +661,11 @@ https://ad-modulo-facturacion.onrender.com/graphql
     <span class="hljs-attr">"actualizarCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
@@ -649,6 +687,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             </h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Actualiza el estado de una factura y devuelve la factura actualizada.</p>
+                </div>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
                   <p> Returns a <a href="#definition-Factura"><code>Factura!</code></a>
@@ -668,15 +714,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> ID único de la factura. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado nuevo para la factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -724,12 +768,12 @@ https://ad-modulo-facturacion.onrender.com/graphql
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"actualizarEstadoFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
@@ -751,6 +795,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             </h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Crea un cliente nuevo y devuelve el registro creado.</p>
+                </div>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
                   <p> Returns a <a href="#definition-Cliente"><code>Cliente!</code></a>
@@ -770,8 +822,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-CrearClienteInput"><code>CrearClienteInput!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Datos del cliente a crear. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -808,15 +859,15 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"crearCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"updatedAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span>
     <span class="hljs-punctuation">}</span>
@@ -834,6 +885,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>crearFactura</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Crea una factura y devuelve el registro creado.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -855,8 +914,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-CrearFacturaInput"><code>CrearFacturaInput!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Datos de la factura a crear. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -898,15 +956,15 @@ https://ad-modulo-facturacion.onrender.com/graphql
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"crearFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
       <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
     <span class="hljs-punctuation">}</span>
   <span class="hljs-punctuation">}</span>
@@ -923,6 +981,14 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="operation-heading ">
               <code>inactivarCliente</code>
             </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <div class="operation-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Marca un cliente como inactivo y devuelve el registro actualizado.</p>
+                </div>
+              </div>
+            </div>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
@@ -944,8 +1010,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> ID único del cliente. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -982,12 +1047,12 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"data"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
     <span class="hljs-attr">"inactivarCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
       <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
@@ -1006,6 +1071,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">ActualizarClienteInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Campos opcionales para actualizar un cliente.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1020,57 +1089,49 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Documento de identificación del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre completo del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>fechaNacimiento</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha de nacimiento del cliente en formato ISO 8601. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Tipo de cliente: 'Contado' o 'Crédito'. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>direccion</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Dirección postal o fiscal del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>telefono</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Teléfono de contacto del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>email</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Correo electrónico del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado del cliente: 'Activo' o 'Inactivo'. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1080,12 +1141,12 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
@@ -1122,6 +1183,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">Cliente</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Detalle completo de un cliente.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1135,68 +1200,57 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador único del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Documento de identificación del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre completo del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>fechaNacimiento</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha de nacimiento del cliente en formato ISO 8601. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Tipo de cliente: 'Contado' o 'Crédito'. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>direccion</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Dirección postal o fiscal del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>telefono</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Teléfono de contacto del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>email</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Correo electrónico del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado del cliente: 'Activo' o 'Inactivo'. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>createdAt</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha y hora de creación del registro. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>updatedAt</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha y hora de la última actualización. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1206,13 +1260,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"createdAt"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
@@ -1230,6 +1284,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">ClienteResumen</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Representa un resumen ligero de un cliente para listados y relaciones.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1243,26 +1301,22 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador único del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre completo del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Documento de identificación del cliente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Tipo de cliente: 'Contado' o 'Crédito'. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1289,6 +1343,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">Clientes</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Contenedor paginado de clientes.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1302,20 +1360,17 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>totalCount</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número total de clientes que coinciden con el filtro. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>pageInfo</code></span> - <span class="property-type"><a href="#definition-PageInfo"><code>PageInfo!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Información de paginación para navegar los resultados. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>items</code></span> - <span class="property-type"><a href="#definition-Cliente"><code>[Cliente!]!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Lista de clientes devueltos en esta página. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1325,7 +1380,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Cliente</span><span class="hljs-punctuation">]</span>
 <span class="hljs-punctuation">}</span>
@@ -1341,6 +1396,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">ClientesFilter</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Criterios de búsqueda y filtrado para clientes.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1355,36 +1414,31 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtra por estado del cliente: 'Activo' o 'Inactivo'. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtra por cédula o documento de identificación. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtra por nombre completo del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Filtra por tipo de cliente: 'Contado' o 'Crédito'. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>search</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Búsqueda libre sobre campos relevantes del cliente. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1394,11 +1448,11 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"search"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"search"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -1412,6 +1466,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">CrearClienteInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Datos necesarios para crear un cliente.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1426,57 +1484,49 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>cedula</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Documento de identificación del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre completo del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>fechaNacimiento</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha de nacimiento del cliente en formato ISO 8601. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>tipoCliente</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Tipo de cliente: 'Contado' o 'Crédito'. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>direccion</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Dirección postal o fiscal del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>telefono</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Teléfono de contacto del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>email</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Correo electrónico del cliente. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado del cliente. Si se omite, se asume 'Activo'. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1486,13 +1536,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"cedula"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"fechaNacimiento"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"tipoCliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"direccion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"telefono"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -1507,6 +1557,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">CrearFacturaInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Datos necesarios para crear una factura.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1521,22 +1575,19 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>clienteId</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador del cliente asociado a la factura. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>tipoPago</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Modalidad de pago de la factura. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>detalles</code></span> - <span class="property-type"><a href="#definition-DetalleInput"><code>[DetalleInput!]!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Lista de productos y cantidades incluidos en la factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1547,7 +1598,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleInput</span><span class="hljs-punctuation">]</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -1579,6 +1630,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">DetalleFactura</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Detalle de una línea de factura con información de producto.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1592,44 +1647,37 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador único de la línea de detalle. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>productoCodigo</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Código del producto facturado. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>productoNombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre del producto facturado. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>cantidad</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Cantidad del producto en esta línea de factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>precioUnitario</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Precio unitario aplicado al producto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>grabaIva</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Indica si la línea grava IVA. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>subtotalLinea</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Subtotal de la línea antes de impuestos. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1644,7 +1692,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
   <span class="hljs-attr">"productoNombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cantidad"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"precioUnitario"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"subtotalLinea"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -1659,6 +1707,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">DetalleInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Detalle de producto enviado al crear una factura.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1673,15 +1725,13 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>productoCodigo</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Código del producto a facturar. </td>
                       </tr>
                       <tr>
                         <td>
                           <span class="property-name"><code>cantidad</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Cantidad del producto en la factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1691,7 +1741,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"productoCodigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"productoCodigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cantidad"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -1706,6 +1756,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">Factura</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Factura emitida para un cliente con totales y detalles.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1719,68 +1773,57 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>id</code></span> - <span class="property-type"><a href="#definition-ID"><code>ID!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador único de la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>numeroFactura</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número interno o visible de la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>clienteId</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Identificador del cliente asociado a la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>cliente</code></span> - <span class="property-type"><a href="#definition-ClienteResumen"><code>ClienteResumen</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Resumen del cliente asociado a la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>tipoPago</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Modalidad de pago de la factura, por ejemplo 'Efectivo' o 'Crédito'. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>fechaEmision</code></span> - <span class="property-type"><a href="#definition-DateTime"><code>DateTime!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Fecha y hora de emisión de la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>subtotal</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Subtotal de la factura antes de impuestos. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>totalIva</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Total de IVA aplicado en la factura. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>total</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Total final de la factura incluyendo impuestos. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado de la factura como 'Emitida', 'Anulada' o 'Pagada'. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>detalles</code></span> - <span class="property-type"><a href="#definition-DetalleFactura"><code>[DetalleFactura!]!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Detalle de los productos incluidos en la factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1790,16 +1833,16 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"4"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"numeroFactura"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"cliente"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ClienteResumen</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"fechaEmision"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2007-12-03T10:15:30Z"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"subtotal"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"totalIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"detalles"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">DetalleFactura</span><span class="hljs-punctuation">]</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -1814,6 +1857,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">Facturas</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Contenedor paginado de facturas.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -1827,20 +1874,17 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>totalCount</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número total de facturas que cumplen el filtro. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>pageInfo</code></span> - <span class="property-type"><a href="#definition-PageInfo"><code>PageInfo!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Información de paginación para navegar los resultados. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>items</code></span> - <span class="property-type"><a href="#definition-Factura"><code>[Factura!]!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Lista de facturas devueltas en esta página. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1850,7 +1894,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"totalCount"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"pageInfo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">PageInfo</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">Factura</span><span class="hljs-punctuation">]</span>
 <span class="hljs-punctuation">}</span>
@@ -1902,7 +1946,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                         <td>
                           <span class="property-name"><code>search</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td> Realiza una coincidencia parcial (LIKE) únicamente sobre el campo 'numeroFactura' (Ej: '001-001'). </td>
+                        <td> Realiza una coincidencia parcial sobre el número de factura. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1912,8 +1956,8 @@ https://ad-modulo-facturacion.onrender.com/graphql
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"clienteId"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"tipoPago"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"search"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
@@ -1937,7 +1981,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-number">123.45</span>
+                  <pre><code class="hljs language-json"><span class="hljs-number">987.65</span>
 </code></pre>
                 </div>
               </div>
@@ -1979,7 +2023,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-json"><span class="hljs-number">987</span>
+                  <pre><code class="hljs language-json"><span class="hljs-number">123</span>
 </code></pre>
                 </div>
               </div>
@@ -1992,6 +2036,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">PageInfo</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Información de paginación utilizada por los resultados paginados.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -2005,26 +2053,22 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>hasNextPage</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Indica si existe una página siguiente. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>hasPreviousPage</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Indica si existe una página anterior. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>currentPage</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número de página actual devuelto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>totalPages</code></span> - <span class="property-type"><a href="#definition-Int"><code>Int!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Número total de páginas disponibles. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -2036,7 +2080,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"hasNextPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"hasPreviousPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"currentPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"currentPage"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"totalPages"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
@@ -2051,6 +2095,10 @@ https://ad-modulo-facturacion.onrender.com/graphql
             <h2 class="definition-heading">Producto</h2>
             <div class="doc-row">
               <div class="doc-copy">
+                <div class="definition-description doc-copy-section">
+                  <h5>Description</h5>
+                  <p>Información de un producto disponible en inventario.</p>
+                </div>
                 <div class="definition-properties doc-copy-section">
                   <h5>Fields</h5>
                   <table>
@@ -2064,44 +2112,37 @@ https://ad-modulo-facturacion.onrender.com/graphql
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>codigo</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Código único del producto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>nombre</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Nombre del producto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>descripcion</code></span> - <span class="property-type"><a href="#definition-String"><code>String</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Descripción detallada del producto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>grabaIva</code></span> - <span class="property-type"><a href="#definition-Boolean"><code>Boolean!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Indica si el producto grava IVA. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>costo</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Costo del producto al por mayor o de adquisición. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>pvp</code></span> - <span class="property-type"><a href="#definition-Float"><code>Float!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Precio de venta público (PVP) del producto. </td>
                       </tr>
                       <tr>
                         <td data-property-name=""><span class="property-name"><code>estado</code></span> - <span class="property-type"><a href="#definition-String"><code>String!</code></a></span>
                         </td>
-                        <td>
-                        </td>
+                        <td> Estado del producto en inventario. </td>
                       </tr>
                     </tbody>
                   </table>
@@ -2112,12 +2153,12 @@ https://ad-modulo-facturacion.onrender.com/graphql
                   <h5>Example</h5>
                   <pre><code class="hljs language-json"><span class="hljs-punctuation">{</span>
   <span class="hljs-attr">"codigo"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"nombre"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"descripcion"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span><span class="hljs-punctuation">,</span>
   <span class="hljs-attr">"grabaIva"</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">987.65</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"costo"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"pvp"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">123.45</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">"estado"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"xyz789"</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
                 </div>
@@ -2139,7 +2180,7 @@ https://ad-modulo-facturacion.onrender.com/graphql
               <div class="doc-examples">
                 <div class="example-section example-section-is-code">
                   <h5>Example</h5>
-                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"xyz789"</span>
+                  <pre><code class="hljs language-gql"><span class="hljs-symbol">"abc123"</span>
 </code></pre>
                 </div>
               </div>
