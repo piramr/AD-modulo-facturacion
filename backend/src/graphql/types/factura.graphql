@@ -1,82 +1,124 @@
 scalar DateTime
 
+"""Detalle de una línea de factura con información de producto."""
 type DetalleFactura {
+  """Identificador único de la línea de detalle."""
   id: ID!
+  """Código del producto facturado."""
   productoCodigo: String!
+  """Nombre del producto facturado."""
   productoNombre: String!
+  """Cantidad del producto en esta línea de factura."""
   cantidad: Int!
+  """Precio unitario aplicado al producto."""
   precioUnitario: Float!
+  """Indica si la línea grava IVA."""
   grabaIva: Boolean!
+  """Subtotal de la línea antes de impuestos."""
   subtotalLinea: Float!
 }
 
+"""Factura emitida para un cliente con totales y detalles."""
 type Factura {
+  """Identificador único de la factura."""
   id: ID!
+  """Número interno o visible de la factura."""
   numeroFactura: String!
+  """Identificador del cliente asociado a la factura."""
   clienteId: String!
+  """Resumen del cliente asociado a la factura."""
   cliente: ClienteResumen
+  """Modalidad de pago de la factura, por ejemplo 'Efectivo' o 'Crédito'."""
   tipoPago: String!
+  """Fecha y hora de emisión de la factura."""
   fechaEmision: DateTime!
+  """Subtotal de la factura antes de impuestos."""
   subtotal: Float!
+  """Total de IVA aplicado en la factura."""
   totalIva: Float!
+  """Total final de la factura incluyendo impuestos."""
   total: Float!
+  """Estado de la factura como 'Emitida', 'Anulada' o 'Pagada'."""
   estado: String!
+  """Detalle de los productos incluidos en la factura."""
   detalles: [DetalleFactura!]!
 }
 
+"""Contenedor paginado de facturas."""
 type Facturas {
+  """Número total de facturas que cumplen el filtro."""
   totalCount: Int!
+  """Información de paginación para navegar los resultados."""
   pageInfo: PageInfo!
+  """Lista de facturas devueltas en esta página."""
   items: [Factura!]!
 }
 
+"""Detalle de producto enviado al crear una factura."""
 input DetalleInput {
+  """Código del producto a facturar."""
   productoCodigo: String!
+  """Cantidad del producto en la factura."""
   cantidad: Int!
 }
 
+"""Datos necesarios para crear una factura."""
 input CrearFacturaInput {
+  """Identificador del cliente asociado a la factura."""
   clienteId: String!
+  """Modalidad de pago de la factura."""
   tipoPago: String!
+  """Lista de productos y cantidades incluidos en la factura."""
   detalles: [DetalleInput!]!
 }
 
-"""
-Criterios de filtrado y búsqueda unificados para la consulta de facturas.
-"""
+"""Criterios de filtrado y búsqueda unificados para la consulta de facturas."""
 input FacturasFilter {
-  """
-  Filtra por el estado actual de la factura.
-  Valores válidos: 'Emitida', 'Anulada', 'Pagada'.
-  """
+  """Filtra por el estado actual de la factura. Valores válidos: 'Emitida', 'Anulada', 'Pagada'."""
   estado: String
 
-  """
-  Filtra las facturas pertenecientes a un cliente específico mediante su UUID.
-  """
+  """Filtra las facturas pertenecientes a un cliente específico mediante su UUID."""
   clienteId: String
 
-  """
-  Filtra por la modalidad de pago de la transacción.
-  Valores esperados: 'Efectivo', 'Crédito'.
-  """
+  """Filtra por la modalidad de pago de la transacción. Valores esperados: 'Efectivo', 'Crédito'."""
   tipoPago: String
 
-  """
-  Realiza una coincidencia parcial (LIKE) 
-  únicamente sobre el campo 'numeroFactura' (Ej: '001-001').
-  """
+  """Realiza una coincidencia parcial sobre el número de factura."""
   search: String
 }
 
 # Módulo de Facturas
+"""Consultas disponibles para facturas."""
 type Query {
-  facturas(filter: FacturasFilter, page: Int, limit: Int): Facturas!
-  factura(id: ID!): Factura
+  """Devuelve una página de facturas según filtros y paginación."""
+  facturas(
+    """Filtro opcional para limitar las facturas devueltas."""
+    filter: FacturasFilter,
+    """Número de página a obtener para la paginación."""
+    page: Int,
+    """Cantidad máxima de facturas por página."""
+    limit: Int
+  ): Facturas!
+  """Devuelve una factura por su ID único."""
+  factura(
+    """ID único de la factura."""
+    id: ID!
+  ): Factura
 }
 
 # Operaciones de Facturas
+"""Operaciones disponibles para facturas."""
 type Mutation {
-  crearFactura(input: CrearFacturaInput!): Factura!
-  actualizarEstadoFactura(id: ID!, estado: String!): Factura!
+  """Crea una factura y devuelve el registro creado."""
+  crearFactura(
+    """Datos de la factura a crear."""
+    input: CrearFacturaInput!
+  ): Factura!
+  """Actualiza el estado de una factura y devuelve la factura actualizada."""
+  actualizarEstadoFactura(
+    """ID único de la factura."""
+    id: ID!,
+    """Estado nuevo para la factura."""
+    estado: String!
+  ): Factura!
 }
