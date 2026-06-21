@@ -64,7 +64,7 @@ async function crearApp() {
   // 2. En la configuración de Apollo, fusiónalos así:
 const apolloServer = new ApolloServer({
   schema,
-  introspection: true,
+  introspection: process.env.NODE_ENV !== 'production',
   playground: {
     settings: {
       'schema.polling.enable': true,
