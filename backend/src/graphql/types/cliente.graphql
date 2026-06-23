@@ -111,7 +111,7 @@ input ClientesFilter {
   nombre: String
   """Filtra por tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String
-  """Búsqueda libre sobre campos relevantes del cliente."""
+  """Búsqueda libre sobre campos relevantes del cliente (nombre, cédula, teléfono y email)."""
   search: String
 }
 

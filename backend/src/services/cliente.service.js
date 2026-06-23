@@ -17,6 +17,8 @@ function construirWhere(filtros = {}) {
     where[Op.or] = [
       { nombre: { [Op.iLike]: termino } },
       { cedula: { [Op.like]: termino } },
+      { telefono: { [Op.like]: termino} },
+      { email: { [Op.iLike]: termino} }
     ];
   }
 
