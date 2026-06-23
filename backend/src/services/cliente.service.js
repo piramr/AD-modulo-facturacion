@@ -5,21 +5,18 @@ const PistaAuditoria = require('../models/pistaAuditoria.model');
 function construirWhere(filtros = {}) {
   const where = {};
 
-  // Filtros tradicionales
   if (filtros.estado) where.estado = filtros.estado;
-  if (filtros.tipo_cliente) where.tipo_cliente = filtros.tipo_cliente;
+  if (filtros.tipoCliente) where.tipoCliente = filtros.tipoCliente; 
 
-  // Filtros por campo (Búsqueda parcial)
   if (filtros.cedula) where.cedula = { [Op.like]: `%${filtros.cedula}%` };
   if (filtros.nombre) where.nombre = { [Op.iLike]: `%${filtros.nombre}%` };
 
   // BÚSQUEDA MULTI-ATRIBUTO
   if (filtros.search) {
     const termino = `%${filtros.search}%`;
-    
     where[Op.or] = [
-      { nombre: { [Op.iLike]: termino } },  // Coincide con nombre (Case-Insensitive)
-      { cedula: { [Op.like]: termino } },   // Coincide con cédula
+      { nombre: { [Op.iLike]: termino } },
+      { cedula: { [Op.like]: termino } },
     ];
   }
 

@@ -17,13 +17,7 @@ const resolvers = {
       const MAX_LIMIT = 1_000;
       const { filter = {} } = args;
 
-      const totalRegistros = await clienteService.contarClientesConFiltro({
-        estado: filter.estado,
-        cedula: filter.cedula,
-        nombre: filter.nombre,
-        tipo_cliente: filter.tipoCliente,
-        search: filter.search // búsqueda dinámica
-      });
+      const totalRegistros = await clienteService.contarClientesConFiltro(filter);
 
       const limiteSolicitado = args.limit || totalRegistros;
       if (limiteSolicitado > MAX_LIMIT && totalRegistros > MAX_LIMIT) {
@@ -49,11 +43,7 @@ const resolvers = {
       const offset = (paginaActual - 1) * limitePorPagina;
 
       const resultado = await clienteService.listarClientes({
-        estado: filter.estado,
-        cedula: filter.cedula,
-        nombre: filter.nombre,
-        tipo_cliente: filter.tipoCliente,
-        search: filter.search,
+        ...filter,
         limit: limitePorPagina,
         offset: offset,
         orderBy: args.orderBy
