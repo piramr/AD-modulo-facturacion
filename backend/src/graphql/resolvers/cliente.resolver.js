@@ -9,32 +9,11 @@ function requiereAuth(context) {
   }
 }
 
-// Mapeador para transformar la estructura de la BD (snake_case) al formato GraphQL (camelCase)
-function mapearCliente(c) {
-  if (!c) return null;
-  
-  const data = c.toJSON ? c.toJSON() : c;
-  
-  return {
-    id: data.id,
-    cedula: data.cedula,
-    nombre: data.nombre,
-    fechaNacimiento: data.fecha_nacimiento,
-    tipoCliente: data.tipo_cliente,
-    direccion: data.direccion,
-    telefono: data.telefono,
-    email: data.email,
-    estado: data.estado,
-    createdAt: data.created_at || data.createdAt,
-    updatedAt: data.updated_at || data.updatedAt
-  };
-}
-
 const resolvers = {
   Query: {
     clientes: async (_, args, ctx) => {
       requiereAuth(ctx);
-      
+
       const MAX_LIMIT = 1_000;
       const { filter = {} } = args;
 
@@ -76,7 +55,8 @@ const resolvers = {
         tipo_cliente: filter.tipoCliente,
         search: filter.search,
         limit: limitePorPagina,
-        offset: offset
+        offset: offset,
+        orderBy: args.orderBy
       });
 
       return {
@@ -87,8 +67,13 @@ const resolvers = {
           currentPage: paginaActual,
           totalPages: totalPaginas
         },
-        items: (resultado?.rows || []).map(mapearCliente)
+        items: resultado?.rows || []
       };
+    },
+    cliente: async (_, {id}, ctx) => {
+      requiereAuth(ctx);
+      const resultado = await clienteService.obtenerClientePorId(id);
+      return resultado;
     }
   },
 
@@ -96,38 +81,18 @@ const resolvers = {
     // HU1 - CA4: Registrar un nuevo cliente
     crearCliente: async (_, { input }, ctx) => {
       requiereAuth(ctx);
-      const datos = {
-        cedula: input.cedula,
-        nombre: input.nombre,
-        fecha_nacimiento: input.fechaNacimiento,
-        tipo_cliente: input.tipoCliente,
-        direccion: input.direccion,
-        telefono: input.telefono,
-        email: input.email,
-        estado: input.estado || 'Activo'
-      };
       
       // Se pasa ctx.usuario por si tu servicio registra pistas de auditoría
-      const nuevoCliente = await clienteService.crearCliente(datos, ctx.usuario);
-      return mapearCliente(nuevoCliente);
+      const nuevoCliente = await clienteService.crearCliente(input, ctx.usuario);
+      return nuevoCliente;
     },
 
     // Actualizar datos del cliente
     actualizarCliente: async (_, { id, input }, ctx) => {
       requiereAuth(ctx);
-      const datos = {
-        cedula: input.cedula,
-        nombre: input.nombre,
-        fecha_nacimiento: input.fechaNacimiento,
-        tipo_cliente: input.tipoCliente,
-        direccion: input.direccion,
-        telefono: input.telefono,
-        email: input.email,
-        estado: input.estado
-      };
 
-      const clienteActualizado = await clienteService.actualizarCliente(id, datos, ctx.usuario);
-      return mapearCliente(clienteActualizado);
+      const clienteActualizado = await clienteService.actualizarCliente(id, input, ctx.usuario);
+      return clienteActualizado;
     },
 
     // HU1 - CA3: Inactivar cliente (en lugar de borrado físico)
@@ -135,7 +100,7 @@ const resolvers = {
       requiereAuth(ctx);
       // Tu servicio debería hacer un update de { estado: 'Inactivo' }
       const clienteInactivado = await clienteService.actualizarEstadoCliente(id, 'Inactivo', ctx.usuario);
-      return mapearCliente(clienteInactivado);
+      return clienteInactivado;
     }
   }
 };

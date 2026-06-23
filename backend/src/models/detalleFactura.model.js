@@ -13,37 +13,44 @@ const DetalleFactura = sequelize.define('DetalleFactura', {
     primaryKey: true,
     defaultValue: DataTypes.UUIDV4
   },
-  factura_id: {
+  facturaId: {
+    field: "factura_id",
     type: DataTypes.UUID,
     allowNull: false,
     references: { model: 'facturas', key: 'id' },
     onDelete: 'CASCADE'
   },
-  producto_id: {
+  productoId: {
+    field: "producto_id",
     type: DataTypes.STRING(20),   // ej: "PRD-0003" — confirmado por Inventario
     allowNull: false,
     comment: 'Código del producto en Inventario (ej: PRD-0003)'
   },
-  producto_nombre: {
+  productoNombre: {
+    field: "producto_nombre",
     type: DataTypes.STRING(255),
     allowNull: false,
     comment: 'Snapshot del nombre al momento de facturar'
   },
   cantidad: {
+    field: "cantidad",
     type: DataTypes.INTEGER,
     allowNull: false,
     validate: { min: 1 }
   },
-  precio_unitario: {
+  precioUnitario: {
+    field: "precio_unitario",
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
     validate: { min: 0 }
   },
-  graba_iva: {
+  grabaIva: {
+    field: "graba_iva",
     type: DataTypes.BOOLEAN,
     allowNull: false
   },
-  subtotal_linea: {
+  subtotalLinea: {
+    field: "subtotal_linea",
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
     validate: { min: 0 }
