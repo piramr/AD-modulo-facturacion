@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { createCliente, createFactura, deleteCliente, deleteFactura, getFacturacionSnapshot } from '../api/facturacionService'
+import {
+  createCliente,
+  createFactura,
+  deleteCliente,
+  deleteFactura,
+  downloadFacturaPdf,
+  downloadReporteClientesPdf,
+  downloadReporteFacturasPdf,
+  getFacturacionSnapshot,
+  updateCliente,
+} from '../api/facturacionService'
 import {
   calculateFacturaTotals,
   FACTURA_ESTADOS,
@@ -25,7 +35,6 @@ const INITIAL_CLIENT_FORM = {
   estado: 'Activo',
 }
 const INITIAL_FACTURA_FORM = {
-  numero_factura: '',
   cliente_id: '',
   tipo_pago: 'Efectivo',
   fecha_emision: new Date().toISOString().split('T')[0],
@@ -37,13 +46,18 @@ const INITIAL_DETALLE_FORM = {
   cantidad: '',
   precio_unitario: '',
   graba_iva: true,
+  porcentaje_iva_aplicado: 15,
+  stock_actual: 0,
 }
+
+const DEFAULT_PAGE_SIZE = 10
 
 const formatMoney = (value) => `$${new Intl.NumberFormat('es-CO').format(Number(value) || 0)}`
 
 const getSectionFromPath = (pathname) => {
   if (pathname.includes('/clientes')) return 'Clientes'
   if (pathname.includes('/facturas')) return 'Facturas'
+  if (pathname.includes('/reportes')) return 'Reportes'
   return 'Resumen'
 }
 
@@ -51,6 +65,12 @@ export function useFacturacion() {
   const location = useLocation()
   const [clientes, setClientes] = useState([])
   const [facturas, setFacturas] = useState([])
+  const [productos, setProductos] = useState([])
+  const [auditoria, setAuditoria] = useState([])
+  const [clientesPage, setClientesPage] = useState(1)
+  const [facturasPage, setFacturasPage] = useState(1)
+  const [clientesPageInfo, setClientesPageInfo] = useState({ currentPage: 1, totalPages: 1, totalCount: 0 })
+  const [facturasPageInfo, setFacturasPageInfo] = useState({ currentPage: 1, totalPages: 1, totalCount: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -65,26 +85,47 @@ export function useFacturacion() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
   const [clienteForm, setClienteForm] = useState(INITIAL_CLIENT_FORM)
+  const [editingClienteId, setEditingClienteId] = useState(null)
   const [facturaForm, setFacturaForm] = useState(INITIAL_FACTURA_FORM)
   const [detalleForm, setDetalleForm] = useState(INITIAL_DETALLE_FORM)
   const [detalleItems, setDetalleItems] = useState([])
   const [busyAction, setBusyAction] = useState(null)
 
-const [confirmDialog, setConfirmDialog] = useState({
-  isOpen: false,
-  title: '',
-  message: '',
-  onConfirm: () => {},
-})
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
+
+  const applySnapshot = (snapshot) => {
+    setClientes(snapshot.clientes)
+    setFacturas(snapshot.facturas)
+    setProductos(snapshot.productos)
+    setAuditoria(snapshot.auditoria || [])
+    setClientesPageInfo(snapshot.clientesPageInfo)
+    setFacturasPageInfo(snapshot.facturasPageInfo)
+  }
+
+  const reloadSnapshot = (overrides = {}) => getFacturacionSnapshot('', {
+    clientesPage: overrides.clientesPage || clientesPage,
+    clientesLimit: DEFAULT_PAGE_SIZE,
+    facturasPage: overrides.facturasPage || facturasPage,
+    facturasLimit: DEFAULT_PAGE_SIZE,
+  })
 
   useEffect(() => {
     let mounted = true
 
-    getFacturacionSnapshot()
+    getFacturacionSnapshot('', {
+      clientesPage,
+      clientesLimit: DEFAULT_PAGE_SIZE,
+      facturasPage,
+      facturasLimit: DEFAULT_PAGE_SIZE,
+    })
       .then((snapshot) => {
         if (!mounted) return
-        setClientes(snapshot.clientes)
-        setFacturas(snapshot.facturas)
+        applySnapshot(snapshot)
       })
       .catch(() => {
         toast.error('No fue posible cargar la información de facturación.')
@@ -96,7 +137,7 @@ const [confirmDialog, setConfirmDialog] = useState({
     return () => {
       mounted = false
     }
-  }, [])
+  }, [clientesPage, facturasPage])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -106,6 +147,7 @@ const [confirmDialog, setConfirmDialog] = useState({
 
   const currentSection = useMemo(() => getSectionFromPath(location.pathname), [location.pathname])
   const availableClients = useMemo(() => clientes, [clientes])
+  const availableProducts = useMemo(() => productos.filter((producto) => producto.stockActual > 0), [productos])
   const facturaTotals = useMemo(() => calculateFacturaTotals(detalleItems), [detalleItems])
 
   const kpis = useMemo(() => {
@@ -159,7 +201,7 @@ const [confirmDialog, setConfirmDialog] = useState({
     return facturas.filter((factura) => {
       const matchesQuery =
         !query ||
-        factura.clienteNombre.toLowerCase().includes(query) ||
+        String(factura.clienteNombre || '').toLowerCase().includes(query) ||
         factura.numero_factura.toLowerCase().includes(query) ||
         factura.id.toLowerCase().includes(query)
       const matchesEstado = filterEstado === 'Todos' || factura.estado === filterEstado
@@ -168,6 +210,24 @@ const [confirmDialog, setConfirmDialog] = useState({
   }, [facturas, filterEstado, searchQuery])
 
   const openClienteModal = () => {
+    setEditingClienteId(null)
+    resetClientForm()
+    setModalMode('cliente')
+    setIsModalOpen(true)
+  }
+
+  const openEditClienteModal = (cliente) => {
+    setEditingClienteId(cliente.id)
+    setClienteForm({
+      cedula: cliente.cedula,
+      nombre: cliente.nombre,
+      fecha_nacimiento: cliente.fecha_nacimiento,
+      tipo_cliente: cliente.tipo_cliente,
+      direccion: cliente.direccion,
+      telefono: cliente.telefono,
+      email: cliente.email,
+      estado: cliente.estado,
+    })
     setModalMode('cliente')
     setIsModalOpen(true)
   }
@@ -189,7 +249,25 @@ const [confirmDialog, setConfirmDialog] = useState({
 
   const handleClienteFieldChange = (field, value) => setClienteForm((currentForm) => ({ ...currentForm, [field]: value }))
   const handleInvoiceFieldChange = (field, value) => setFacturaForm((currentForm) => ({ ...currentForm, [field]: value }))
-  const handleDetalleFieldChange = (field, value) => setDetalleForm((currentForm) => ({ ...currentForm, [field]: value }))
+  const handleDetalleFieldChange = (field, value) => {
+    if (field === 'producto_id') {
+      const producto = productos.find((item) => item.codigo === value)
+      if (producto) {
+        setDetalleForm((currentForm) => ({
+          ...currentForm,
+          producto_id: producto.codigo,
+          producto_nombre: producto.nombre,
+          precio_unitario: producto.pvp,
+          graba_iva: producto.grabaIva,
+          porcentaje_iva_aplicado: producto.porcentajeIvaAplicado,
+          stock_actual: producto.stockActual,
+        }))
+        return
+      }
+    }
+
+    setDetalleForm((currentForm) => ({ ...currentForm, [field]: value }))
+  }
 
   const addDetalleItem = () => {
     const validation = validateDetalleFacturaForm(detalleForm)
@@ -222,10 +300,15 @@ const [confirmDialog, setConfirmDialog] = useState({
 
     setBusyAction('cliente')
     try {
-      const snapshot = await createCliente(validation.values)
-      setClientes(snapshot.clientes)
-      setFacturas(snapshot.facturas)
-      toast.success(`Cliente "${validation.values.nombre}" registrado correctamente.`)
+      if (editingClienteId) {
+        await updateCliente(editingClienteId, validation.values)
+      } else {
+        await createCliente(validation.values)
+        setClientesPage(1)
+      }
+      applySnapshot(await reloadSnapshot(editingClienteId ? {} : { clientesPage: 1 }))
+      toast.success(`Cliente "${validation.values.nombre}" ${editingClienteId ? 'actualizado' : 'registrado'} correctamente.`)
+      setEditingClienteId(null)
       resetClientForm()
       closeModal()
       return true
@@ -248,13 +331,13 @@ const [confirmDialog, setConfirmDialog] = useState({
 
     setBusyAction('factura')
     try {
-      const snapshot = await createFactura({
+      await createFactura({
         ...validation.values,
         ...totals,
         detalles: detalleItems,
       })
-      setClientes(snapshot.clientes)
-      setFacturas(snapshot.facturas)
+      setFacturasPage(1)
+      applySnapshot(await reloadSnapshot({ facturasPage: 1 }))
       toast.success(`Factura emitida por ${formatMoney(totals.total)}.`)
       resetInvoiceForm()
       resetDetalleItems()
@@ -279,9 +362,8 @@ const [confirmDialog, setConfirmDialog] = useState({
         setConfirmDialog((prev) => ({ ...prev, isOpen: false })) // Cierra el diálogo
         setBusyAction(`delete-cliente-${id}`)
         try {
-          const snapshot = await deleteCliente(id)
-          setClientes(snapshot.clientes)
-          setFacturas(snapshot.facturas)
+          await deleteCliente(id)
+          applySnapshot(await reloadSnapshot())
           toast.success('Cliente eliminado correctamente.')
         } catch (error) {
           toast.error(error.message || 'No fue posible eliminar el cliente.')
@@ -301,9 +383,8 @@ const [confirmDialog, setConfirmDialog] = useState({
         setConfirmDialog((prev) => ({ ...prev, isOpen: false })) // Cierra el modal
         setBusyAction(`delete-factura-${id}`)
         try {
-          const snapshot = await deleteFactura(id)
-          setClientes(snapshot.clientes)
-          setFacturas(snapshot.facturas)
+          await deleteFactura(id)
+          applySnapshot(await reloadSnapshot())
           toast.success('Factura eliminada correctamente.')
         } catch (error) {
           toast.error(error.message || 'No fue posible eliminar la factura.')
@@ -319,12 +400,53 @@ const [confirmDialog, setConfirmDialog] = useState({
     toast.info('Has cerrado la sesión del administrador.')
   }
 
+  const handlePrintFactura = async (factura) => {
+    setBusyAction(`print-factura-${factura.id}`)
+    try {
+      const message = await downloadFacturaPdf(factura.id, factura.numero_factura)
+      toast.success(message)
+    } catch (error) {
+      toast.error(error.message || 'No fue posible imprimir la factura.')
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  const handleDownloadClientesPdf = async () => {
+    setBusyAction('reporte-clientes-pdf')
+    try {
+      const message = await downloadReporteClientesPdf()
+      toast.success(message)
+    } catch (error) {
+      toast.error(error.message || 'No fue posible generar el reporte de clientes.')
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  const handleDownloadFacturasPdf = async () => {
+    setBusyAction('reporte-facturas-pdf')
+    try {
+      const message = await downloadReporteFacturasPdf()
+      toast.success(message)
+    } catch (error) {
+      toast.error(error.message || 'No fue posible generar el reporte de facturas.')
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
   return {
     currentSection,
     clientes,
     facturas,
+    productos,
+    auditoria,
     kpis,
     availableClients,
+    availableProducts,
+    clientesPageInfo,
+    facturasPageInfo,
     filteredClients,
     filteredInvoices,
     clienteForm,
@@ -352,6 +474,7 @@ const [confirmDialog, setConfirmDialog] = useState({
     setFilterEstado,
     toggleTheme,
     openClienteModal,
+    openEditClienteModal,
     openFacturaModal,
     closeModal,
     handleClienteFieldChange,
@@ -362,8 +485,16 @@ const [confirmDialog, setConfirmDialog] = useState({
     handleSubmit,
     handleDeleteCliente,
     handleDeleteFactura,
+    handlePrintFactura,
+    handleDownloadClientesPdf,
+    handleDownloadFacturasPdf,
     handleLogout,
     confirmDialog,
     closeConfirmDialog: () => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))
+    ,
+    setClientesPage,
+    setFacturasPage,
+    pageSize: DEFAULT_PAGE_SIZE,
+    editingClienteId,
   }
 }

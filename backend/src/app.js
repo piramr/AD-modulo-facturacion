@@ -8,8 +8,10 @@ const { ApolloServer } = require('apollo-server-express');
 
 const schema = require('./graphql/schema');
 
-const { obtenerUsuarioDesdeToken } = require('./middlewares/auth.middleware');
+const { obtenerUsuarioDesdeToken, verificarToken, verificarRol } = require('./middlewares/auth.middleware');
 const { verificarApiKey } = require('./middlewares/apiKey.middleware');
+const reporteFacturaService = require('./services/reporteFactura.service');
+const reporteClienteService = require('./services/reporteCliente.service');
 
 // Definir relación Factura ↔ Cliente (misma BD)
 const Factura = require('./models/factura.model');
@@ -62,6 +64,119 @@ async function crearApp() {
 
   // ── Apollo Server (GraphQL) ──────────────────────────────────────────────
   // 2. En la configuración de Apollo, fusiónalos así:
+  app.get(
+    '/api/reportes/facturas/:id/pdf',
+    verificarToken,
+    verificarRol(['admin', 'facturador']),
+    async (req, res) => {
+      try {
+        const reporte = await reporteFacturaService.generarPdfFactura(req.params.id, req.usuario);
+
+        if (reporte.durationMs > 30000) {
+          return res.status(504).json({
+            error: 'La generacion del PDF supero los 30 segundos',
+            durationMs: reporte.durationMs
+          });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${reporte.filename}"`);
+        res.setHeader('Content-Length', reporte.buffer.length);
+        res.setHeader('X-Generation-Time-Ms', String(reporte.durationMs));
+        res.setHeader('X-Report-Message', reporte.message);
+        return res.status(200).send(reporte.buffer);
+      } catch (err) {
+        return res.status(err.codigo || 500).json({ error: err.message });
+      }
+    }
+  );
+
+  app.get(
+    '/api/reportes/facturas',
+    verificarToken,
+    verificarRol(['admin', 'facturador']),
+    async (req, res) => {
+      try {
+        if (req.query.format === 'pdf') {
+          const reporte = await reporteFacturaService.generarPdfReporteFacturas(req.query);
+
+          if (reporte.durationMs > 30000) {
+            return res.status(504).json({
+              error: 'La generacion del reporte supero los 30 segundos',
+              durationMs: reporte.durationMs
+            });
+          }
+
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `inline; filename="${reporte.filename}"`);
+          res.setHeader('Content-Length', reporte.buffer.length);
+          res.setHeader('X-Generation-Time-Ms', String(reporte.durationMs));
+          res.setHeader('X-Report-Message', reporte.message);
+          return res.status(200).send(reporte.buffer);
+        }
+
+        const reporte = await reporteFacturaService.obtenerDatosReporteFacturas(req.query);
+
+        if (reporte.durationMs > 30000) {
+          return res.status(504).json({
+            error: 'La generacion del reporte supero los 30 segundos',
+            durationMs: reporte.durationMs
+          });
+        }
+
+        return res.status(200).json({
+          ...reporte,
+          message: 'Reporte de facturas generado con exito'
+        });
+      } catch (err) {
+        return res.status(err.codigo || 500).json({ error: err.message });
+      }
+    }
+  );
+
+  app.get(
+    '/api/reportes/clientes',
+    verificarToken,
+    verificarRol(['admin', 'facturador']),
+    async (req, res) => {
+      try {
+        if (req.query.format === 'pdf') {
+          const reporte = await reporteClienteService.generarPdfClientes(req.query);
+
+          if (reporte.durationMs > 30000) {
+            return res.status(504).json({
+              error: 'La generacion del reporte supero los 30 segundos',
+              durationMs: reporte.durationMs
+            });
+          }
+
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `inline; filename="${reporte.filename}"`);
+          res.setHeader('Content-Length', reporte.buffer.length);
+          res.setHeader('X-Generation-Time-Ms', String(reporte.durationMs));
+          res.setHeader('X-Report-Message', 'Reporte de clientes generado con exito');
+          return res.status(200).send(reporte.buffer);
+        }
+
+        const reporte = await reporteClienteService.obtenerDatosReporteClientes(req.query);
+
+        if (reporte.durationMs > 30000) {
+          return res.status(504).json({
+            error: 'La generacion del reporte supero los 30 segundos',
+            durationMs: reporte.durationMs
+          });
+        }
+
+        return res.status(200).json({
+          ...reporte,
+          message: 'Reporte de clientes generado con exito'
+        });
+      } catch (err) {
+        return res.status(err.codigo || 500).json({ error: err.message });
+      }
+    }
+  );
+
 const apolloServer = new ApolloServer({
   schema,
   introspection: true,

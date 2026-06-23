@@ -1,10 +1,11 @@
-import { ChevronDown, ChevronRight, FileText, LogOut, Menu, Moon, Sun, BarChart3, Users } from 'lucide-react'
+import { ChevronDown, ChevronRight, FileText, LogOut, Menu, Moon, Sun, BarChart3, Users, ClipboardList } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const navigation = [
   { label: 'Resumen', to: '/facturacion/resumen', icon: BarChart3 },
   { label: 'Clientes', to: '/facturacion/clientes', icon: Users },
   { label: 'Facturas', to: '/facturacion/facturas', icon: FileText },
+  { label: 'Reportes', to: '/facturacion/reportes', icon: ClipboardList },
 ]
 
 export default function FacturacionLayout({ currentSection, sidebarOpen, onToggleSidebar, themeMode, onToggleTheme, userMenuOpen, onToggleUserMenu, onLogout, children }) {

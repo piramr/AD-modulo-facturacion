@@ -7,6 +7,7 @@
 // Inventario devuelve `porcentaje_iva_aplicado` (0 o 15) por cada producto.
 // Usamos ese valor directamente para calcular el IVA de cada línea.
 
+const { Op } = require('sequelize');
 const { sequelize } = require('../config/db');
 const Factura = require('../models/factura.model');
 const DetalleFactura = require('../models/detalleFactura.model');
@@ -230,9 +231,30 @@ async function obtenerFacturaPorId(id) {
   return factura;
 }
 
+async function facturaFueImpresa(id) {
+  const registro = await PistaAuditoria.findOne({
+    where: {
+      accion: 'FACTURA_IMPRESA',
+      detalles: {
+        [Op.contains]: { factura_id: id }
+      }
+    }
+  });
+
+  return Boolean(registro);
+}
+
 async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
   const factura = await obtenerFacturaPorId(id);
   const estadoAnterior = factura.estado;
+
+  if (await facturaFueImpresa(id)) {
+    const error = new Error('La factura ya fue impresa y no puede modificarse');
+    error.codigo = 409;
+    error.code = 'CONFLICT';
+    error.status = 409;
+    throw error;
+  }
 
   if (estadoAnterior === 'Anulada') {
     const error = new Error('No se puede modificar una factura anulada');
