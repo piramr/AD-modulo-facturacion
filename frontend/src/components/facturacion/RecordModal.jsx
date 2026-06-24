@@ -2,7 +2,6 @@ import { Plus, Trash2, X } from 'lucide-react'
 import {
   CLIENTE_ESTADOS,
   FACTURA_ESTADOS,
-  IVA_PERCENT,
   TIPO_CLIENTE_OPTIONS,
   TIPO_PAGO_OPTIONS,
 } from '../../utils/validators'
@@ -18,6 +17,7 @@ export default function RecordModal({
   onClose,
   onSubmit,
   clients = [],
+  products = [],
   isSubmitting = false,
   detailForm,
   detailItems = [],
@@ -155,17 +155,6 @@ export default function RecordModal({
             <div className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1 md:col-span-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Numero factura</span>
-                  <input
-                    value={form.numero_factura}
-                    onChange={(event) => onFieldChange('numero_factura', event.target.value)}
-                    type="text"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="ABC-123-123456789"
-                  />
-                </label>
-
-                <label className="space-y-1 md:col-span-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Cliente</span>
                   <select
                     value={form.cliente_id}
@@ -226,7 +215,7 @@ export default function RecordModal({
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Detalle de factura</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Agrega productos y valida montos automaticamente.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Agrega productos desde Inventario y valida stock automaticamente.</p>
                   </div>
                   <button
                     type="button"
@@ -240,28 +229,33 @@ export default function RecordModal({
 
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="space-y-1 md:col-span-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto ID</span>
-                    <input
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto</span>
+                    <select
                       value={detailForm?.producto_id ?? ''}
                       onChange={(event) => onDetailFieldChange('producto_id', event.target.value)}
-                      type="text"
                       className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                      placeholder="PROD-001"
-                    />
+                    >
+                      <option value="">Selecciona un producto disponible</option>
+                      {products.map((producto) => (
+                        <option key={producto.codigo} value={producto.codigo}>
+                          {producto.codigo} - {producto.nombre} - Stock {producto.stockActual}
+                        </option>
+                      ))}
+                    </select>
                   </label>
 
                   <label className="space-y-1 md:col-span-2">
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto nombre</span>
                     <input
                       value={detailForm?.producto_nombre ?? ''}
-                      onChange={(event) => onDetailFieldChange('producto_nombre', event.target.value)}
+                      readOnly
                       type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                      placeholder="Servicio de mantenimiento"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                      placeholder="Selecciona un producto"
                     />
                   </label>
 
-                  <label className="space-y-1">
+                  <label className="space-y-1 md:col-span-2">
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Cantidad</span>
                     <input
                       value={detailForm?.cantidad ?? ''}
@@ -271,28 +265,6 @@ export default function RecordModal({
                       step="1"
                       className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     />
-                  </label>
-
-                  <label className="space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Precio unitario</span>
-                    <input
-                      value={detailForm?.precio_unitario ?? ''}
-                      onChange={(event) => onDetailFieldChange('precio_unitario', event.target.value)}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </label>
-
-                  <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 md:col-span-2">
-                    <input
-                      checked={Boolean(detailForm?.graba_iva)}
-                      onChange={(event) => onDetailFieldChange('graba_iva', event.target.checked)}
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="font-medium text-slate-700 dark:text-slate-200">Graba IVA</span>
                   </label>
                 </div>
 
@@ -345,7 +317,7 @@ export default function RecordModal({
                     <span className="font-black text-slate-900 dark:text-slate-100">${formatMoney(totals.subtotal)}</span>
                   </div>
                   <div className="rounded-xl bg-white px-3 py-2 text-sm dark:bg-slate-900">
-                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">IVA ({IVA_PERCENT}%)</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">IVA</span>
                     <span className="font-black text-slate-900 dark:text-slate-100">${formatMoney(totals.total_iva)}</span>
                   </div>
                   <div className="rounded-xl bg-indigo-50 px-3 py-2 text-sm dark:bg-indigo-950/30">

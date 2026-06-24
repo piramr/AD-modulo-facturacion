@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export default function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel, isDanger = true }) {

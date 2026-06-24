@@ -1,0 +1,74 @@
+"""Resumen de compras historicas de un cliente."""
+type HistorialComprasCliente {
+  """Cantidad de facturas asociadas al cliente."""
+  cantidadFacturas: Int!
+  """Suma total comprada por el cliente."""
+  totalComprado: Float!
+  """Fecha de la ultima compra registrada."""
+  ultimaCompra: DateTime
+}
+
+"""Cliente dentro del reporte de clientes."""
+type ClienteReporte {
+  id: ID!
+  cedula: String!
+  nombre: String!
+  fechaNacimiento: String!
+  tipoCliente: String!
+  direccion: String!
+  telefono: String!
+  email: String!
+  estado: String!
+  historialCompras: HistorialComprasCliente!
+}
+
+"""Reporte completo de clientes."""
+type ReporteClientes {
+  totalCount: Int!
+  generatedAt: DateTime!
+  durationMs: Int!
+  message: String!
+  items: [ClienteReporte!]!
+}
+
+"""Articulo incluido en una factura del reporte."""
+type ArticuloFacturaReporte {
+  productoCodigo: String!
+  productoNombre: String!
+  cantidad: Int!
+  precioUnitario: Float!
+  subtotalLinea: Float!
+}
+
+"""Factura dentro del reporte general de facturas."""
+type FacturaReporte {
+  id: ID!
+  numeroFactura: String!
+  clienteId: String!
+  clienteNombre: String
+  clienteCedula: String
+  tipoPago: String!
+  fechaEmision: DateTime!
+  subtotal: Float!
+  totalIva: Float!
+  total: Float!
+  estado: String!
+  articulos: [ArticuloFacturaReporte!]!
+}
+
+"""Reporte completo de facturas."""
+type ReporteFacturas {
+  totalCount: Int!
+  generatedAt: DateTime!
+  durationMs: Int!
+  message: String!
+  items: [FacturaReporte!]!
+}
+
+type Query {
+  """Genera el reporte de clientes en formato JSON via GraphQL."""
+  reporteClientes(filter: ClientesFilter, limit: Int): ReporteClientes!
+
+  """Genera el reporte general de facturas en formato JSON via GraphQL."""
+  reporteFacturas(filter: FacturasFilter, limit: Int): ReporteFacturas!
+}

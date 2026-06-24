@@ -1,24 +1,24 @@
-# Viene desde módulo de inventario
-"""Información de un producto disponible en inventario."""
+# Viene desde modulo de inventario
+"""Informacion de un producto disponible en inventario."""
 type Producto {
-  """Código único del producto."""
+  """Codigo unico del producto."""
   codigo: String!
   """Nombre del producto."""
   nombre: String!
-  """Descripción detallada del producto."""
+  """Descripcion detallada del producto."""
   descripcion: String
+  """Cantidad disponible actualmente en Inventario."""
+  stockActual: Int!
+  """Precio de venta publico (PVP)."""
+  pvp: Float!
   """Indica si el producto grava IVA."""
   grabaIva: Boolean!
-  """Costo del producto al por mayor o de adquisición."""
-  costo: Float!
-  """Precio de venta público (PVP) del producto."""
-  pvp: Float!
-  """Estado del producto en inventario."""
-  estado: String!
+  """Porcentaje de IVA aplicado por Inventario."""
+  porcentajeIvaAplicado: Float!
 }
 
 """Consultas disponibles para productos."""
 type Query {
-  """Devuelve la lista completa de productos."""
+  """Devuelve la lista completa de productos disponibles en Inventario."""
   productos: [Producto!]!
 }

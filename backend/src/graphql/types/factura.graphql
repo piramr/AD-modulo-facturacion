@@ -1,5 +1,14 @@
 scalar DateTime
 
+"""Campos que se acepta para ingresar ordenación ascendente/descendente en facturas."""
+enum FacturaOrderByCampo {
+  numeroFactura
+  tipoPago
+  fechaEmision
+  total
+  estado
+}
+
 """Detalle de una línea de factura con información de producto."""
 type DetalleFactura {
   """Identificador único de la línea de detalle."""
@@ -87,6 +96,12 @@ input FacturasFilter {
   search: String
 }
 
+"""Input para ordenamiento por campo y dirección"""
+input FacturasOrderBy {
+  campo: FacturaOrderByCampo!
+  direccion: SortDirection! = ASC
+}
+
 # Módulo de Facturas
 """Consultas disponibles para facturas."""
 type Query {
@@ -98,6 +113,9 @@ type Query {
     page: Int,
     """Cantidad máxima de facturas por página."""
     limit: Int
+    """Permite ordenar por múltiples campos"""
+    orderBy: [FacturasOrderBy!]
+
   ): Facturas!
   """Devuelve una factura por su ID único."""
   factura(

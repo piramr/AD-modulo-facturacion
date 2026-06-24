@@ -1,5 +1,17 @@
 scalar DateTime
 
+
+"""Campos que se acepta para ingresar ordenación ascendente/descendente en clientes."""
+enum ClienteOrderByCampo {
+  id
+  cedula
+  nombre
+  tipoCliente
+  estado
+  createdAt
+  updatedAt
+}
+
 """Representa un resumen ligero de un cliente para listados y relaciones."""
 type ClienteResumen {
   """Identificador único del cliente."""
@@ -99,9 +111,16 @@ input ClientesFilter {
   nombre: String
   """Filtra por tipo de cliente: 'Contado' o 'Crédito'."""
   tipoCliente: String
-  """Búsqueda libre sobre campos relevantes del cliente."""
+  """Búsqueda libre sobre campos relevantes del cliente (nombre, cédula, teléfono y email)."""
   search: String
 }
+
+"""Input para ordenamiento por campo y dirección"""
+input ClientesOrderBy {
+  campo: ClienteOrderByCampo!
+  direccion: SortDirection! = ASC
+}
+
 
 """Consultas disponibles para clientes."""
 type Query {
@@ -113,6 +132,8 @@ type Query {
     page: Int,
     """Cantidad máxima de clientes por página."""
     limit: Int
+    """Permite ordenar por múltiples campos"""
+    orderBy: [ClientesOrderBy!]
   ): Clientes!
   """Devuelve un cliente por su ID único."""
   cliente(

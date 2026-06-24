@@ -24,6 +24,7 @@ async function iniciar() {
   app.listen(PORT, () => {
     console.log(`🚀 Módulo de Facturación en http://localhost:${PORT}`);
     console.log(`   GraphQL Playground: http://localhost:${PORT}/graphql`);
+    console.log(`   Documentación: http://localhost:${PORT}/docs`);
     console.log(`   Health check:       http://localhost:${PORT}/health`);
   });
 }
