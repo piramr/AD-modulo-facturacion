@@ -1,13 +1,3 @@
-// src/models/factura.model.js
-//
-// Refleja exactamente la tabla facturas del SQL compartido.
-// Cambios clave vs versiones anteriores:
-//   - id: UUID (no INTEGER autoincremental)
-//   - cliente_id: UUID con FK real a clientes(id) — misma BD
-//   - tipo_pago: 'Efectivo' o 'Crédito' (nuevo campo)
-//   - estado: VARCHAR (no ENUM de Postgres para mayor flexibilidad)
-//   - numero_factura: formato XXX-XXX-XXXXXXXXX
-
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 

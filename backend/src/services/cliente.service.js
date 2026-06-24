@@ -86,8 +86,7 @@ async function crearCliente(datos, usuarioDictante) {
     throw new Error(`Ya existe un cliente registrado con la cédula ${datos.cedula}.`);
   }
 
-  // 2. Validar fecha de nacimiento (Regla SQL: fecha_nacimiento <= CURRENT_DATE)
-  const fechaNac = new Date(datos.fecha_nacimiento);
+  const fechaNac = new Date(datos.fechaNacimiento);
   const hoy = new Date();
   if (fechaNac > hoy) {
     throw new Error('La fecha de nacimiento no puede ser mayor a la fecha actual.');
@@ -114,8 +113,8 @@ async function actualizarCliente(id, datos, usuarioDictante) {
   const cliente = await obtenerClientePorId(id);
 
   // Validar fecha de nacimiento si se intenta modificar
-  if (datos.fecha_nacimiento) {
-    const fechaNac = new Date(datos.fecha_nacimiento);
+  if (datos.fechaNacimiento) {
+    const fechaNac = new Date(datos.fechaNacimiento);
     if (fechaNac > new Date()) {
       throw new Error('La fecha de nacimiento no puede ser mayor a la fecha actual.');
     }

@@ -1,8 +1,3 @@
-// src/models/detalleFactura.model.js
-//
-// CAMBIO CONFIRMADO: producto_id es STRING tipo "PRD-0003", NO UUID.
-// Inventario usa sus propios códigos (PRD-XXXX), no UUIDs.
-
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 const Factura = require('./factura.model');
@@ -20,7 +15,7 @@ const DetalleFactura = sequelize.define('DetalleFactura', {
     references: { model: 'facturas', key: 'id' },
     onDelete: 'CASCADE'
   },
-  productoId: {
+  productoCodigo: {
     field: "producto_id",
     type: DataTypes.STRING(20),   // ej: "PRD-0003" — confirmado por Inventario
     allowNull: false,

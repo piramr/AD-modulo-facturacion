@@ -10,53 +10,16 @@ function requiereAuth(context) {
   }
 }
 
-function mapearFactura(f) {
-  const data = f.toJSON ? f.toJSON() : f;
-  return {
-    id: data.id,
-    numeroFactura: data.numero_factura,
-    clienteId: data.cliente_id,
-    cliente: data.cliente
-      ? {
-          id: data.cliente.id,
-          nombre: data.cliente.nombre,
-          cedula: data.cliente.cedula,
-          tipoCliente: data.cliente.tipo_cliente
-        }
-      : null,
-    tipoPago: data.tipo_pago,
-    fechaEmision: data.fecha_emision,
-    subtotal: Number(data.subtotal),
-    totalIva: Number(data.total_iva),
-    total: Number(data.total),
-    estado: data.estado,
-    detalles: (data.detalles || []).map((d) => ({
-      id: d.id,
-      productoCodigo: d.producto_id,   // "PRD-0003"
-      productoNombre: d.producto_nombre,
-      cantidad: d.cantidad,
-      precioUnitario: Number(d.precio_unitario),
-      grabaIva: d.graba_iva,
-      subtotalLinea: Number(d.subtotal_linea)
-    }))
-  };
-}
-
 const resolvers = {
   Query: {
     facturas: async (_, args, ctx) => {
       requiereAuth(ctx);
       
       const MAX_LIMIT = 1_000;
-      const { facturasFilter = {} } = args;
+      const { filter = {} } = args;
 
       // 1. Conteo dinámico previo (Saber cuántos hay en tiempo real)
-      const totalRegistros = await facturaService.contarFacturasConFiltro({
-        estado: facturasFilter.estado,
-        cliente_id: facturasFilter.clienteId,
-        tipo_pago: facturasFilter.tipoPago,
-        search: facturasFilter.search
-      });
+      const totalRegistros = await facturaService.contarFacturasConFiltro(filter);
 
       // 2. Control dinámico de volumen (Tu regla 413)
       const limiteSolicitado = args.limit || totalRegistros;
@@ -85,10 +48,7 @@ const resolvers = {
 
       // 5. Extraer los datos exactos sin riesgo de arrays vacíos indeseados
       const resultado = await facturaService.listarFacturas({
-        estado: facturasFilter.estado,
-        cliente_id: facturasFilter.clienteId,
-        tipo_pago: facturasFilter.tipoPago,
-        search: facturasFilter.search,
+        ...filter,
         limit: limitePorPagina,
         offset: offset
       });
@@ -102,36 +62,43 @@ const resolvers = {
           currentPage: paginaActual, // Si fue recalculada, el frontend se entera aquí
           totalPages: totalPaginas
         },
-        items: (resultado?.rows || []).map(mapearFactura)
+        items: resultado?.rows || []
       };
     },
 
     factura: async (_, { id }, ctx) => {
       requiereAuth(ctx);
-      const f = await facturaService.obtenerFacturaPorId(id);
-      return mapearFactura(f);
+      try {
+        return await facturaService.obtenerFacturaPorId(id);
+      } catch (err) {
+        if (err.codigo === 404 || err.message.includes('no encontrada')) {
+          err.code = 'NOT_FOUND';
+          err.status = 404;
+        }
+        throw err;
+      }
     },
   },
 
-  Mutation: {
+Mutation: {
     crearFactura: async (_, { input }, ctx) => {
       requiereAuth(ctx);
-      const datos = {
-        cliente_id: input.clienteId,
-        tipo_pago: input.tipoPago,
-        detalles: input.detalles.map((d) => ({
-          producto_codigo: d.productoCodigo,
-          cantidad: d.cantidad
-        }))
-      };
-      const f = await facturaService.crearFactura(datos, ctx.usuario, ctx.token);
-      return mapearFactura(f);
+      const factura = await facturaService.crearFactura(input, ctx.usuario, ctx.token);
+      return factura;
     },
 
     actualizarEstadoFactura: async (_, { id, estado }, ctx) => {
       requiereAuth(ctx);
-      const f = await facturaService.actualizarEstadoFactura(id, estado, ctx.usuario);
-      return mapearFactura(f);
+      try {
+        const factura = await facturaService.actualizarEstadoFactura(id, estado, ctx.usuario);
+        return factura;
+      } catch (err) {
+        if (err.codigo === 409) {
+          err.code = 'CONFLICT';
+          err.status = 409;
+        }
+        throw err;
+      }
     }
   }
 };
