@@ -50,7 +50,8 @@ const resolvers = {
       const resultado = await facturaService.listarFacturas({
         ...filter,
         limit: limitePorPagina,
-        offset: offset
+        offset: offset,
+        orderBy: args.orderBy
       });
 
       // 6. Retorno consistente. 'currentPage' reflejará la página real a la que fue enviado

@@ -46,14 +46,7 @@ async function generarNumeroFactura() {
 }
 
 /**
- * Crea una factura completa.
- *
- * @param {object} datos
- * @param {string} datos.cliente_id - UUID del cliente (FK real en BD)
- * @param {string} datos.tipo_pago  - 'Efectivo' o 'Crédito'
- * @param {Array}  datos.detalles   - [{ producto_codigo: "PRD-0003", cantidad: 2 }]
- * @param {object} usuario          - payload del JWT
- * @param {string} token            - "Bearer xxx" para reenviar a Inventario
+ * Crear una nueva factura
  */
 async function crearFactura(datos, usuario, token) {
   const { clienteId, tipoPago, detalles } = datos;
@@ -185,15 +178,24 @@ async function listarFacturas(filtros = {}) {
   const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
   const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
 
+  let orderClause = [[Factura.rawAttributes.fechaEmision.field, 'DESC']];
+
+  if (filtros.orderBy && filtros.orderBy.length > 0) {
+    orderClause = filtros.orderBy.map(item => {
+      const columnaBD = item.campo || 'fechaEmision'; 
+      return [columnaBD, item.direccion];
+    });
+  }
+
   return Factura.findAndCountAll({
     where,
     limit,
     offset,
+    order: orderClause,
     include: [
       { model: DetalleFactura, as: 'detalles' },
       { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipoCliente'] }
-    ],
-    order: [['fechaEmision', 'DESC']]
+    ]
   });
 }
 

@@ -32,16 +32,15 @@ async function contarClientesConFiltro(filtros = {}) {
 
 async function listarClientes(filtros = {}) {
   const where = construirWhere(filtros);
-
   const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
   const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
   
   // Ordenamiento por defecto
-  let orderClause = [['created_at', 'DESC']];
+  let orderClause = [['createdAt', 'DESC']];
 
   if (filtros.orderBy && filtros.orderBy.length > 0) {
     orderClause = filtros.orderBy.map(item => {
-      const columnaBD = item.campo || 'created_at';
+      const columnaBD = item.campo || 'createdAt';
       return [columnaBD, item.direccion];
     });
   }
