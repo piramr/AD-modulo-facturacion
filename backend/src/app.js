@@ -1,4 +1,3 @@
-// src/app.js
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
@@ -33,7 +32,21 @@ async function crearApp() {
 
   // Obtener test token de 24h
   app.get('/auth/test-token', authController.getTestToken);
-  app.use('/docs', express.static(path.join(__dirname, '../public')));
+  app.use('/docs', express.static(path.join(__dirname, '../public/docs'), {
+    extensions: ['html', 'htm']
+  }));
+  app.get('/docs/*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/docs', 'index.html'), (err) => {
+      if (err) {
+        res.status(404).send("Portal de documentación no encontrado.");
+      }
+    });
+  });
+
+  // 3. Fallback por si entran a /docs sin la barra diagonal al final
+  app.get('/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/docs', 'index.html'));
+  });
 
   // ── REST: webhook que Inventario llama con API-Key ───────────────────────
   app.post('/api/inventario/webhooks/producto-actualizado', verificarApiKey, (req, res) => {

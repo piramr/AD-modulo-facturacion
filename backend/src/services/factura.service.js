@@ -1,12 +1,3 @@
-// src/services/factura.service.js
-//
-// Lógica de negocio principal.
-//
-// CAMBIO IMPORTANTE respecto a versiones anteriores:
-// El porcentaje de IVA ya NO se hardcodea aquí.
-// Inventario devuelve `porcentaje_iva_aplicado` (0 o 15) por cada producto.
-// Usamos ese valor directamente para calcular el IVA de cada línea.
-
 const { Op } = require('sequelize');
 const { sequelize } = require('../config/db');
 const Factura = require('../models/factura.model');
@@ -24,13 +15,12 @@ function construirWhere(filtros = {}) {
   const where = {};
 
   if (filtros.estado) where.estado = filtros.estado;
-  if (filtros.cliente_id) where.cliente_id = filtros.cliente_id;
-  if (filtros.tipo_pago) where.tipo_pago = filtros.tipo_pago;
+  if (filtros.clienteId) where.clienteId = filtros.clienteId;
+  if (filtros.tipoPago) where.tipoPago = filtros.tipoPago;
 
-  // BUsqueda al número de factura coincidencias (Ej: "001-001")
+  // Búsqueda por número de factura
   if (filtros.search) {
-    const { Op } = require('sequelize');
-    where.numero_factura = { [Op.like]: `%${filtros.search}%` };
+    where.numeroFactura = { [Op.like]: `%${filtros.search}%` };
   }
 
   return where;
@@ -46,27 +36,20 @@ async function contarFacturasConFiltro(filtros = {}) {
  * Ej: 001-001-000000001
  */
 async function generarNumeroFactura() {
-  const ultima = await Factura.findOne({ order: [['fecha_emision', 'DESC']] });
+  const ultima = await Factura.findOne({ order: [['fechaEmision', 'DESC']] }); // <-- CamelCase
   let secuencia = 1;
   if (ultima) {
-    const partes = ultima.numero_factura.split('-');
+    const partes = ultima.numeroFactura.split('-');
     secuencia = parseInt(partes[2], 10) + 1;
   }
   return `001-001-${String(secuencia).padStart(9, '0')}`;
 }
 
 /**
- * Crea una factura completa.
- *
- * @param {object} datos
- * @param {string} datos.cliente_id - UUID del cliente (FK real en BD)
- * @param {string} datos.tipo_pago  - 'Efectivo' o 'Crédito'
- * @param {Array}  datos.detalles   - [{ producto_codigo: "PRD-0003", cantidad: 2 }]
- * @param {object} usuario          - payload del JWT
- * @param {string} token            - "Bearer xxx" para reenviar a Inventario
+ * Crear una nueva factura
  */
 async function crearFactura(datos, usuario, token) {
-  const { cliente_id, tipo_pago, detalles } = datos;
+  const { clienteId, tipoPago, detalles } = datos;
 
   if (!detalles || detalles.length === 0) {
     const error = new Error('La factura debe tener al menos un producto');
@@ -74,15 +57,13 @@ async function crearFactura(datos, usuario, token) {
     throw error;
   }
 
-  // 1. Consultar cada producto en Inventario (REST real)
-  //    El porcentaje_iva_aplicado ya viene del servidor (0 o 15)
   let subtotal = 0;
-  let total_iva = 0;
+  let totalIva = 0;
   const detallesConDatos = [];
 
   for (const item of detalles) {
     const producto = await inventarioService.obtenerProductoPorCodigo(
-      item.producto_codigo,
+      item.productoCodigo,
       token
     );
 
@@ -96,76 +77,70 @@ async function crearFactura(datos, usuario, token) {
     // Validar stock
     if (producto.stock_actual < item.cantidad) {
       const error = new Error(
-        `Stock insuficiente para "${producto.nombre}" ` +
-        `(disponible: ${producto.stock_actual}, solicitado: ${item.cantidad})`
+        `Stock insuficiente para "${producto.nombre}" (disponible: ${producto.stock_actual}, solicitado: ${item.cantidad})`
       );
       error.codigo = 400;
       throw error;
     }
 
-    const precio_unitario = producto.pvp; // ya viene como número desde el service
-    const subtotal_linea = Number((precio_unitario * item.cantidad).toFixed(2));
+    // Procesar cálculos desde el objeto del producto
+    const precioUnitario = Number(producto.pvp);
+    const subtotalLinea = Number((precioUnitario * item.cantidad).toFixed(2));
 
-    // IVA por línea: usamos porcentaje_iva_aplicado que viene de Inventario
-    // (0 si graba_iva=false, 15 si graba_iva=true)
-    const porcentaje = producto.porcentaje_iva_aplicado / 100;
-    const iva_linea = Number((subtotal_linea * porcentaje).toFixed(2));
+    // Si graba_iva es true aplicas 15, si no, 0 (así manejas dinámicamente el IVA)
+    const porcentajeIva = producto.graba_iva ? 0.15 : 0.0;
+    const ivaLinea = Number((subtotalLinea * porcentajeIva).toFixed(2));
 
-    subtotal += subtotal_linea;
-    total_iva += iva_linea;
+    subtotal += subtotalLinea;
+    totalIva += ivaLinea;
 
     detallesConDatos.push({
-      producto_id: producto.codigo,      // "PRD-0003" (string, no UUID)
-      producto_nombre: producto.nombre,  // snapshot histórico
+      productoCodigo: producto.codigo,
+      productoNombre: producto.nombre,
       cantidad: item.cantidad,
-      precio_unitario,
-      graba_iva: producto.graba_iva,
-      subtotal_linea
+      precioUnitario,
+      grabaIva: producto.graba_iva,
+      subtotalLinea
     });
   }
 
   subtotal = Number(subtotal.toFixed(2));
-  total_iva = Number(total_iva.toFixed(2));
-  const total = Number((subtotal + total_iva).toFixed(2));
-  const numero_factura = await generarNumeroFactura();
+  totalIva = Number(totalIva.toFixed(2));
+  const total = Number((subtotal + totalIva).toFixed(2));
+  const numeroFactura = await generarNumeroFactura();
 
-  // 2. Guardar todo en una transacción (factura + detalles + auditoría local)
+  // Guardar todo en una transacción (factura + detalles + auditoría local)
   const resultado = await sequelize.transaction(async (t) => {
+    // 1. Crear Cabecera
     const nuevaFactura = await Factura.create({
-      numero_factura,
-      cliente_id,
-      tipo_pago,
+      numeroFactura, 
+      clienteId,     
+      tipoPago,      
       subtotal,
-      total_iva,
+      totalIva,      
       total,
       estado: 'Emitida'
     }, { transaction: t });
 
+    // 2. Crear Detalles asociados
     const detallesCreados = await Promise.all(
       detallesConDatos.map((d) =>
-        DetalleFactura.create({ ...d, factura_id: nuevaFactura.id }, { transaction: t })
+        DetalleFactura.create({ ...d, facturaId: nuevaFactura.id }, { transaction: t })
       )
-    );
+    )
 
-    // Auditoría local dentro de la transacción
+    // 3. Registrar en Pista de Auditoría Local
     await PistaAuditoria.create({
-      usuario_id: usuario.id,
+      usuario_id: usuario.id, 
       accion: 'FACTURA_CREADA',
       detalles: {
-        numero_factura,
-        cliente_id,
-        tipo_pago,
+        numeroFactura,
+        clienteId,
+        tipoPago,
         subtotal,
-        total_iva,
+        totalIva,
         total,
-        productos: detallesConDatos.map((d) => ({
-          codigo: d.producto_id,
-          nombre: d.producto_nombre,
-          cantidad: d.cantidad,
-          precio_unitario: d.precio_unitario,
-          graba_iva: d.graba_iva,
-          subtotal_linea: d.subtotal_linea
-        }))
+        productos: detallesConDatos
       }
     }, { transaction: t });
 
@@ -177,20 +152,22 @@ async function crearFactura(datos, usuario, token) {
     detalles: resultado.detalles.map((d) => d.toJSON())
   };
 
-  // 3. Descontar stock en Inventario (best effort — pendiente confirmar endpoint)
+  // --- Operaciones asíncronas externas (Best Effort) ---
+  
+  // Descontar stock del Inventario
   for (const item of detalles) {
-    await inventarioService.descontarStock(item.producto_codigo, item.cantidad, token);
+    await inventarioService.descontarStock(item.productoCodigo, item.cantidad, token);
   }
 
-  // 4. Notificar a CXC (best effort)
+  // Enviar a Cuentas por Cobrar
   await cxcService.registrarCuentaPorCobrar(facturaCompleta, token);
 
-  // 5. Auditoría gRPC a Seguridad (best effort, placeholder)
+  // Auditoría gRPC Externa
   auditoriaGrpc.registrarEvento({
     accion: 'FACTURA_CREADA',
     usuarioId: usuario.id,
     entidadId: facturaCompleta.id,
-    detalle: `Factura ${numero_factura} - Total: ${total}`
+    detalle: `Factura ${numeroFactura} - Total: ${total}`
   });
 
   return facturaCompleta;
@@ -198,27 +175,38 @@ async function crearFactura(datos, usuario, token) {
 
 async function listarFacturas(filtros = {}) {
   const where = construirWhere(filtros);
-
   const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
   const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
+
+  let orderClause = [[Factura.rawAttributes.fechaEmision.field, 'DESC']];
+
+  if (filtros.orderBy && filtros.orderBy.length > 0) {
+    orderClause = filtros.orderBy.map(item => {
+      const columnaBD = item.campo || 'fechaEmision'; 
+      return [columnaBD, item.direccion];
+    });
+  }
 
   return Factura.findAndCountAll({
     where,
     limit,
     offset,
+    order: orderClause,
     include: [
       { model: DetalleFactura, as: 'detalles' },
-      { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipo_cliente'] }
-    ],
-    order: [['fecha_emision', 'DESC']]
+      { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipoCliente'] }
+    ]
   });
 }
 
+/**
+ * Obtiene una factura individual con sus relaciones cargadas
+ */
 async function obtenerFacturaPorId(id) {
   const factura = await Factura.findByPk(id, {
     include: [
       { model: DetalleFactura, as: 'detalles' },
-      { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipo_cliente'] }
+      { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipoCliente'] }
     ]
   });
 
@@ -231,12 +219,15 @@ async function obtenerFacturaPorId(id) {
   return factura;
 }
 
+/**
+ * Verifica si la factura ya cuenta con un registro de impresión en auditoría
+ */
 async function facturaFueImpresa(id) {
   const registro = await PistaAuditoria.findOne({
     where: {
       accion: 'FACTURA_IMPRESA',
       detalles: {
-        [Op.contains]: { factura_id: id }
+        [Op.contains]: { facturaId: id }
       }
     }
   });
@@ -244,6 +235,9 @@ async function facturaFueImpresa(id) {
   return Boolean(registro);
 }
 
+/**
+ * Actualiza el estado de la factura validando reglas de negocio e impresión previa
+ */
 async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
   const factura = await obtenerFacturaPorId(id);
   const estadoAnterior = factura.estado;
@@ -251,8 +245,6 @@ async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
   if (await facturaFueImpresa(id)) {
     const error = new Error('La factura ya fue impresa y no puede modificarse');
     error.codigo = 409;
-    error.code = 'CONFLICT';
-    error.status = 409;
     throw error;
   }
 
@@ -265,14 +257,15 @@ async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
   factura.estado = nuevoEstado;
   await factura.save();
 
+  // Auditorías obligatorias del cambio de estado
   await auditoriaService.registrarAuditoria({
     usuarioId: usuario.id,
     accion: nuevoEstado === 'Anulada' ? 'FACTURA_ANULADA' : 'FACTURA_ACTUALIZADA',
     detalles: {
-      factura_id: factura.id,
-      numero_factura: factura.numero_factura,
-      estado_anterior: estadoAnterior,
-      estado_nuevo: nuevoEstado
+      facturaId: factura.id,         
+      numeroFactura: factura.numeroFactura, 
+      estadoAnterior,               
+      estadoNuevo: nuevoEstado       
     }
   });
 
@@ -280,7 +273,7 @@ async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
     accion: nuevoEstado === 'Anulada' ? 'FACTURA_ANULADA' : 'FACTURA_ACTUALIZADA',
     usuarioId: usuario.id,
     entidadId: factura.id,
-    detalle: `${factura.numero_factura}: ${estadoAnterior} → ${nuevoEstado}`
+    detalle: `${factura.numeroFactura}: ${estadoAnterior} → ${nuevoEstado}`
   });
 
   return factura;
