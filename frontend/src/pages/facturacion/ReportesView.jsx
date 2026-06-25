@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Download, FileText, RefreshCw, Users } from 'lucide-react'
 import { toast } from 'react-toastify'
+import PaginationControls from '../../components/facturacion/PaginationControls'
 import PanelCard from '../../components/facturacion/PanelCard'
 import { getReporteClientes, getReporteFacturas } from '../../api/facturacionService'
 
@@ -12,14 +13,18 @@ export default function ReportesView() {
   const facturacion = useOutletContext()
   const [clientesReport, setClientesReport] = useState(null)
   const [facturasReport, setFacturasReport] = useState(null)
+  const [clientesPage, setClientesPage] = useState(1)
+  const [facturasPage, setFacturasPage] = useState(1)
+  const [clientesLimit, setClientesLimit] = useState(10)
+  const [facturasLimit, setFacturasLimit] = useState(10)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let mounted = true
 
     Promise.all([
-      getReporteClientes(),
-      getReporteFacturas(),
+      getReporteClientes({ page: clientesPage, limit: clientesLimit }),
+      getReporteFacturas({ page: facturasPage, limit: facturasLimit }),
     ])
       .then(([clientes, facturas]) => {
         if (!mounted) return
@@ -36,14 +41,14 @@ export default function ReportesView() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [clientesPage, clientesLimit, facturasPage, facturasLimit])
 
   const loadReports = async () => {
     setIsLoading(true)
     try {
       const [clientes, facturas] = await Promise.all([
-        getReporteClientes(),
-        getReporteFacturas(),
+        getReporteClientes({ page: clientesPage, limit: clientesLimit }),
+        getReporteFacturas({ page: facturasPage, limit: facturasLimit }),
       ])
       setClientesReport(clientes)
       setFacturasReport(facturas)
@@ -52,6 +57,37 @@ export default function ReportesView() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const updateClientesLimit = (limit) => {
+    setIsLoading(true)
+    setClientesLimit(limit)
+    setClientesPage(1)
+  }
+
+  const updateFacturasLimit = (limit) => {
+    setIsLoading(true)
+    setFacturasLimit(limit)
+    setFacturasPage(1)
+  }
+
+  const updateClientesPage = (page) => {
+    setIsLoading(true)
+    setClientesPage(page)
+  }
+
+  const updateFacturasPage = (page) => {
+    setIsLoading(true)
+    setFacturasPage(page)
+  }
+
+  const clientesPageInfo = {
+    totalCount: clientesReport?.totalCount || 0,
+    ...(clientesReport?.pageInfo || {}),
+  }
+  const facturasPageInfo = {
+    totalCount: facturasReport?.totalCount || 0,
+    ...(facturasReport?.pageInfo || {}),
   }
 
   return (
@@ -69,7 +105,7 @@ export default function ReportesView() {
 
       <section className="grid gap-4 xl:grid-cols-2">
         <PanelCard title="Reporte de clientes">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300">
                 <Users className="h-5 w-5" />
@@ -79,11 +115,22 @@ export default function ReportesView() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">clientes registrados</p>
               </div>
             </div>
-            <button type="button" onClick={facturacion.handleDownloadClientesPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
-              <Download className="h-4 w-4" />
-              PDF
-            </button>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={facturacion.handleDownloadClientesPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
+                <Download className="h-4 w-4" />
+                PDF
+              </button>
+            </div>
           </div>
+
+          <PaginationControls
+            compact
+            disabled={isLoading}
+            pageInfo={clientesPageInfo}
+            onPageChange={updateClientesPage}
+            pageSize={clientesLimit}
+            onPageSizeChange={updateClientesLimit}
+          />
 
           <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
             <table className="min-w-full text-left text-xs">
@@ -95,7 +142,7 @@ export default function ReportesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(clientesReport?.items || []).slice(0, 6).map((cliente) => (
+                {(clientesReport?.items || []).map((cliente) => (
                   <tr key={cliente.id}>
                     <td className="px-3 py-2">
                       <p className="font-semibold text-slate-900 dark:text-slate-100">{cliente.nombre}</p>
@@ -111,7 +158,7 @@ export default function ReportesView() {
         </PanelCard>
 
         <PanelCard title="Reporte de facturas">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <FileText className="h-5 w-5" />
@@ -121,11 +168,22 @@ export default function ReportesView() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">facturas registradas</p>
               </div>
             </div>
-            <button type="button" onClick={facturacion.handleDownloadFacturasPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
-              <Download className="h-4 w-4" />
-              PDF
-            </button>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={facturacion.handleDownloadFacturasPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
+                <Download className="h-4 w-4" />
+                PDF
+              </button>
+            </div>
           </div>
+
+          <PaginationControls
+            compact
+            disabled={isLoading}
+            pageInfo={facturasPageInfo}
+            onPageChange={updateFacturasPage}
+            pageSize={facturasLimit}
+            onPageSizeChange={updateFacturasLimit}
+          />
 
           <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
             <table className="min-w-full text-left text-xs">
@@ -138,7 +196,7 @@ export default function ReportesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(facturasReport?.items || []).slice(0, 6).map((factura) => (
+                {(facturasReport?.items || []).map((factura) => (
                   <tr key={factura.id}>
                     <td className="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">{factura.numeroFactura}</td>
                     <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{factura.clienteNombre || '-'}</td>

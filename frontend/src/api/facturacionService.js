@@ -66,9 +66,11 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
   const clientesLimit = options.clientesLimit || 10
   const facturasPage = options.facturasPage || 1
   const facturasLimit = options.facturasLimit || 10
+  const clientesFilter = options.clientesFilter || null
+  const facturasFilter = options.facturasFilter || null
   const query = `
-    query GetSnapshot($clientesPage: Int, $clientesLimit: Int, $facturasPage: Int, $facturasLimit: Int) {
-      clientes(page: $clientesPage, limit: $clientesLimit) {
+    query GetSnapshot($clientesPage: Int, $clientesLimit: Int, $clientesFilter: ClientesFilter, $facturasPage: Int, $facturasLimit: Int, $facturasFilter: FacturasFilter) {
+      clientes(page: $clientesPage, limit: $clientesLimit, filter: $clientesFilter) {
         totalCount
         pageInfo {
           currentPage
@@ -90,7 +92,7 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
           updatedAt
         }
       }
-      facturas(page: $facturasPage, limit: $facturasLimit) {
+      facturas(page: $facturasPage, limit: $facturasLimit, filter: $facturasFilter) {
         totalCount
         pageInfo {
           currentPage
@@ -141,7 +143,7 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
       }
     }
   `
-  const data = await fetchGraphQL(query, { clientesPage, clientesLimit, facturasPage, facturasLimit }, token)
+  const data = await fetchGraphQL(query, { clientesPage, clientesLimit, clientesFilter, facturasPage, facturasLimit, facturasFilter }, token)
   const facturas = data.facturas?.items || []
 
   return {
@@ -297,11 +299,19 @@ export async function deleteFactura(facturaId, token = '') {
   return getFacturacionSnapshot(token)
 }
 
-export async function getReporteClientes(token = '') {
+export async function getReporteClientes(options = {}, token = '') {
+  const page = options.page || 1
+  const limit = options.limit || 10
   const query = `
-    query ReporteClientes {
-      reporteClientes(limit: 1000) {
+    query ReporteClientes($page: Int, $limit: Int) {
+      reporteClientes(page: $page, limit: $limit) {
         totalCount
+        pageInfo {
+          currentPage
+          totalPages
+          hasNextPage
+          hasPreviousPage
+        }
         generatedAt
         durationMs
         message
@@ -322,14 +332,22 @@ export async function getReporteClientes(token = '') {
     }
   `
 
-  return (await fetchGraphQL(query, {}, token)).reporteClientes
+  return (await fetchGraphQL(query, { page, limit }, token)).reporteClientes
 }
 
-export async function getReporteFacturas(token = '') {
+export async function getReporteFacturas(options = {}, token = '') {
+  const page = options.page || 1
+  const limit = options.limit || 10
   const query = `
-    query ReporteFacturas {
-      reporteFacturas(limit: 1000) {
+    query ReporteFacturas($page: Int, $limit: Int) {
+      reporteFacturas(page: $page, limit: $limit) {
         totalCount
+        pageInfo {
+          currentPage
+          totalPages
+          hasNextPage
+          hasPreviousPage
+        }
         generatedAt
         durationMs
         message
@@ -352,7 +370,7 @@ export async function getReporteFacturas(token = '') {
     }
   `
 
-  return (await fetchGraphQL(query, {}, token)).reporteFacturas
+  return (await fetchGraphQL(query, { page, limit }, token)).reporteFacturas
 }
 
 export const downloadFacturaPdf = (facturaId, numeroFactura, token = '') =>

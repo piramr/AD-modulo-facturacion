@@ -10,8 +10,8 @@ function mapearCliente(cliente) {
     id: data.id,
     cedula: data.cedula,
     nombre: data.nombre,
-    fechaNacimiento: data.fecha_nacimiento,
-    tipoCliente: data.tipo_cliente,
+    fechaNacimiento: data.fechaNacimiento ?? data.fecha_nacimiento,
+    tipoCliente: data.tipoCliente ?? data.tipo_cliente,
     direccion: data.direccion,
     telefono: data.telefono,
     email: data.email,
@@ -22,7 +22,7 @@ function mapearCliente(cliente) {
 function construirFiltros(query = {}) {
   return {
     estado: query.estado,
-    tipo_cliente: query.tipoCliente,
+    tipoCliente: query.tipoCliente,
     search: query.search,
     nombre: query.nombre,
     cedula: query.cedula
@@ -39,7 +39,7 @@ async function obtenerHistorialCompras(clienteIds = []) {
 
   return facturas.reduce((acc, factura) => {
     const data = factura.toJSON();
-    const clienteId = data.cliente_id;
+    const clienteId = data.clienteId ?? data.cliente_id;
 
     if (!acc[clienteId]) {
       acc[clienteId] = {
@@ -52,8 +52,9 @@ async function obtenerHistorialCompras(clienteIds = []) {
     acc[clienteId].cantidadFacturas += 1;
     acc[clienteId].totalComprado = Number((acc[clienteId].totalComprado + Number(data.total)).toFixed(2));
 
-    if (!acc[clienteId].ultimaCompra || new Date(data.fecha_emision) > new Date(acc[clienteId].ultimaCompra)) {
-      acc[clienteId].ultimaCompra = data.fecha_emision;
+    const fechaEmision = data.fechaEmision ?? data.fecha_emision;
+    if (!acc[clienteId].ultimaCompra || new Date(fechaEmision) > new Date(acc[clienteId].ultimaCompra)) {
+      acc[clienteId].ultimaCompra = fechaEmision;
     }
 
     return acc;
@@ -64,12 +65,15 @@ async function obtenerDatosReporteClientes(query = {}) {
   const inicio = Date.now();
   const filtros = construirFiltros(query);
   const total = await clienteService.contarClientesConFiltro(filtros);
-  const limit = Math.min(parseInt(query.limit || total || 1000, 10), 1000);
+  const limit = Math.min(Math.max(parseInt(query.limit || 10, 10), 1), 1000);
+  const totalPages = Math.ceil(total / limit) || 1;
+  const page = Math.min(Math.max(parseInt(query.page || 1, 10), 1), totalPages);
+  const offset = (page - 1) * limit;
 
   const resultado = await clienteService.listarClientes({
     ...filtros,
     limit,
-    offset: 0
+    offset
   });
 
   const items = (resultado.rows || []).map(mapearCliente);
@@ -77,6 +81,12 @@ async function obtenerDatosReporteClientes(query = {}) {
 
   return {
     totalCount: total,
+    pageInfo: {
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      currentPage: page,
+      totalPages
+    },
     generatedAt: new Date().toISOString(),
     durationMs: Date.now() - inicio,
     items: items.map((cliente) => ({
@@ -133,7 +143,10 @@ function drawClienteTable(doc, clientes, startY) {
 }
 
 async function generarPdfClientes(query = {}) {
-  const reporte = await obtenerDatosReporteClientes(query);
+  const reporte = await obtenerDatosReporteClientes({
+    ...query,
+    limit: query.limit || 1000
+  });
   const doc = new PDFDocument({ size: 'A4', margin: 35 });
   const chunks = [];
 

@@ -20,6 +20,7 @@ const resolvers = {
         nombre: filter.nombre,
         tipoCliente: filter.tipoCliente,
         search: filter.search,
+        page: args.page,
         limit: args.limit
       });
 
@@ -37,6 +38,7 @@ const resolvers = {
         clienteId: filter.clienteId,
         tipoPago: filter.tipoPago,
         search: filter.search,
+        page: args.page,
         limit: args.limit
       });
 

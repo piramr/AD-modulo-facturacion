@@ -16,7 +16,7 @@ const resolvers = {
       requiereAuth(ctx);
       
       const MAX_LIMIT = 1_000;
-      const { filter = {} } = args;
+      const filter = args.filter || {};
 
       // 1. Conteo dinámico previo (Saber cuántos hay en tiempo real)
       const totalRegistros = await facturaService.contarFacturasConFiltro(filter);

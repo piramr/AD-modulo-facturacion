@@ -9,9 +9,14 @@ export default function ClientesView() {
 
   return (
     <div className="space-y-4">
-      <RecordsToolbar count={facturacion.filteredClients.length} searchQuery={facturacion.searchQuery} onSearchQueryChange={facturacion.setSearchQuery} filterEstado={facturacion.filterEstado} onFilterEstadoChange={facturacion.setFilterEstado} filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'Activo', label: 'Activo' }, { value: 'Inactivo', label: 'Inactivo' }]} onCreate={facturacion.openClienteModal} createLabel="Gestión de clientes" createButtonLabel="Nuevo cliente" />
+      <RecordsToolbar count={facturacion.searchQuery ? facturacion.filteredClients.length : facturacion.clientesPageInfo.totalCount || 0} searchQuery={facturacion.searchQuery} onSearchQueryChange={facturacion.setSearchQuery} filterEstado={facturacion.filterEstado} onFilterEstadoChange={facturacion.setFilterEstado} filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'Activo', label: 'Activo' }, { value: 'Inactivo', label: 'Inactivo' }]} onCreate={facturacion.openClienteModal} createLabel="Gestión de clientes" createButtonLabel="Nuevo cliente" />
+      <PaginationControls
+        pageInfo={facturacion.clientesPageInfo}
+        onPageChange={facturacion.setClientesPage}
+        pageSize={facturacion.clientesLimit}
+        onPageSizeChange={facturacion.setClientesLimit}
+      />
       <ClientsTable records={facturacion.filteredClients} onDelete={facturacion.handleDeleteCliente} onEdit={facturacion.openEditClienteModal} isDeleting={facturacion.isSubmitting} />
-      <PaginationControls pageInfo={facturacion.clientesPageInfo} onPageChange={facturacion.setClientesPage} />
       <RecordModal isOpen={facturacion.showClienteModal} mode="cliente" title={facturacion.editingClienteId ? 'Editar cliente' : 'Registrar cliente'} form={facturacion.clienteForm} onFieldChange={facturacion.handleClienteFieldChange} onClose={facturacion.closeModal} onSubmit={facturacion.handleSubmit} isSubmitting={facturacion.isSubmitting} />
     </div>
   )

@@ -17,27 +17,31 @@ function textOrDash(value) {
   return value || '-';
 }
 
+function pick(data, camelKey, snakeKey) {
+  return data?.[camelKey] ?? data?.[snakeKey];
+}
+
 function mapearFacturaReporte(factura) {
   const data = factura.toJSON ? factura.toJSON() : factura;
 
   return {
     id: data.id,
-    numeroFactura: data.numero_factura,
-    clienteId: data.cliente_id,
+    numeroFactura: pick(data, 'numeroFactura', 'numero_factura'),
+    clienteId: pick(data, 'clienteId', 'cliente_id'),
     clienteNombre: data.cliente?.nombre || null,
     clienteCedula: data.cliente?.cedula || null,
-    tipoPago: data.tipo_pago,
-    fechaEmision: data.fecha_emision,
+    tipoPago: pick(data, 'tipoPago', 'tipo_pago'),
+    fechaEmision: pick(data, 'fechaEmision', 'fecha_emision'),
     subtotal: Number(data.subtotal),
-    totalIva: Number(data.total_iva),
+    totalIva: Number(pick(data, 'totalIva', 'total_iva')),
     total: Number(data.total),
     estado: data.estado,
     articulos: (data.detalles || []).map((detalle) => ({
-      productoCodigo: detalle.producto_id,
-      productoNombre: detalle.producto_nombre,
+      productoCodigo: pick(detalle, 'productoCodigo', 'producto_id'),
+      productoNombre: pick(detalle, 'productoNombre', 'producto_nombre'),
       cantidad: detalle.cantidad,
-      precioUnitario: Number(detalle.precio_unitario),
-      subtotalLinea: Number(detalle.subtotal_linea)
+      precioUnitario: Number(pick(detalle, 'precioUnitario', 'precio_unitario')),
+      subtotalLinea: Number(pick(detalle, 'subtotalLinea', 'subtotal_linea'))
     }))
   };
 }
@@ -82,11 +86,11 @@ function drawInvoiceTable(doc, detalles, startY) {
       y = 50;
     }
 
-    drawText(doc, detalle.producto_id, columns.codigo, y, { width: 65 });
-    drawText(doc, detalle.producto_nombre, columns.producto, y, { width: 175 });
+    drawText(doc, pick(detalle, 'productoCodigo', 'producto_id'), columns.codigo, y, { width: 65 });
+    drawText(doc, pick(detalle, 'productoNombre', 'producto_nombre'), columns.producto, y, { width: 175 });
     drawText(doc, detalle.cantidad, columns.cantidad, y, { width: 45, align: 'right' });
-    drawText(doc, money(detalle.precio_unitario), columns.precio, y, { width: 65, align: 'right' });
-    drawText(doc, money(detalle.subtotal_linea), columns.subtotal, y, { width: 85, align: 'right' });
+    drawText(doc, money(pick(detalle, 'precioUnitario', 'precio_unitario')), columns.precio, y, { width: 65, align: 'right' });
+    drawText(doc, money(pick(detalle, 'subtotalLinea', 'subtotal_linea')), columns.subtotal, y, { width: 85, align: 'right' });
 
     y += 24;
   });
@@ -98,6 +102,10 @@ async function generarPdfFactura(facturaId, usuario = null) {
   const inicio = Date.now();
   const factura = await facturaService.obtenerFacturaPorId(facturaId);
   const data = factura.toJSON();
+  const numeroFactura = pick(data, 'numeroFactura', 'numero_factura');
+  const fechaEmision = pick(data, 'fechaEmision', 'fecha_emision');
+  const tipoPago = pick(data, 'tipoPago', 'tipo_pago');
+  const totalIva = pick(data, 'totalIva', 'total_iva');
 
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const chunks = [];
@@ -124,12 +132,12 @@ async function generarPdfFactura(facturaId, usuario = null) {
     .font('Helvetica-Bold')
     .fontSize(11)
     .fillColor('#111827')
-    .text(`Factura: ${data.numero_factura}`, 360, 50, { align: 'right' })
+    .text(`Factura: ${numeroFactura}`, 360, 50, { align: 'right' })
     .font('Helvetica')
     .fontSize(9)
     .fillColor('#4b5563')
     .text(`Estado: ${data.estado}`, 360, 68, { align: 'right' })
-    .text(`Emision: ${formatDate(data.fecha_emision)}`, 320, 84, { align: 'right' });
+    .text(`Emision: ${formatDate(fechaEmision)}`, 320, 84, { align: 'right' });
 
   doc
     .moveTo(50, 115)
@@ -141,11 +149,11 @@ async function generarPdfFactura(facturaId, usuario = null) {
   doc.font('Helvetica').fontSize(10).fillColor('#374151');
   doc.text(`Nombre: ${textOrDash(data.cliente?.nombre)}`, 50, 158);
   doc.text(`Cedula: ${textOrDash(data.cliente?.cedula)}`, 50, 176);
-  doc.text(`Tipo cliente: ${textOrDash(data.cliente?.tipo_cliente)}`, 50, 194);
+  doc.text(`Tipo cliente: ${textOrDash(pick(data.cliente, 'tipoCliente', 'tipo_cliente'))}`, 50, 194);
 
   doc.font('Helvetica-Bold').fontSize(11).fillColor('#111827').text('Pago', 360, 138);
   doc.font('Helvetica').fontSize(10).fillColor('#374151');
-  doc.text(`Tipo pago: ${data.tipo_pago}`, 360, 158);
+  doc.text(`Tipo pago: ${tipoPago}`, 360, 158);
   doc.text(`Documento bloqueado para edicion`, 360, 176, { width: 185 });
 
   doc.font('Helvetica-Bold').fontSize(12).fillColor('#111827').text('Detalle', 50, 235);
@@ -162,7 +170,7 @@ async function generarPdfFactura(facturaId, usuario = null) {
   doc.text('Subtotal', 370, totalsY + 14, { width: 80 });
   doc.text(money(data.subtotal), 455, totalsY + 14, { width: 90, align: 'right' });
   doc.text('IVA', 370, totalsY + 34, { width: 80 });
-  doc.text(money(data.total_iva), 455, totalsY + 34, { width: 90, align: 'right' });
+  doc.text(money(totalIva), 455, totalsY + 34, { width: 90, align: 'right' });
   doc.font('Helvetica-Bold').fontSize(12).fillColor('#111827');
   doc.text('Total', 370, totalsY + 58, { width: 80 });
   doc.text(money(data.total), 455, totalsY + 58, { width: 90, align: 'right' });
@@ -186,7 +194,7 @@ async function generarPdfFactura(facturaId, usuario = null) {
       accion: 'FACTURA_IMPRESA',
       detalles: {
         factura_id: data.id,
-        numero_factura: data.numero_factura,
+        numero_factura: numeroFactura,
         documento_bloqueado: true
       }
     });
@@ -195,7 +203,7 @@ async function generarPdfFactura(facturaId, usuario = null) {
   return {
     buffer,
     durationMs: Date.now() - inicio,
-    filename: `factura-${data.numero_factura}.pdf`,
+    filename: `factura-${numeroFactura}.pdf`,
     message: 'Factura impresa con exito'
   };
 }
@@ -204,21 +212,30 @@ async function obtenerDatosReporteFacturas(query = {}) {
   const inicio = Date.now();
   const filtros = {
     estado: query.estado,
-    cliente_id: query.clienteId,
-    tipo_pago: query.tipoPago,
+    clienteId: query.clienteId,
+    tipoPago: query.tipoPago,
     search: query.search
   };
   const total = await facturaService.contarFacturasConFiltro(filtros);
-  const limit = Math.min(parseInt(query.limit || total || 1000, 10), 1000);
+  const limit = Math.min(Math.max(parseInt(query.limit || 10, 10), 1), 1000);
+  const totalPages = Math.ceil(total / limit) || 1;
+  const page = Math.min(Math.max(parseInt(query.page || 1, 10), 1), totalPages);
+  const offset = (page - 1) * limit;
 
   const resultado = await facturaService.listarFacturas({
     ...filtros,
     limit,
-    offset: 0
+    offset
   });
 
   return {
     totalCount: total,
+    pageInfo: {
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      currentPage: page,
+      totalPages
+    },
     generatedAt: new Date().toISOString(),
     durationMs: Date.now() - inicio,
     items: (resultado.rows || []).map(mapearFacturaReporte)
@@ -267,7 +284,10 @@ function drawReporteFacturasTable(doc, facturas, startY) {
 }
 
 async function generarPdfReporteFacturas(query = {}) {
-  const reporte = await obtenerDatosReporteFacturas(query);
+  const reporte = await obtenerDatosReporteFacturas({
+    ...query,
+    limit: query.limit || 1000
+  });
   const doc = new PDFDocument({ size: 'A4', margin: 35 });
   const chunks = [];
 

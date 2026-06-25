@@ -10,7 +10,7 @@ export default function FacturasView() {
   return (
     <div className="space-y-4">
       <RecordsToolbar
-        count={facturacion.filteredInvoices.length}
+        count={facturacion.searchQuery ? facturacion.filteredInvoices.length : facturacion.facturasPageInfo.totalCount || 0}
         searchQuery={facturacion.searchQuery}
         onSearchQueryChange={facturacion.setSearchQuery}
         filterEstado={facturacion.filterEstado}
@@ -25,13 +25,18 @@ export default function FacturasView() {
         createLabel="Gestion de facturas"
         createButtonLabel="Nueva factura"
       />
+      <PaginationControls
+        pageInfo={facturacion.facturasPageInfo}
+        onPageChange={facturacion.setFacturasPage}
+        pageSize={facturacion.facturasLimit}
+        onPageSizeChange={facturacion.setFacturasLimit}
+      />
       <InvoicesTable
         records={facturacion.filteredInvoices}
         onDelete={facturacion.handleDeleteFactura}
         onPrint={facturacion.handlePrintFactura}
         isDeleting={facturacion.isSubmitting}
       />
-      <PaginationControls pageInfo={facturacion.facturasPageInfo} onPageChange={facturacion.setFacturasPage} />
       <RecordModal
         isOpen={facturacion.showFacturaModal}
         mode="factura"
