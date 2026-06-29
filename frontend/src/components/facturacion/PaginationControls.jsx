@@ -31,7 +31,7 @@ export default function PaginationControls({
               value={pageSize}
               disabled={disabled}
               onChange={(event) => onPageSizeChange(Number(event.target.value))}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold tracking-normal text-slate-700 outline-none transition-colors focus:border-indigo-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold tracking-normal text-slate-700 outline-none transition-colors focus:border-red-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             >
               {pageSizeOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>

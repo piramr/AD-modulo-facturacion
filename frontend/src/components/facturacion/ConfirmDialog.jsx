@@ -26,7 +26,7 @@ export default function ConfirmDialog({ isOpen, title, message, onConfirm, onCan
           <button
             type="button"
             onClick={onConfirm}
-            className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors ${isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+            className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors ${isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-red-700 hover:bg-red-800'}`}
           >
             Confirmar
           </button>

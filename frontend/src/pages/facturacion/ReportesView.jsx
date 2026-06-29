@@ -116,7 +116,7 @@ export default function ReportesView() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={facturacion.handleDownloadClientesPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
+              <button type="button" onClick={facturacion.handleDownloadClientesPdf} className="inline-flex items-center gap-2 rounded-xl bg-red-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-800">
                 <Download className="h-4 w-4" />
                 PDF
               </button>
@@ -169,7 +169,7 @@ export default function ReportesView() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={facturacion.handleDownloadFacturasPdf} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700">
+              <button type="button" onClick={facturacion.handleDownloadFacturasPdf} className="inline-flex items-center gap-2 rounded-xl bg-red-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-800">
                 <Download className="h-4 w-4" />
                 PDF
               </button>

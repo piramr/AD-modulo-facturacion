@@ -36,7 +36,7 @@ export default function ClientsTable({ records, onDelete, onEdit, isDeleting = f
                 <td className="px-4 py-4"><StatusBadge value={cliente.estado} /></td>
                 <td className="px-4 py-4 text-right">
                   <div className="flex justify-end gap-1">
-                    <button type="button" onClick={() => onEdit(cliente)} disabled={isDeleting} className="inline-flex items-center justify-center rounded-lg p-2 text-indigo-600 transition-colors hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-indigo-300 dark:hover:bg-indigo-950/40" aria-label={`Editar cliente ${cliente.nombre}`}>
+                    <button type="button" onClick={() => onEdit(cliente)} disabled={isDeleting} className="inline-flex items-center justify-center rounded-lg p-2 text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40" aria-label={`Editar cliente ${cliente.nombre}`}>
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button type="button" onClick={() => onDelete(cliente.id)} disabled={isDeleting} className="inline-flex items-center justify-center rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-950/40" aria-label={`Eliminar cliente ${cliente.nombre}`}>
