@@ -15,7 +15,7 @@ const resolvers = {
       requiereAuth(ctx);
 
       const MAX_LIMIT = 1_000;
-      const { filter = {} } = args;
+      const filter = args.filter || {};
 
       const totalRegistros = await clienteService.contarClientesConFiltro(filter);
 

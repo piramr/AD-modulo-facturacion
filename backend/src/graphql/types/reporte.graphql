@@ -25,6 +25,7 @@ type ClienteReporte {
 """Reporte completo de clientes."""
 type ReporteClientes {
   totalCount: Int!
+  pageInfo: PageInfo!
   generatedAt: DateTime!
   durationMs: Int!
   message: String!
@@ -59,6 +60,7 @@ type FacturaReporte {
 """Reporte completo de facturas."""
 type ReporteFacturas {
   totalCount: Int!
+  pageInfo: PageInfo!
   generatedAt: DateTime!
   durationMs: Int!
   message: String!
@@ -67,8 +69,8 @@ type ReporteFacturas {
 
 type Query {
   """Genera el reporte de clientes en formato JSON via GraphQL."""
-  reporteClientes(filter: ClientesFilter, limit: Int): ReporteClientes!
+  reporteClientes(filter: ClientesFilter, page: Int, limit: Int): ReporteClientes!
 
   """Genera el reporte general de facturas en formato JSON via GraphQL."""
-  reporteFacturas(filter: FacturasFilter, limit: Int): ReporteFacturas!
+  reporteFacturas(filter: FacturasFilter, page: Int, limit: Int): ReporteFacturas!
 }

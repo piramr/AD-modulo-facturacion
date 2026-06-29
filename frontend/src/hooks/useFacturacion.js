@@ -51,6 +51,7 @@ const INITIAL_DETALLE_FORM = {
 }
 
 const DEFAULT_PAGE_SIZE = 10
+const CLIENTE_ESTADOS = ['Activo', 'Inactivo']
 
 const formatMoney = (value) => `$${new Intl.NumberFormat('es-CO').format(Number(value) || 0)}`
 
@@ -69,6 +70,8 @@ export function useFacturacion() {
   const [auditoria, setAuditoria] = useState([])
   const [clientesPage, setClientesPage] = useState(1)
   const [facturasPage, setFacturasPage] = useState(1)
+  const [clientesLimit, setClientesLimit] = useState(DEFAULT_PAGE_SIZE)
+  const [facturasLimit, setFacturasLimit] = useState(DEFAULT_PAGE_SIZE)
   const [clientesPageInfo, setClientesPageInfo] = useState({ currentPage: 1, totalPages: 1, totalCount: 0 })
   const [facturasPageInfo, setFacturasPageInfo] = useState({ currentPage: 1, totalPages: 1, totalCount: 0 })
   const [isLoading, setIsLoading] = useState(true)
@@ -98,6 +101,8 @@ export function useFacturacion() {
     onConfirm: () => {},
   })
 
+  const currentSection = useMemo(() => getSectionFromPath(location.pathname), [location.pathname])
+
   const applySnapshot = (snapshot) => {
     setClientes(snapshot.clientes)
     setFacturas(snapshot.facturas)
@@ -107,11 +112,24 @@ export function useFacturacion() {
     setFacturasPageInfo(snapshot.facturasPageInfo)
   }
 
+  const snapshotFilters = useMemo(() => {
+    const estado = filterEstado === 'Todos' ? undefined : filterEstado
+    const clienteEstado = estado && CLIENTE_ESTADOS.includes(estado) ? estado : undefined
+    const facturaEstado = estado && FACTURA_ESTADOS.includes(estado) ? estado : undefined
+
+    return {
+      clientesFilter: currentSection === 'Clientes' && clienteEstado ? { estado: clienteEstado } : null,
+      facturasFilter: currentSection === 'Facturas' && facturaEstado ? { estado: facturaEstado } : null,
+    }
+  }, [currentSection, filterEstado])
+
   const reloadSnapshot = (overrides = {}) => getFacturacionSnapshot('', {
     clientesPage: overrides.clientesPage || clientesPage,
-    clientesLimit: DEFAULT_PAGE_SIZE,
+    clientesLimit: overrides.clientesLimit || clientesLimit,
+    clientesFilter: overrides.clientesFilter ?? snapshotFilters.clientesFilter,
     facturasPage: overrides.facturasPage || facturasPage,
-    facturasLimit: DEFAULT_PAGE_SIZE,
+    facturasLimit: overrides.facturasLimit || facturasLimit,
+    facturasFilter: overrides.facturasFilter ?? snapshotFilters.facturasFilter,
   })
 
   useEffect(() => {
@@ -119,9 +137,11 @@ export function useFacturacion() {
 
     getFacturacionSnapshot('', {
       clientesPage,
-      clientesLimit: DEFAULT_PAGE_SIZE,
+      clientesLimit,
+      clientesFilter: snapshotFilters.clientesFilter,
       facturasPage,
-      facturasLimit: DEFAULT_PAGE_SIZE,
+      facturasLimit,
+      facturasFilter: snapshotFilters.facturasFilter,
     })
       .then((snapshot) => {
         if (!mounted) return
@@ -137,7 +157,7 @@ export function useFacturacion() {
     return () => {
       mounted = false
     }
-  }, [clientesPage, facturasPage])
+  }, [clientesPage, clientesLimit, facturasPage, facturasLimit, snapshotFilters])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -145,7 +165,6 @@ export function useFacturacion() {
     window.localStorage.setItem(THEME_KEY, themeMode)
   }, [themeMode])
 
-  const currentSection = useMemo(() => getSectionFromPath(location.pathname), [location.pathname])
   const availableClients = useMemo(() => clientes, [clientes])
   const availableProducts = useMemo(() => productos.filter((producto) => producto.stockActual > 0), [productos])
   const facturaTotals = useMemo(() => calculateFacturaTotals(detalleItems), [detalleItems])
@@ -191,7 +210,7 @@ export function useFacturacion() {
         cliente.cedula.toLowerCase().includes(query) ||
         cliente.email.toLowerCase().includes(query) ||
         cliente.id.toLowerCase().includes(query)
-      const matchesEstado = filterEstado === 'Todos' || cliente.estado === filterEstado
+      const matchesEstado = filterEstado === 'Todos' || !CLIENTE_ESTADOS.includes(filterEstado) || cliente.estado === filterEstado
       return matchesQuery && matchesEstado
     })
   }, [clientes, filterEstado, searchQuery])
@@ -204,10 +223,22 @@ export function useFacturacion() {
         String(factura.clienteNombre || '').toLowerCase().includes(query) ||
         factura.numero_factura.toLowerCase().includes(query) ||
         factura.id.toLowerCase().includes(query)
-      const matchesEstado = filterEstado === 'Todos' || factura.estado === filterEstado
+      const matchesEstado = filterEstado === 'Todos' || !FACTURA_ESTADOS.includes(filterEstado) || factura.estado === filterEstado
       return matchesQuery && matchesEstado
     })
   }, [facturas, filterEstado, searchQuery])
+
+  const updateSearchQuery = (value) => {
+    setSearchQuery(value)
+    if (currentSection === 'Clientes') setClientesPage(1)
+    if (currentSection === 'Facturas') setFacturasPage(1)
+  }
+
+  const updateFilterEstado = (value) => {
+    setFilterEstado(value)
+    if (currentSection === 'Clientes') setClientesPage(1)
+    if (currentSection === 'Facturas') setFacturasPage(1)
+  }
 
   const openClienteModal = () => {
     setEditingClienteId(null)
@@ -400,6 +431,16 @@ export function useFacturacion() {
     toast.info('Has cerrado la sesión del administrador.')
   }
 
+  const updateFacturasLimit = (limit) => {
+    setFacturasLimit(limit)
+    setFacturasPage(1)
+  }
+
+  const updateClientesLimit = (limit) => {
+    setClientesLimit(limit)
+    setClientesPage(1)
+  }
+
   const handlePrintFactura = async (factura) => {
     setBusyAction(`print-factura-${factura.id}`)
     try {
@@ -470,8 +511,8 @@ export function useFacturacion() {
     tipoPagoOptions: TIPO_PAGO_OPTIONS,
     setSidebarOpen,
     setUserMenuOpen,
-    setSearchQuery,
-    setFilterEstado,
+    setSearchQuery: updateSearchQuery,
+    setFilterEstado: updateFilterEstado,
     toggleTheme,
     openClienteModal,
     openEditClienteModal,
@@ -494,6 +535,10 @@ export function useFacturacion() {
     ,
     setClientesPage,
     setFacturasPage,
+    clientesLimit,
+    setClientesLimit: updateClientesLimit,
+    facturasLimit,
+    setFacturasLimit: updateFacturasLimit,
     pageSize: DEFAULT_PAGE_SIZE,
     editingClienteId,
   }
