@@ -12,7 +12,7 @@ require('./src/models/pistaAuditoria.model');
 // Registrar modelo de Clientes SIN sincronizarlo (lo gestiona el otro módulo)
 require('./src/models/cliente.model');
 
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3001;
 
 async function iniciar() {
   await probarConexion();
@@ -24,6 +24,7 @@ async function iniciar() {
   app.listen(PORT, () => {
     console.log(`🚀 Módulo de Facturación en http://localhost:${PORT}`);
     console.log(`   GraphQL Playground: http://localhost:${PORT}/graphql`);
+    console.log(`   Documentación: http://localhost:${PORT}/docs`);
     console.log(`   Health check:       http://localhost:${PORT}/health`);
   });
 }

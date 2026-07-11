@@ -39,6 +39,21 @@ const clienteHttp = axios.create({
   }
 });
 
+async function resolverPorcentajeIva(producto, token) {
+  if (producto.porcentaje_iva_aplicado !== undefined && producto.porcentaje_iva_aplicado !== null) {
+    return producto.porcentaje_iva_aplicado;
+  }
+
+  const catalogo = await obtenerCatalogo(token);
+  const productoCatalogo = catalogo.find((p) => p.codigo === producto.codigo);
+
+  if (productoCatalogo?.porcentaje_iva_aplicado !== undefined) {
+    return productoCatalogo.porcentaje_iva_aplicado;
+  }
+
+  return producto.graba_iva ? 15 : 0;
+}
+
 /**
  * Obtiene un producto por su código (ej: "PRD-0003") desde Inventario.
  * El token JWT se reenvía para que Inventario valide que el usuario
@@ -66,13 +81,15 @@ async function obtenerProductoPorCodigo(codigo, token) {
     }
 
     // Normalizar: pvp viene como string "65.00", lo convertimos a número
+    const porcentajeIvaAplicado = await resolverPorcentajeIva(producto, token);
+
     return {
       codigo: producto.codigo,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       pvp: parseFloat(producto.pvp),
       graba_iva: producto.graba_iva,
-      porcentaje_iva_aplicado: producto.porcentaje_iva_aplicado ?? 0,
+      porcentaje_iva_aplicado: porcentajeIvaAplicado,
       stock_actual: producto.stock_actual,
       estado: producto.estado
     };
