@@ -1,13 +1,5 @@
 const facturaService = require('../../services/factura.service');
 
-function requiereAuth(context) {
-  if (!context.usuario) {
-    const e = new Error('No autorizado: se requiere JWT válido');
-    e.extensions = { code: 'UNAUTHENTICATED' };
-    throw e;
-  }
-}
-
 const resolvers = {
   Query: {
     facturas: async (_, args) => {
@@ -78,7 +70,7 @@ const resolvers = {
 
 Mutation: {
     crearFactura: async (_, { input }) => {
-      const factura = await facturaService.crearFactura(input, ctx.usuario, ctx.token);
+      const factura = await facturaService.crearFactura(input);
       return factura;
     },
   }

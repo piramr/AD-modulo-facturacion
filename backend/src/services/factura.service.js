@@ -1,8 +1,9 @@
 const { Op } = require('sequelize');
-const { sequelize, Factura, DetalleFactura, Cliente, PreferenciaSistema } = require('../models');
+const { sequelize, Caja, SesionCaja, Factura, DetalleFactura, Cliente, PreferenciaSistema } = require('../models');
 const { validarDeudaCliente } = require('./external/cuentasxcobrar.service');
-const { registrarCardexVenta } = require('./external/inventario.service');
+const { registrarCardexVenta, obtenerProductoPorCodigo } = require('./external/inventario.service');
 
+const { getCurrentContext } = require('../store/contextStore');
 const tiposPagoPermitidos = ['CONTADO', 'CREDITO'];
 
 function construirWhere(filtros = {}) {
@@ -28,7 +29,7 @@ async function contarFacturasConFiltro(filtros = {}) {
 /**
  * Crear una nueva factura (Transacción completa)
  */
-async function crearFactura(datos, usuario, token) {
+async function crearFactura(datos) {
   const { clienteId, sesionCajaId, tipoPago, detalles } = datos;
 
   if (!detalles || detalles.length === 0) {
@@ -37,6 +38,28 @@ async function crearFactura(datos, usuario, token) {
     throw error;
   }
 
+  const context = getCurrentContext();
+  const sesion = await SesionCaja.findByPk(sesionCajaId);
+  if (!sesion) {
+    const error = new Error('La sesión de caja especificada no existe.');
+    error.codigo = 404;
+    throw error;
+  }
+  
+  if (sesion.estado !== 'ABIERTA') {
+    const error = new Error('Operación denegada: La sesión de caja ya está cerrada.');
+    error.codigo = 403;
+    throw error;
+  }
+  
+  // ¡El candado principal! El usuario logueado DEBE ser el dueño de la sesión de caja para poder facturar en ella
+  // FALTA VALIDAR CON EL JWT DE SEGURIDAD
+  // if (sesion.usuarioId !== context.id) {  
+  //   const error = new Error('Operación denegada: No puedes facturar en una caja asignada a otro cajero.');
+  //   error.codigo = 403;
+  //   throw error;
+  // }
+
   const cliente = await Cliente.findByPk(clienteId);
   if (!cliente) {
     const error = new Error('El cliente seleccionado no existe.');
@@ -44,25 +67,27 @@ async function crearFactura(datos, usuario, token) {
     throw error;
   }
 
-  if (tipoPago === 'CREDITO' && cliente.tipoCliente !== 'CREDITO') {
-    const error = new Error(`Operación denegada: El cliente ${cliente.nombre} solo tiene autorización para compras al CONTADO.`);
-    error.codigo = 403;
-    throw error;
-  }
-
-  const aptoParaCredito = await validarDeudaCliente(clienteId);
-  if (!aptoParaCredito) {
-    const error = new Error(`Operación denegada: El cliente ${cliente.nombre} tiene deudas pendientes.`);
-    error.codigo = 403;
-    throw error;
+  if (tipoPago === 'CREDITO') {
+    if (cliente.tipoCliente !== 'CREDITO') {
+      const error = new Error(`Operación denegada: El cliente ${cliente.nombre} solo tiene autorización para compras al CONTADO.`);
+      error.codigo = 403;
+      throw error;
+    }
+  
+    const aptoParaCredito = await validarDeudaCliente(clienteId);
+    if (!aptoParaCredito) {
+      const error = new Error(`Operación denegada: El cliente ${cliente.nombre} alcanzó el límite de crédito.`);
+      error.codigo = 403;
+      throw error;
+    }
   }
 
   // 1. Obtener configuraciones globales (IVA y Secuenciales)
   const preferencias = await PreferenciaSistema.findByPk(1);
   if (!preferencias) throw new Error('Configuración del sistema no encontrada');
   
-  const porcentajeIvaAplicado = Number(preferencias.porcentajeIva);
-  const factorIva = porcentajeIvaAplicado / 100;
+  const porcentajeIva = Number(preferencias.porcentajeIva);
+  const factorIva = porcentajeIva / 100;
 
   let subtotal = 0;
   let ivaTotal = 0;
@@ -70,7 +95,7 @@ async function crearFactura(datos, usuario, token) {
 
   // 2. Procesar cálculos por producto
   for (const item of detalles) {
-    const producto = await inventarioService.obtenerProductoPorCodigo(item.productoId);
+    const producto = await obtenerProductoPorCodigo(item.codigoProducto);
 
     if (producto.estado && producto.estado.toLowerCase() === 'inactivo') {
       const error = new Error(`El producto "${producto.nombre}" no está disponible`);
@@ -94,8 +119,8 @@ async function crearFactura(datos, usuario, token) {
     ivaTotal += ivaLinea;
 
     detallesConDatos.push({
-      productoId: producto.codigo,
-      productoNombre: producto.nombre,
+      codigoProducto: producto.codigo,
+      nombreProducto: producto.nombre,
       cantidad: item.cantidad,
       pvpUnitario,
       grabaIva: producto.graba_iva,
@@ -108,26 +133,34 @@ async function crearFactura(datos, usuario, token) {
   const total = Number((subtotal + ivaTotal).toFixed(2));
 
   // 3. Lógica Financiera y Cuentas por Cobrar
-  const estadoPago = tipoPago === 'CREDITO' ? 'PENDIENTE_PAGO' : 'PAGADA';
+  const estadoPago = tipoPago === 'CREDITO' ? 'EMITIDA' : 'PAGADA';
   const saldoPendiente = tipoPago === 'CREDITO' ? total : 0.00;
 
   // 4. Guardar todo en una transacción atómica
   const resultado = await sequelize.transaction(async (t) => {
     
-    // A. Bloquear y actualizar el secuencial legal
-    const prefsTransaccion = await PreferenciaSistema.findByPk(1, { transaction: t, lock: true });
-    prefsTransaccion.secuencialActual += 1;
-    await prefsTransaccion.save({ transaction: t });
+    // A. Bloquear y actualizar el secuencial directamente en la CAJA
+    // Usamos sesion.cajaId porque ya validamos la sesión más arriba
+    const cajaTransaccion = await Caja.findByPk(sesion.cajaId, { transaction: t, lock: true });
+    
+    if (!cajaTransaccion) {
+      throw new Error('La caja asociada a esta sesión no fue encontrada.');
+    }
 
-    const numeroFactura = `${prefsTransaccion.establecimiento}-${prefsTransaccion.facturero}-${String(prefsTransaccion.secuencialActual).padStart(9, '0')}`;
+    cajaTransaccion.secuencialActual += 1;
+    await cajaTransaccion.save({ transaction: t });
 
-    // B. Crear Cabecera
+    // B. Armar el número de factura con los datos de la Caja
+    const numeroFactura = `${cajaTransaccion.establecimiento}-${cajaTransaccion.puntoEmision}-${String(cajaTransaccion.secuencialActual).padStart(9, '0')}`;
+    const fechaEmision = new Date().toISOString();
+    // C. Crear Cabecera
     const nuevaFactura = await Factura.create({
-      numeroFactura, 
+      numeroFactura,
+      fechaEmision,
       clienteId,
       sesionCajaId,     
       tipoPago,
-      porcentajeIvaAplicado,
+      porcentajeIva,
       subtotal,
       ivaTotal,      
       total,
@@ -136,15 +169,18 @@ async function crearFactura(datos, usuario, token) {
       isPrinted: false
     }, { transaction: t });
 
-    // C. Crear Detalles asociados
+    // D. Crear Detalles asociados
     const detallesCreados = await Promise.all(
       detallesConDatos.map((d) =>
         DetalleFactura.create({ ...d, facturaId: nuevaFactura.id }, { transaction: t })
       )
     );
-
     
-    return { factura: nuevaFactura, detalles: detallesCreados };
+    const data = { factura: nuevaFactura, detalles: detallesCreados };
+
+    await registrarCardexVenta(data);
+
+    return data;
   });
   
   // AUDITORIA: Registrar en PistaAuditoria la creación de la factura
@@ -154,13 +190,6 @@ async function crearFactura(datos, usuario, token) {
     detalles: resultado.detalles.map((d) => d.toJSON())
   };
   
-
-  await registrarCardexVenta(facturaCompleta);
-
-  // Si es a crédito, notificamos a CXC
-  if (estadoPago === 'PENDIENTE_PAGO') {
-    await cxcService.registrarCuentaPorCobrar(facturaCompleta, token);
-  }
 
   return facturaCompleta;
 }

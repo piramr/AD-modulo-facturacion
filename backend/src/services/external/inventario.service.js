@@ -45,18 +45,8 @@ async function obtenerProductoPorCodigo(codigo) {
 }
 
 async function registrarCardexVenta(facturaCompleta) {
-  const body = {
-    tipoMovimiento: 'VENTA',
-    documentoReferencia: facturaCompleta.numeroFactura,
-    fechaMovimiento: facturaCompleta.fechaEmision,
-    detalles: facturaCompleta.detalles.map(item => ({
-      codigoProducto: item.codigoProducto,
-      cantidad: item.cantidad,
-      precioVenta: Number(item.pvpUnitario + (item.pvpUnitario * facturaCompleta.porcentajeIva/100)).toFixed(2) // Precio con IVA incluido
-    }))
-  }
-
   try {
+    const body = buildBodyForCardexVenta(facturaCompleta);
     const respuesta = await clienteInventario.post('/cardex/movimientos', body);
     return respuesta.data;
 
@@ -68,6 +58,31 @@ async function registrarCardexVenta(facturaCompleta) {
     }
     throw new Error(`No se pudo conectar con el módulo de Inventario: ${error.message}`);
   }
+}
+
+function buildBodyForCardexVenta(facturaCompleta) {
+  const body = {
+    tipoMovimiento: 'VENTA',
+    documentoReferencia: facturaCompleta.factura.numeroFactura,
+    fechaMovimiento: facturaCompleta.factura.fechaEmision,
+    detalles: facturaCompleta.detalles.map(item => {
+      const pvpUnitario = Number(item.pvpUnitario) || 0;
+      const porcentajeIva = Number(facturaCompleta.factura.porcentajeIva) || 0;
+      const grabaIva = item.grabaIva || item.graba_iva || false;
+      const valorIva = grabaIva ? (pvpUnitario * porcentajeIva / 100) : 0;
+      const precioVentaConIva = Number((pvpUnitario + valorIva).toFixed(2));
+
+      return {
+        codigoProducto: item.codigoProducto,
+        cantidad: Number(item.cantidad) || 0,
+        constoUnitario: pvpUnitario, // Precio sin IVA
+        precioVenta: precioVentaConIva, // PVP con IVA incluido y redondeado a 2 decimales
+        descripcion: `Venta de producto en factura "${facturaCompleta.factura.numeroFactura}"`
+      };
+    })
+  };
+
+  return body;
 }
 
 module.exports = { obtenerProductoPorCodigo, registrarCardexVenta };

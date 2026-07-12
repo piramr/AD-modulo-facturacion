@@ -17,10 +17,10 @@ const Factura = sequelize.define('Factura', {
   numeroFactura: { type: DataTypes.STRING, unique: true, allowNull: false, field: 'numero_factura' },
   fechaEmision: { type: DataTypes.DATE, allowNull: false, field: 'fecha_emision' },
   
-  estado: { type: DataTypes.ENUM('PAGADA', 'EMITIDA', 'ANULADA'), allowNull: false, defaultValue: 'PAGADA', field: 'estado_pago' },
+  estado: { type: DataTypes.ENUM('PAGADA', 'EMITIDA', 'ANULADA'), allowNull: false, defaultValue: 'PAGADA', field: 'estado' },
   saldoPendiente: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0.00, field: 'saldo_pendiente' },
   
-  porcentajeIva: { type: DataTypes.DECIMAL(5, 2), allowNull: false, field: 'porcentaje_iva_aplicado' },
+  porcentajeIva: { type: DataTypes.DECIMAL(5, 2), allowNull: false, field: 'porcentaje_iva' },
   subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   ivaTotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false, field: 'iva_total' },
   total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },

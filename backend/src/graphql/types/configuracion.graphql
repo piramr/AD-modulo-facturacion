@@ -6,13 +6,6 @@ type PreferenciaSistema {
   """Porcentaje de IVA actual (Ej: 15.00) a aplicar en las nuevas facturas."""
   porcentajeIva: Float!
   cuentaBancariaDefaultId: String
-  
-  """Código del local matriz (Ej: 001)"""
-  establecimiento: String!
-  """Código de la caja/facturero (Ej: 001)"""
-  facturero: String!
-  """El número de la última factura generada"""
-  secuencialActual: Int!
 }
 
 input ActualizarPreferenciasInput {
@@ -20,8 +13,6 @@ input ActualizarPreferenciasInput {
   rucEmpresa: String
   porcentajeIva: Float
   cuentaBancariaDefaultId: String
-  establecimiento: String
-  facturero: String
 }
 
 extend type Query {

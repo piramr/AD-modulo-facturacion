@@ -6,7 +6,7 @@ const { ApolloServer } = require('apollo-server-express');
 
 const { contextStorage, getCurrentContext } = require('./store/contextStore');
 const schema = require('./graphql/schema');
-const { obtenerUsuarioDesdeToken } = require('./middlewares/auth.middleware');
+const { extractPayloadFromToken } = require('./middlewares/auth.middleware');
 
 const reportesRoutes = require('./routes/reportes.routes');
 const utilRoutes = require('./routes/util.routes');
@@ -23,7 +23,7 @@ async function crearApp() {
     
     const storeData = {
       token: tokenLimpio,
-      usuario: obtenerUsuarioDesdeToken(tokenLimpio),
+      user: extractPayloadFromToken(tokenLimpio),
       ip: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1',
     };
 

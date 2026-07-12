@@ -1,50 +1,103 @@
-const grpc = require('@grpc/grpc-js');
-const { obtenerCliente } = require('../../grpc/auditoria.client.js');
+const axios = require('axios');
+const { obtenerEsquemasProtobuf } = require('../../grpc/auditoria.client.js');
 const { getCurrentContext } = require('../../store/contextStore.js');
 
-/**
- * Servicio encargado de formatear, autenticar y enviar la auditoría por gRPC de fondo
- * @param {Object} datos - Objeto de negocio con idFuncion, accion, descripcion y observacion
- */
-function registrarEvento({ idFuncion, accion, descripcion, observacion }) {
-  const clienteRpc = obtenerCliente();
-  if (!clienteRpc) return;
+const URL_PROTOBUF = process.env.SEGURIDAD_URL;
+const URL_GRAPHQL = process.env.SEGURIDAD_GRAPHQL_URL;
+const API_KEY = process.env.SEGURIDAD_API_KEY;
 
-  // Extraemos de manera global el token y la IP de la petición concurrente
-  const contexto = getCurrentContext();
+async function enviarPorProtobuf(payload) {
+  const esquemas = await obtenerEsquemasProtobuf();
+  if (!esquemas) throw new Error('Esquemas Protobuf no disponibles');
 
-  // Inyección obligatoria de la API-Key por metadatos
-  const meta = new grpc.Metadata();
-  meta.add('x-api-key', process.env.SEGURIDAD_API_KEY || '');
+  const payloadProto = {
+    token: payload.token,
+    id_funcion: payload.idFuncion,
+    accion: payload.accion,
+    descripcion: payload.descripcion,
+    observacion: payload.observacion,
+    ip_usuario: payload.ipUsuario
+  };
 
-  // Mapeamos los datos exactamente a los campos del AuditRequest de tu .proto
-  const payload = {
+  const errorValidacion = esquemas.AuditoriaRequest.verify(payloadProto);
+  if (errorValidacion) throw new Error(`Validación de contrato fallida: ${errorValidacion}`);
+
+  const mensajeBinario = esquemas.AuditoriaRequest.encode(payloadProto).finish();
+
+  const respuesta = await axios.post(URL_PROTOBUF, mensajeBinario, {
+    headers: {
+      'Content-Type': 'application/x-protobuf',
+      'x-api-key': API_KEY
+    },
+    responseType: 'arraybuffer'
+  });
+
+  const respuestaDecodificada = esquemas.AuditoriaResponse.decode(new Uint8Array(respuesta.data));
+  return respuestaDecodificada;
+}
+
+async function enviarPorGraphQL(payload) {
+  const queryMutation = `
+    mutation {
+      createAuditLog(
+        token: "${payload.token}",
+        idFuncion: ${payload.idFuncion},
+        accion: "${payload.accion}",
+        descripcion: "${payload.descripcion}",
+        observacion: "${payload.observacion}",
+        ipUsuario: "${payload.ipUsuario}"
+      ) {
+        success
+        message
+      }
+    }
+  `;
+
+  const respuesta = await axios.post(URL_GRAPHQL, { query: queryMutation }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY
+    }
+  });
+
+  if (respuesta.data?.errors) {
+    throw new Error(`GraphQL Errors: ${JSON.stringify(respuesta.data.errors)}`);
+  }
+
+  return respuesta.data?.data?.createAuditLog;
+}
+
+
+async function registrarEvento({ idFuncion, accion, descripcion, observacion }) {
+  const contexto = getCurrentContext() || {};
+  
+  // Estructura de datos limpia y unificada
+  const payloadUnificado = {
     token: String(contexto.token || ''),
-    idFuncion: parseInt(idFuncion || 0, 10), // int32
+    idFuncion: parseInt(idFuncion || 0, 10),
     accion: String(accion || ''),
     descripcion: String(descripcion || ''),
     observacion: String(observacion || ''),
     ipUsuario: String(contexto.ip || '127.0.0.1')
   };
 
-  // Ejecutamos el método 'createAuditLog' usando la sintaxis segura de corchetes
-  clienteRpc['createAuditLog'](
-    payload,
-    meta,
-    (err, resp) => {
-      if (err) {
-        if (err.code === grpc.status.UNAUTHENTICATED) {
-          console.error('[AUDIT SERVICE]: API-Key rechazada o inválida por el servidor gRPC.');
-        } else {
-          console.error('[AUDIT SERVICE]: Error de comunicación gRPC:', err.message);
-        }
-        return;
-      }
-      
-      // Mapea la respuesta a 'success' y 'message' tal como lo especifica tu AuditResponse
-      console.log(`[AUDIT SERVICE SUCCESS]: [Acción: ${accion}] — Éxito: ${resp?.success} — Mensaje: ${resp?.message}`);
-    }
-  );
+  // INTENTO 1: Intentar registrar por Protocol Buffers (Más rápido, óptimo en red)
+  try {
+    const resProto = await enviarPorProtobuf(payloadUnificado);
+    console.log(`[AUDIT PROTOBUF SUCCESS]: [${accion}] — Éxito: ${resProto.success} — ${resProto.message}`);
+    return; // Si funciona, termina el proceso de forma exitosa
+  } catch (errProto) {
+    console.warn(`[AUDIT WARN]: Falló el envío principal por Protobuf (${errProto.message}). Iniciando contingencia por GraphQL...`);
+  }
+
+  // INTENTO 2: Fallback automático por GraphQL si el canal binario falló
+  try {
+    const resGraph = await enviarPorGraphQL(payloadUnificado);
+    console.log(`[AUDIT GRAPHQL FALLBACK SUCCESS]: [${accion}] — Éxito: ${resGraph?.success} — ${resGraph?.message}`);
+  } catch (errGraph) {
+    console.error(`[AUDIT CRITICAL ERROR]: Ambos métodos de auditoría han fallado.`);
+    console.error(`-> Error GraphQL: ${errGraph.message}`);
+  }
 }
 
 module.exports = { registrarEvento };

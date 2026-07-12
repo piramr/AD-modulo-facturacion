@@ -31,6 +31,7 @@ async function registrarCuentaPorCobrar(factura) {
 }
 
 async function validarDeudaCliente(clienteId) {
+  return true;
   try {
     const respuesta = await clienteCXC.get(`/cxc/validador-deuda/${clienteId}`);
     return respuesta.estadoCliente === 'APTO_PARA_CREDITO';

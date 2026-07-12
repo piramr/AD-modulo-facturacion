@@ -14,12 +14,13 @@ const SesionCaja = sequelize.define('SesionCaja', {
   // -- Transacciones del Turno --
   cantidadFacturas: { type: DataTypes.INTEGER, defaultValue: 0, field: 'cantidad_facturas' },
   totalVentasEfectivo: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0.00, field: 'total_ventas_efectivo' },
-  
+  totalVentasCredito: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0.00, field: 'total_ventas_credito' },
+
   // -- Cierre --
   fechaCierre: { type: DataTypes.DATE, allowNull: true, field: 'fecha_cierre' },
   montoCierreEsperado: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0.00, field: 'monto_cierre_esperado' }, // Apertura + Ventas Efectivo
   montoCierreReal: { type: DataTypes.DECIMAL(10, 2), allowNull: true, field: 'monto_cierre_real' }, // Lo que declara el cajero
-  diferencia: { type: DataTypes.DECIMAL(10, 2), allowNull: true }, // Positivo = Sobrante, Negativo = Faltante
+  diferencia: { type: DataTypes.DECIMAL(10, 2), allowNull: true, field: 'diferencia' }, // Positivo = Sobrante, Negativo = Faltante
   
   estado: { type: DataTypes.ENUM('ABIERTA', 'CERRADA'), defaultValue: 'ABIERTA' }
 }, {

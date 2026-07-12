@@ -1,29 +1,29 @@
 const path = require('path');
-const grpc = require('@grpc/grpc-js');
-const protoLoader = require('@grpc/proto-loader');
+const protobuf = require('protobufjs');
 
 const PROTO_PATH = path.join(__dirname, 'auditoria.proto');
-let client = null;
+let tiposCompilados = null;
 
-function obtenerCliente() {
-  if (client) return client;
+/**
+ * Carga el archivo .proto y expone los tipos de mensajes preparados para serializar
+ */
+async function obtenerEsquemasProtobuf() {
+  if (tiposCompilados) return tiposCompilados;
+  
   try {
-    const pkgDef = protoLoader.loadSync(PROTO_PATH, {
-      keepCase: true, longs: String, enums: String, defaults: true, oneofs: true
-    });
+    // Cargamos el contrato directamente en memoria
+    const root = await protobuf.load(PROTO_PATH);
     
-    const proto = grpc.loadPackageDefinition(pkgDef)['auditoria'];
+    tiposCompilados = {
+      AuditoriaRequest: root.lookupType("AuditoriaRequest"),
+      AuditoriaResponse: root.lookupType("AuditoriaResponse")
+    };
     
-    // Instanciamos el servicio 'AuditoriaService'
-    client = new proto['AuditoriaService'](
-      process.env.SEGURIDAD_URL,
-      grpc.credentials.createInsecure()
-    );
-    return client;
+    return tiposCompilados;
   } catch (err) {
-    console.error('No se pudo inicializar cliente gRPC de auditoria:', err.message);
+    console.error('No se pudo inicializar los esquemas Protobuf de auditoria:', err.message);
     return null;
   }
 }
 
-module.exports = { obtenerCliente };
+module.exports = { obtenerEsquemasProtobuf };

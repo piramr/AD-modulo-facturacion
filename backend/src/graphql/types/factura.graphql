@@ -46,7 +46,7 @@ type Factura {
   
   # --- Valores Económicos e Históricos ---
   """Porcentaje de IVA que estaba vigente en el momento exacto de la compra."""
-  porcentajeIvaAplicado: Float!
+  porcentajeIva: Float!
   """Subtotal de la factura antes de impuestos."""
   subtotal: Float!
   """Total de IVA aplicado en la factura."""
@@ -55,7 +55,7 @@ type Factura {
   total: Float!
   
   # --- Integración CXC y Seguridad ---
-  """Estado actual de cobro: 'PAGADA' o 'PENDIENTE_PAGO'."""
+  """Estado actual de cobro: 'PAGADA' o 'EMITIDA'."""
   estadoPago: String!
   """Monto de deuda restante (0.00 si fue en efectivo o si CXC ya la cobró por completo)."""
   saldoPendiente: Float!
@@ -78,15 +78,14 @@ type Facturas {
 
 """Detalle de producto enviado al crear una factura."""
 input DetalleInput {
-  """ID único del producto a facturar."""
-  productoId: String!
+  """Código del producto a facturar."""
+  codigoProducto: String!
   """Cantidad del producto en la factura."""
   cantidad: Float!
 }
 
 """Datos necesarios para crear una factura."""
 input CrearFacturaInput {
-  """Identificador del cliente asociado a la factura."""
   clienteId: ID!
   """ID de la sesión de caja abierta por el cajero actual."""
   sesionCajaId: ID!

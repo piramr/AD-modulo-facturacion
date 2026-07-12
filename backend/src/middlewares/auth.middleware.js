@@ -46,4 +46,22 @@ function verificarRol(rolesPermitidos = []) {
   };
 }
 
-module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken };
+
+function extractPayloadFromToken(token) {
+  if (!token) return null;
+  try {
+    const partes = token.split('.');
+    if (partes.length !== 3) return null;
+    
+    // Decodificamos el payload que está en formato Base64Url
+    const payloadBase64 = partes[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonString = Buffer.from(payloadBase64, 'base64').toString('utf-8');
+    
+    return JSON.parse(jsonString); // Devuelve: { user_id: 14, user_name: "alexander", ... }
+  } catch (error) {
+    console.error('Error al decodificar el token de forma nativa:', error.message);
+    return null;
+  }
+}
+
+module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken, extractPayloadFromToken };
