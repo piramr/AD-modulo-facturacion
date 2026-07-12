@@ -2,7 +2,8 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Caja = sequelize.define('Caja', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  
   codigo: { type: DataTypes.STRING, unique: true, allowNull: false }, // Ej: CAJ-001
   descripcion: { type: DataTypes.STRING, allowNull: false },
   estado: { type: DataTypes.ENUM('ACTIVO', 'INACTIVO'), defaultValue: 'ACTIVO' },

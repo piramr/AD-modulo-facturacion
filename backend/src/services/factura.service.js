@@ -2,9 +2,12 @@ const { Op } = require('sequelize');
 const { sequelize, Caja, SesionCaja, Factura, DetalleFactura, Cliente, PreferenciaSistema } = require('../models');
 const { validarDeudaCliente } = require('./external/cuentasxcobrar.service');
 const { registrarCardexVenta, obtenerProductoPorCodigo } = require('./external/inventario.service');
+const { registrarEvento } = require('./external/auditoria.service');
 
 const { getCurrentContext } = require('../store/contextStore');
 const tiposPagoPermitidos = ['CONTADO', 'CREDITO'];
+
+const idFuncionFacturaAuditoria = 21; // ID de la función de auditoría para facturas
 
 function construirWhere(filtros = {}) {
   const where = {};
@@ -177,20 +180,25 @@ async function crearFactura(datos) {
     );
     
     const data = { factura: nuevaFactura, detalles: detallesCreados };
-
-    await registrarCardexVenta(data);
+    
+    // Desactivo porque no está funcionando la API
+    // await registrarCardexVenta(data);
 
     return data;
   });
   
-  // AUDITORIA: Registrar en PistaAuditoria la creación de la factura
+  registrarEvento({
+    idFuncion: idFuncionFacturaAuditoria,
+    accion: 'CREAR_FACTURA',
+    descripcion: `Creación de factura ${resultado.factura.numeroFactura} para cliente ${cliente.nombre}`,
+    observacion: `Detalles de la factura: ${JSON.stringify(detallesConDatos)}`
+  });
   
   const facturaCompleta = {
     ...resultado.factura.toJSON(),
     detalles: resultado.detalles.map((d) => d.toJSON())
   };
   
-
   return facturaCompleta;
 }
 
@@ -240,7 +248,7 @@ async function obtenerFacturaPorId(id) {
 /**
  * Bloquea la factura y la marca como impresa (Inmutable)
  */
-async function bloquearEImprimirFactura(id, usuario) {
+async function bloquearEImprimirFactura(id) {
   const factura = await obtenerFacturaPorId(id);
 
   if (factura.isPrinted) {
@@ -250,9 +258,23 @@ async function bloquearEImprimirFactura(id, usuario) {
   }
 
   factura.isPrinted = true;
-  await factura.save();
+  const resultado = await factura.save();
 
-  // Registrar auditoría de impresión
+  if (!resultado) {
+    const error = new Error('Error al intentar bloquear e imprimir la factura.');
+    error.codigo = 500;
+    throw error;
+  }
+
+  const context = getCurrentContext();
+  const usuario = context ? context.username : 'Desconocido';
+
+  registrarEvento({
+    idFuncion: idFuncionFacturaAuditoria,
+    accion: 'BLOQUEAR_IMPRIMIR_FACTURA',
+    descripcion: `Factura ${factura.numeroFactura} bloqueada e impresa por usuario ${usuario}`,
+    observacion: `Factura ID: ${factura.id}, Cliente: ${factura.clienteId}`
+  });
 
   return factura;
 }

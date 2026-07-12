@@ -1,4 +1,3 @@
-"""Configuraciones globales, fiscales y de secuenciales de la empresa."""
 type PreferenciaSistema {
   id: ID!
   nombreEmpresa: String!

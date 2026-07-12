@@ -1,0 +1,34 @@
+type SaldoCuenta {
+  cuentaId: ID!
+  saldoActual: Float!
+  ultimaActualizacion: DateTime
+  movimientos: [MovimientoCuenta!]!
+}
+
+type MovimientoCuenta {
+  id: ID!
+  cuentaId: ID!
+  tipo: String! # 'INGRESO' o 'EGRESO'
+  monto: Float!
+  descripcion: String!
+  referencia: String
+  fecha: DateTime!
+}
+
+input MovimientoInput {
+  cuentaId: ID!
+  tipo: String! # 'INGRESO' o 'EGRESO'
+  monto: Float!
+  descripcion: String!
+  referencia: String
+}
+
+extend type Query {
+  """Moreta usará esto para ver cuánto dinero hay en una cuenta específica"""
+  saldoCuenta(cuentaId: ID!): SaldoCuenta!
+}
+
+extend type Mutation {
+  """Moreta (o tu cierre de caja) usa esto para meter o sacar dinero"""
+  registrarMovimiento(input: MovimientoInput!): SaldoCuenta!
+}

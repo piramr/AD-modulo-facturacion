@@ -56,7 +56,7 @@ type Factura {
   
   # --- Integración CXC y Seguridad ---
   """Estado actual de cobro: 'PAGADA' o 'EMITIDA'."""
-  estadoPago: String!
+  estado: String!
   """Monto de deuda restante (0.00 si fue en efectivo o si CXC ya la cobró por completo)."""
   saldoPendiente: Float!
   """Candado de seguridad: Indica si la factura ya fue impresa en PDF y es inmutable."""

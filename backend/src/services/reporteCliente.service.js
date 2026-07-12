@@ -2,6 +2,10 @@ const PDFDocument = require('pdfkit');
 const { Op } = require('sequelize');
 const clienteService = require('./cliente.service');
 const Factura = require('../models/factura.model');
+const { registrarEvento } = require('./external/auditoria.service');
+
+const idFuncionReportesAuditoria = 20; // ID de la función de auditoría para reportes de clientes
+
 
 function mapearCliente(cliente) {
   const data = cliente.toJSON ? cliente.toJSON() : cliente;
@@ -57,6 +61,13 @@ async function obtenerHistorialCompras(clienteIds = []) {
       acc[clienteId].ultimaCompra = fechaEmision;
     }
 
+    registrarEvento({
+      idFuncion: idFuncionReportesAuditoria,
+      accion: 'HISTORIAL_COMPRAS_CLIENTE',
+      descripcion: `Se generó el historial de compras para cliente ID ${clienteId}`,
+      observacion: `Factura ID: ${data.id}, Total: ${data.total}, Fecha Emisión: ${fechaEmision}`
+    });
+
     return acc;
   }, {});
 }
@@ -78,6 +89,13 @@ async function obtenerDatosReporteClientes(query = {}) {
 
   const items = (resultado.rows || []).map(mapearCliente);
   const historialPorCliente = await obtenerHistorialCompras(items.map((cliente) => cliente.id));
+
+  registrarEvento({
+    idFuncion: idFuncionReportesAuditoria,
+    accion: 'GENERAR_REPORTE_CLIENTES',
+    descripcion: `Se generó un reporte de clientes con filtros: ${JSON.stringify(filtros)}`,
+    observacion: `Total clientes: ${total}, Página actual: ${page}, Total páginas: ${totalPages}`
+  });
 
   return {
     totalCount: total,
@@ -166,6 +184,13 @@ async function generarPdfClientes(query = {}) {
 
   doc.end();
   const buffer = await done;
+
+  registrarEvento({
+    idFuncion: idFuncionReportesAuditoria,
+    accion: 'GENERAR_PDF_REPORTE_CLIENTES',
+    descripcion: `Se generó el PDF del reporte de clientes`,
+    observacion: `Filtros aplicados: ${JSON.stringify(query)}, Total clientes: ${reporte.totalCount}`
+  });
 
   return {
     ...reporte,

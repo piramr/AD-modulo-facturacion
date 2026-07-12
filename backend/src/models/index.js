@@ -8,6 +8,13 @@ const Cliente = require('./cliente.model');
 const Factura = require('./factura.model');
 const DetalleFactura = require('./detalleFactura.model');
 
+const SaldoCuenta = require('./saldoCuenta.model');
+const MovimientoCuenta = require('./movimientoCuenta.model');
+
+// Relaciones entre modelos
+SaldoCuenta.hasMany(MovimientoCuenta, { foreignKey: 'cuentaId', as: 'movimientos', onDelete: 'RESTRICT' });
+MovimientoCuenta.belongsTo(SaldoCuenta, { foreignKey: 'cuentaId', as: 'cuenta' });
+
 // Control de Cajas
 Caja.hasMany(SesionCaja, { foreignKey: 'cajaId', onDelete: 'RESTRICT' });
 SesionCaja.belongsTo(Caja, { foreignKey: 'cajaId', as: 'caja' });
@@ -31,5 +38,7 @@ module.exports = {
   SesionCaja,
   Cliente,
   Factura,
-  DetalleFactura
+  DetalleFactura,
+  SaldoCuenta,
+  MovimientoCuenta
 };
