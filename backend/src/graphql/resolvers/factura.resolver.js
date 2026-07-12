@@ -1,6 +1,4 @@
 const facturaService = require('../../services/factura.service');
-const inventarioService = require('../../services/inventario.service');
-const PistaAuditoria = require('../../models/pistaAuditoria.model');
 
 function requiereAuth(context) {
   if (!context.usuario) {
@@ -12,9 +10,7 @@ function requiereAuth(context) {
 
 const resolvers = {
   Query: {
-    facturas: async (_, args, ctx) => {
-      requiereAuth(ctx);
-      
+    facturas: async (_, args) => {
       const MAX_LIMIT = 1_000;
       const filter = args.filter || {};
 
@@ -67,8 +63,7 @@ const resolvers = {
       };
     },
 
-    factura: async (_, { id }, ctx) => {
-      requiereAuth(ctx);
+    factura: async (_, { id }) => {
       try {
         return await facturaService.obtenerFacturaPorId(id);
       } catch (err) {
@@ -82,25 +77,10 @@ const resolvers = {
   },
 
 Mutation: {
-    crearFactura: async (_, { input }, ctx) => {
-      requiereAuth(ctx);
+    crearFactura: async (_, { input }) => {
       const factura = await facturaService.crearFactura(input, ctx.usuario, ctx.token);
       return factura;
     },
-
-    actualizarEstadoFactura: async (_, { id, estado }, ctx) => {
-      requiereAuth(ctx);
-      try {
-        const factura = await facturaService.actualizarEstadoFactura(id, estado, ctx.usuario);
-        return factura;
-      } catch (err) {
-        if (err.codigo === 409) {
-          err.code = 'CONFLICT';
-          err.status = 409;
-        }
-        throw err;
-      }
-    }
   }
 };
 

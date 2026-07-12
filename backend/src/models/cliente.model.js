@@ -1,65 +1,26 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+const sequelize = require('../config/db');
 
 const Cliente = sequelize.define('Cliente', {
-  id: {
-    field: "id",
-    type: DataTypes.UUID,
-    primaryKey: true,
-    defaultValue: DataTypes.UUIDV4
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  cedula: { type: DataTypes.STRING, unique: true, allowNull: false },
+  nombre: { type: DataTypes.STRING, allowNull: false },
+  fechaNacimiento: { type: DataTypes.DATEONLY, allowNull: false, field: 'fecha_nacimiento' },
+  
+  tipoCliente: { 
+    type: DataTypes.ENUM('CONTADO', 'CREDITO'), 
+    allowNull: false, 
+    field: 'tipo_cliente' 
   },
-  cedula: {
-    field: "cedula",
-    type: DataTypes.STRING(15),
-    allowNull: false,
-    unique: true
-  },
-  nombre: {
-    field: "nombre",
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  fechaNacimiento: {
-    field: "fecha_nacimiento",
-    type: DataTypes.DATEONLY,
-    allowNull: false
-  },
-  tipoCliente: {
-    field: "tipo_cliente",
-    type: DataTypes.STRING(20),
-    allowNull: false,
-    validate: {
-      isIn: [['Contado', 'Crédito']]
-    }
-  },
-  direccion: {
-    field: "direccion",
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
-  telefono: {
-    field: "telefono",
-    type: DataTypes.STRING(20),
-    allowNull: false
-  },
-  email: {
-    field: "email",
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  estado: {
-    field: "estado",
-    type: DataTypes.STRING(15),
-    allowNull: false,
-    defaultValue: 'Activo',
-    validate: {
-      isIn: [['Activo', 'Inactivo']]
-    }
-  }
+
+  direccion: { type: DataTypes.STRING, allowNull: false },
+  telefono: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, validate: { isEmail: true } },
+  estado: { type: DataTypes.ENUM('ACTIVO', 'INACTIVO'), defaultValue: 'ACTIVO' }
 }, {
   tableName: 'clientes',
   timestamps: true,
-  underscored: true,
+  underscored: true
 });
 
 module.exports = Cliente;

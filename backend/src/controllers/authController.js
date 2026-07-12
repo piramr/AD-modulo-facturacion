@@ -15,7 +15,8 @@ const getTestToken = (_, res) => {
 
     return res.status(200).json({
       status: "ok",
-      token: token
+      token: token,
+      header: `Bearer ${token}`
     });
 
   } catch (error) {

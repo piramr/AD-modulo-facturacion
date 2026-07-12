@@ -21,6 +21,7 @@
     "express": "^4.19.2",
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
+    "graphql-shield": "^7.6.5",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",

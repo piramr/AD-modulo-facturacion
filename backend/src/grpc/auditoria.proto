@@ -1,23 +1,23 @@
-// src/grpc/auditoria.proto — PLACEHOLDER
-// Reemplazar con el .proto oficial del equipo de Seguridad (Django)
-
 syntax = "proto3";
+
 package auditoria;
 
+// El servicio de auditoría
 service AuditoriaService {
-  rpc RegistrarEvento (EventoAuditoria) returns (RespuestaAuditoria);
+  rpc createAuditoria (AuditoriaRequest) returns (AuditoriaResponse);
 }
 
-message EventoAuditoria {
-  string modulo_origen = 1;
-  string accion        = 2;
-  string usuario_id    = 3;
-  string entidad_id    = 4;
-  string detalle       = 5;
-  string timestamp     = 6;
+message AuditoriaRequest {
+  string token = 1;
+  int32 id_funcion = 2;
+  string accion = 3;
+  string descripcion = 4;
+  string observacion = 5;
+  string ip_usuario = 6;
 }
 
-message RespuestaAuditoria {
-  bool   recibido = 1;
-  string mensaje  = 2;
+// La respuesta que devuelve su servidor
+message AuditoriaResponse {
+  bool success = 1;
+  string message = 2;
 }

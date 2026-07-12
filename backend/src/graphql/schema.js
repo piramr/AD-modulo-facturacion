@@ -1,7 +1,9 @@
 const path = require('path');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { applyMiddleware } = require('graphql-middleware');
 const { loadFilesSync } = require('@graphql-tools/load-files');
 const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
+const permissions = require('./permission');
 
 // Busca y fusiona todos los archivos .graphql dentro de /types
 const typesArray = loadFilesSync(path.join(__dirname, './types/**/*.graphql'));
@@ -17,4 +19,7 @@ const schema = makeExecutableSchema({
   resolvers
 });
 
-module.exports = schema;
+// Aplicamos los permisos al esquema
+const schemaWithPermissions = applyMiddleware(schema, permissions);
+
+module.exports = schemaWithPermissions;

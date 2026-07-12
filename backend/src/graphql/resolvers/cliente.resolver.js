@@ -1,19 +1,10 @@
 const clienteService = require('../../services/cliente.service');
-
-// Función espejo para mantener el control de seguridad por token
-function requiereAuth(context) {
-  if (!context.usuario) {
-    const e = new Error('No autorizado: se requiere JWT válido');
-    e.extensions = { code: 'UNAUTHENTICATED' };
-    throw e;
-  }
-}
+const { getCurrentContext } = require('../../store/contextStore');
 
 const resolvers = {
   Query: {
-    clientes: async (_, args, ctx) => {
-      requiereAuth(ctx);
-
+    clientes: async (_, args) => {
+      console.log('Contexto actual:', getCurrentContext()); // Muestra el contexto actual en la consola
       const MAX_LIMIT = 1_000;
       const filter = args.filter || {};
 
@@ -60,36 +51,25 @@ const resolvers = {
         items: resultado?.rows || []
       };
     },
-    cliente: async (_, {id}, ctx) => {
-      requiereAuth(ctx);
+    cliente: async (_, {id}) => {
       const resultado = await clienteService.obtenerClientePorId(id);
       return resultado;
     }
   },
 
   Mutation: {
-    // HU1 - CA4: Registrar un nuevo cliente
-    crearCliente: async (_, { input }, ctx) => {
-      requiereAuth(ctx);
-      
-      // Se pasa ctx.usuario por si tu servicio registra pistas de auditoría
-      const nuevoCliente = await clienteService.crearCliente(input, ctx.usuario);
+    crearCliente: async (_, { input }) => {
+      const nuevoCliente = await clienteService.crearCliente(input);
       return nuevoCliente;
     },
 
-    // Actualizar datos del cliente
-    actualizarCliente: async (_, { id, input }, ctx) => {
-      requiereAuth(ctx);
-
-      const clienteActualizado = await clienteService.actualizarCliente(id, input, ctx.usuario);
+    actualizarCliente: async (_, { id, input }) => {
+      const clienteActualizado = await clienteService.actualizarCliente(id, input);
       return clienteActualizado;
     },
 
-    // HU1 - CA3: Inactivar cliente (en lugar de borrado físico)
-    inactivarCliente: async (_, { id }, ctx) => {
-      requiereAuth(ctx);
-      // Tu servicio debería hacer un update de { estado: 'Inactivo' }
-      const clienteInactivado = await clienteService.actualizarEstadoCliente(id, 'Inactivo', ctx.usuario);
+    inactivarCliente: async (_, { id }) => {
+      const clienteInactivado = await clienteService.actualizarEstadoCliente(id, 'INACTIVO');
       return clienteInactivado;
     }
   }

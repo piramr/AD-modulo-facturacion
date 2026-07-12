@@ -1,24 +1,18 @@
 const { Op } = require('sequelize');
-const { sequelize } = require('../config/db');
-const Factura = require('../models/factura.model');
-const DetalleFactura = require('../models/detalleFactura.model');
-const Cliente = require('../models/cliente.model');
-const PistaAuditoria = require('../models/pistaAuditoria.model');
+const { sequelize, Factura, DetalleFactura, Cliente, PreferenciaSistema } = require('../models');
+const { validarDeudaCliente } = require('./external/cuentasxcobrar.service');
+const { registrarCardexVenta } = require('./external/inventario.service');
 
-const inventarioService = require('./inventario.service');
-const cxcService = require('./cxc.service');
-const auditoriaService = require('./auditoria.service');
-const auditoriaGrpc = require('../grpc/auditoria.client');
-
+const tiposPagoPermitidos = ['CONTADO', 'CREDITO'];
 
 function construirWhere(filtros = {}) {
   const where = {};
 
-  if (filtros.estado) where.estado = filtros.estado;
+  if (filtros.estadoPago) where.estadoPago = filtros.estadoPago;
   if (filtros.clienteId) where.clienteId = filtros.clienteId;
   if (filtros.tipoPago) where.tipoPago = filtros.tipoPago;
+  if (typeof filtros.isPrinted === 'boolean') where.isPrinted = filtros.isPrinted;
 
-  // Búsqueda por número de factura
   if (filtros.search) {
     where.numeroFactura = { [Op.like]: `%${filtros.search}%` };
   }
@@ -32,24 +26,10 @@ async function contarFacturasConFiltro(filtros = {}) {
 }
 
 /**
- * Genera número de factura formato XXX-XXX-XXXXXXXXX
- * Ej: 001-001-000000001
- */
-async function generarNumeroFactura() {
-  const ultima = await Factura.findOne({ order: [['fechaEmision', 'DESC']] }); // <-- CamelCase
-  let secuencia = 1;
-  if (ultima) {
-    const partes = ultima.numeroFactura.split('-');
-    secuencia = parseInt(partes[2], 10) + 1;
-  }
-  return `001-001-${String(secuencia).padStart(9, '0')}`;
-}
-
-/**
- * Crear una nueva factura
+ * Crear una nueva factura (Transacción completa)
  */
 async function crearFactura(datos, usuario, token) {
-  const { clienteId, tipoPago, detalles } = datos;
+  const { clienteId, sesionCajaId, tipoPago, detalles } = datos;
 
   if (!detalles || detalles.length === 0) {
     const error = new Error('La factura debe tener al menos un producto');
@@ -57,118 +37,130 @@ async function crearFactura(datos, usuario, token) {
     throw error;
   }
 
+  const cliente = await Cliente.findByPk(clienteId);
+  if (!cliente) {
+    const error = new Error('El cliente seleccionado no existe.');
+    error.codigo = 404;
+    throw error;
+  }
+
+  if (tipoPago === 'CREDITO' && cliente.tipoCliente !== 'CREDITO') {
+    const error = new Error(`Operación denegada: El cliente ${cliente.nombre} solo tiene autorización para compras al CONTADO.`);
+    error.codigo = 403;
+    throw error;
+  }
+
+  const aptoParaCredito = await validarDeudaCliente(clienteId);
+  if (!aptoParaCredito) {
+    const error = new Error(`Operación denegada: El cliente ${cliente.nombre} tiene deudas pendientes.`);
+    error.codigo = 403;
+    throw error;
+  }
+
+  // 1. Obtener configuraciones globales (IVA y Secuenciales)
+  const preferencias = await PreferenciaSistema.findByPk(1);
+  if (!preferencias) throw new Error('Configuración del sistema no encontrada');
+  
+  const porcentajeIvaAplicado = Number(preferencias.porcentajeIva);
+  const factorIva = porcentajeIvaAplicado / 100;
+
   let subtotal = 0;
-  let totalIva = 0;
+  let ivaTotal = 0;
   const detallesConDatos = [];
 
+  // 2. Procesar cálculos por producto
   for (const item of detalles) {
-    const producto = await inventarioService.obtenerProductoPorCodigo(
-      item.productoCodigo,
-      token
-    );
+    const producto = await inventarioService.obtenerProductoPorCodigo(item.productoId);
 
-    // Validar que el producto esté disponible
     if (producto.estado && producto.estado.toLowerCase() === 'inactivo') {
       const error = new Error(`El producto "${producto.nombre}" no está disponible`);
       error.codigo = 400;
       throw error;
     }
 
-    // Validar stock
     if (producto.stock_actual < item.cantidad) {
-      const error = new Error(
-        `Stock insuficiente para "${producto.nombre}" (disponible: ${producto.stock_actual}, solicitado: ${item.cantidad})`
-      );
+      const error = new Error(`Stock insuficiente para "${producto.nombre}"`);
       error.codigo = 400;
       throw error;
     }
 
-    // Procesar cálculos desde el objeto del producto
-    const precioUnitario = Number(producto.pvp);
-    const subtotalLinea = Number((precioUnitario * item.cantidad).toFixed(2));
-
-    // Si graba_iva es true aplicas 15, si no, 0 (así manejas dinámicamente el IVA)
-    const porcentajeIva = producto.graba_iva ? 0.15 : 0.0;
-    const ivaLinea = Number((subtotalLinea * porcentajeIva).toFixed(2));
+    const pvpUnitario = Number(producto.pvp);
+    const subtotalLinea = Number((pvpUnitario * item.cantidad).toFixed(2));
+    
+    // Aplicamos el IVA global si el producto grava impuestos
+    const ivaLinea = producto.graba_iva ? Number((subtotalLinea * factorIva).toFixed(2)) : 0.0;
 
     subtotal += subtotalLinea;
-    totalIva += ivaLinea;
+    ivaTotal += ivaLinea;
 
     detallesConDatos.push({
-      productoCodigo: producto.codigo,
+      productoId: producto.codigo,
       productoNombre: producto.nombre,
       cantidad: item.cantidad,
-      precioUnitario,
+      pvpUnitario,
       grabaIva: producto.graba_iva,
-      subtotalLinea
+      subtotal: subtotalLinea
     });
   }
 
   subtotal = Number(subtotal.toFixed(2));
-  totalIva = Number(totalIva.toFixed(2));
-  const total = Number((subtotal + totalIva).toFixed(2));
-  const numeroFactura = await generarNumeroFactura();
+  ivaTotal = Number(ivaTotal.toFixed(2));
+  const total = Number((subtotal + ivaTotal).toFixed(2));
 
-  // Guardar todo en una transacción (factura + detalles + auditoría local)
+  // 3. Lógica Financiera y Cuentas por Cobrar
+  const estadoPago = tipoPago === 'CREDITO' ? 'PENDIENTE_PAGO' : 'PAGADA';
+  const saldoPendiente = tipoPago === 'CREDITO' ? total : 0.00;
+
+  // 4. Guardar todo en una transacción atómica
   const resultado = await sequelize.transaction(async (t) => {
-    // 1. Crear Cabecera
+    
+    // A. Bloquear y actualizar el secuencial legal
+    const prefsTransaccion = await PreferenciaSistema.findByPk(1, { transaction: t, lock: true });
+    prefsTransaccion.secuencialActual += 1;
+    await prefsTransaccion.save({ transaction: t });
+
+    const numeroFactura = `${prefsTransaccion.establecimiento}-${prefsTransaccion.facturero}-${String(prefsTransaccion.secuencialActual).padStart(9, '0')}`;
+
+    // B. Crear Cabecera
     const nuevaFactura = await Factura.create({
       numeroFactura, 
-      clienteId,     
-      tipoPago,      
+      clienteId,
+      sesionCajaId,     
+      tipoPago,
+      porcentajeIvaAplicado,
       subtotal,
-      totalIva,      
+      ivaTotal,      
       total,
-      estado: 'Emitida'
+      estadoPago,
+      saldoPendiente,
+      isPrinted: false
     }, { transaction: t });
 
-    // 2. Crear Detalles asociados
+    // C. Crear Detalles asociados
     const detallesCreados = await Promise.all(
       detallesConDatos.map((d) =>
         DetalleFactura.create({ ...d, facturaId: nuevaFactura.id }, { transaction: t })
       )
-    )
+    );
 
-    // 3. Registrar en Pista de Auditoría Local
-    await PistaAuditoria.create({
-      usuario_id: usuario.id, 
-      accion: 'FACTURA_CREADA',
-      detalles: {
-        numeroFactura,
-        clienteId,
-        tipoPago,
-        subtotal,
-        totalIva,
-        total,
-        productos: detallesConDatos
-      }
-    }, { transaction: t });
-
+    
     return { factura: nuevaFactura, detalles: detallesCreados };
   });
-
+  
+  // AUDITORIA: Registrar en PistaAuditoria la creación de la factura
+  
   const facturaCompleta = {
     ...resultado.factura.toJSON(),
     detalles: resultado.detalles.map((d) => d.toJSON())
   };
-
-  // --- Operaciones asíncronas externas (Best Effort) ---
   
-  // Descontar stock del Inventario
-  for (const item of detalles) {
-    await inventarioService.descontarStock(item.productoCodigo, item.cantidad, token);
+
+  await registrarCardexVenta(facturaCompleta);
+
+  // Si es a crédito, notificamos a CXC
+  if (estadoPago === 'PENDIENTE_PAGO') {
+    await cxcService.registrarCuentaPorCobrar(facturaCompleta, token);
   }
-
-  // Enviar a Cuentas por Cobrar
-  await cxcService.registrarCuentaPorCobrar(facturaCompleta, token);
-
-  // Auditoría gRPC Externa
-  auditoriaGrpc.registrarEvento({
-    accion: 'FACTURA_CREADA',
-    usuarioId: usuario.id,
-    entidadId: facturaCompleta.id,
-    detalle: `Factura ${numeroFactura} - Total: ${total}`
-  });
 
   return facturaCompleta;
 }
@@ -178,7 +170,7 @@ async function listarFacturas(filtros = {}) {
   const limit = filtros.limit ? parseInt(filtros.limit, 10) : 10;
   const offset = filtros.offset ? parseInt(filtros.offset, 10) : 0;
 
-  let orderClause = [[Factura.rawAttributes.fechaEmision.field, 'DESC']];
+  let orderClause = [['fechaEmision', 'DESC']];
 
   if (filtros.orderBy && filtros.orderBy.length > 0) {
     orderClause = filtros.orderBy.map(item => {
@@ -199,9 +191,6 @@ async function listarFacturas(filtros = {}) {
   });
 }
 
-/**
- * Obtiene una factura individual con sus relaciones cargadas
- */
 async function obtenerFacturaPorId(id) {
   const factura = await Factura.findByPk(id, {
     include: [
@@ -220,62 +209,44 @@ async function obtenerFacturaPorId(id) {
 }
 
 /**
- * Verifica si la factura ya cuenta con un registro de impresión en auditoría
+ * Bloquea la factura y la marca como impresa (Inmutable)
  */
-async function facturaFueImpresa(id) {
-  const registro = await PistaAuditoria.findOne({
-    where: {
-      accion: 'FACTURA_IMPRESA',
-      detalles: {
-        [Op.contains]: { facturaId: id }
-      }
-    }
-  });
-
-  return Boolean(registro);
-}
-
-/**
- * Actualiza el estado de la factura validando reglas de negocio e impresión previa
- */
-async function actualizarEstadoFactura(id, nuevoEstado, usuario) {
+async function bloquearEImprimirFactura(id, usuario) {
   const factura = await obtenerFacturaPorId(id);
-  const estadoAnterior = factura.estado;
 
-  if (await facturaFueImpresa(id)) {
-    const error = new Error('La factura ya fue impresa y no puede modificarse');
+  if (factura.isPrinted) {
+    const error = new Error('La factura ya fue impresa previamente.');
     error.codigo = 409;
     throw error;
   }
 
-  if (estadoAnterior === 'Anulada') {
-    const error = new Error('No se puede modificar una factura anulada');
-    error.codigo = 400;
-    throw error;
-  }
-
-  factura.estado = nuevoEstado;
+  factura.isPrinted = true;
   await factura.save();
 
-  // Auditorías obligatorias del cambio de estado
-  await auditoriaService.registrarAuditoria({
-    usuarioId: usuario.id,
-    accion: nuevoEstado === 'Anulada' ? 'FACTURA_ANULADA' : 'FACTURA_ACTUALIZADA',
-    detalles: {
-      facturaId: factura.id,         
-      numeroFactura: factura.numeroFactura, 
-      estadoAnterior,               
-      estadoNuevo: nuevoEstado       
-    }
-  });
+  // Registrar auditoría de impresión
 
-  auditoriaGrpc.registrarEvento({
-    accion: nuevoEstado === 'Anulada' ? 'FACTURA_ANULADA' : 'FACTURA_ACTUALIZADA',
-    usuarioId: usuario.id,
-    entidadId: factura.id,
-    detalle: `${factura.numeroFactura}: ${estadoAnterior} → ${nuevoEstado}`
-  });
+  return factura;
+}
 
+/**
+ * API Interna: Procesa un abono notificado por el Módulo CXC
+ */
+async function procesarAbono(id, montoPagado) {
+  const factura = await Factura.findByPk(id);
+  if (!factura) throw new Error('Factura no encontrada');
+
+  if (factura.saldoPendiente <= 0) {
+    throw new Error('Esta factura no tiene deudas pendientes');
+  }
+
+  const nuevoSaldo = Number((factura.saldoPendiente - montoPagado).toFixed(2));
+  
+  factura.saldoPendiente = nuevoSaldo < 0 ? 0 : nuevoSaldo;
+  if (factura.saldoPendiente === 0) {
+    factura.estadoPago = 'PAGADA';
+  }
+
+  await factura.save();
   return factura;
 }
 
@@ -284,5 +255,6 @@ module.exports = {
   crearFactura,
   listarFacturas,
   obtenerFacturaPorId,
-  actualizarEstadoFactura
+  bloquearEImprimirFactura,
+  procesarAbono
 };

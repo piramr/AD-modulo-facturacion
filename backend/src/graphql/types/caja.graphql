@@ -1,0 +1,46 @@
+"""Representa una caja física o lógica en el punto de venta."""
+type Caja {
+  id: ID!
+  codigo: String!
+  descripcion: String!
+  estado: String!
+}
+
+"""Representa el turno de trabajo de un cajero."""
+type SesionCaja {
+  id: ID!
+  cajaId: ID!
+  caja: Caja
+  usuarioId: String!
+  fechaApertura: DateTime!
+  montoApertura: Float!
+  cantidadFacturas: Int!
+  totalVentasEfectivo: Float!
+  fechaCierre: DateTime
+  montoCierreEsperado: Float!
+  montoCierreReal: Float
+  diferencia: Float
+  estado: String! # 'ABIERTA' o 'CERRADA'
+}
+
+input AbrirSesionCajaInput {
+  cajaId: ID!
+  usuarioId: String!
+  montoApertura: Float!
+}
+
+input CerrarSesionCajaInput {
+  sesionCajaId: ID!
+  montoCierreReal: Float!
+}
+
+extend type Query {
+  obtenerCajas: [Caja!]!
+  """Útil para validar si el usuario actual ya tiene un turno abierto antes de dejarle facturar."""
+  obtenerSesionActiva(usuarioId: String!): SesionCaja
+}
+
+extend type Mutation {
+  abrirSesionCaja(input: AbrirSesionCajaInput!): SesionCaja!
+  cerrarSesionCaja(input: CerrarSesionCajaInput!): SesionCaja!
+}
