@@ -1,1 +1,0 @@
-const { PreferenciaSistema } = require('../models');
