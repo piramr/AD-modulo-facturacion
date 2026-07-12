@@ -1,5 +1,5 @@
 const toneClasses = {
-  indigo: 'text-indigo-600 dark:text-indigo-400',
+  indigo: 'text-red-700 dark:text-red-500',
   emerald: 'text-emerald-600 dark:text-emerald-400',
   amber: 'text-amber-600 dark:text-amber-400',
   blue: 'text-blue-600 dark:text-blue-400',

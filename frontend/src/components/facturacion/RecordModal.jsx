@@ -2,7 +2,6 @@ import { Plus, Trash2, X } from 'lucide-react'
 import {
   CLIENTE_ESTADOS,
   FACTURA_ESTADOS,
-  IVA_PERCENT,
   TIPO_CLIENTE_OPTIONS,
   TIPO_PAGO_OPTIONS,
 } from '../../utils/validators'
@@ -18,6 +17,7 @@ export default function RecordModal({
   onClose,
   onSubmit,
   clients = [],
+  products = [],
   isSubmitting = false,
   detailForm,
   detailItems = [],
@@ -62,7 +62,7 @@ export default function RecordModal({
                   onChange={(event) => onFieldChange('cedula', event.target.value)}
                   type="text"
                   inputMode="numeric"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   placeholder="123456789"
                 />
               </label>
@@ -73,7 +73,7 @@ export default function RecordModal({
                   value={form.nombre}
                   onChange={(event) => onFieldChange('nombre', event.target.value)}
                   type="text"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   placeholder="Nombre completo o razon social"
                 />
               </label>
@@ -84,7 +84,7 @@ export default function RecordModal({
                   value={form.fecha_nacimiento}
                   onChange={(event) => onFieldChange('fecha_nacimiento', event.target.value)}
                   type="date"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 />
               </label>
 
@@ -93,7 +93,7 @@ export default function RecordModal({
                 <select
                   value={form.tipo_cliente}
                   onChange={(event) => onFieldChange('tipo_cliente', event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   {TIPO_CLIENTE_OPTIONS.map((option) => (
                     <option key={option} value={option}>
@@ -109,7 +109,7 @@ export default function RecordModal({
                   value={form.direccion}
                   onChange={(event) => onFieldChange('direccion', event.target.value)}
                   type="text"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   placeholder="Direccion principal"
                 />
               </label>
@@ -120,7 +120,7 @@ export default function RecordModal({
                   value={form.telefono}
                   onChange={(event) => onFieldChange('telefono', event.target.value)}
                   type="tel"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   placeholder="+57 300 123 4567"
                 />
               </label>
@@ -131,7 +131,7 @@ export default function RecordModal({
                   value={form.email}
                   onChange={(event) => onFieldChange('email', event.target.value)}
                   type="email"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   placeholder="cliente@correo.com"
                 />
               </label>
@@ -141,7 +141,7 @@ export default function RecordModal({
                 <select
                   value={form.estado}
                   onChange={(event) => onFieldChange('estado', event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   {CLIENTE_ESTADOS.map((estado) => (
                     <option key={estado} value={estado}>
@@ -155,22 +155,11 @@ export default function RecordModal({
             <div className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1 md:col-span-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Numero factura</span>
-                  <input
-                    value={form.numero_factura}
-                    onChange={(event) => onFieldChange('numero_factura', event.target.value)}
-                    type="text"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="ABC-123-123456789"
-                  />
-                </label>
-
-                <label className="space-y-1 md:col-span-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Cliente</span>
                   <select
                     value={form.cliente_id}
                     onChange={(event) => onFieldChange('cliente_id', event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   >
                     <option value="">Selecciona un cliente</option>
                     {clients.map((cliente) => (
@@ -186,7 +175,7 @@ export default function RecordModal({
                   <select
                     value={form.tipo_pago}
                     onChange={(event) => onFieldChange('tipo_pago', event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   >
                     {TIPO_PAGO_OPTIONS.map((option) => (
                       <option key={option} value={option}>
@@ -202,7 +191,7 @@ export default function RecordModal({
                     value={form.fecha_emision}
                     onChange={(event) => onFieldChange('fecha_emision', event.target.value)}
                     type="date"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   />
                 </label>
 
@@ -211,7 +200,7 @@ export default function RecordModal({
                   <select
                     value={form.estado}
                     onChange={(event) => onFieldChange('estado', event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   >
                     {FACTURA_ESTADOS.map((estado) => (
                       <option key={estado} value={estado}>
@@ -226,12 +215,12 @@ export default function RecordModal({
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Detalle de factura</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Agrega productos y valida montos automaticamente.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Agrega productos desde Inventario y valida stock automaticamente.</p>
                   </div>
                   <button
                     type="button"
                     onClick={onAddDetail}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+                    className="inline-flex items-center gap-2 rounded-xl bg-red-700 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-red-800"
                   >
                     <Plus className="h-4 w-4" />
                     Agregar detalle
@@ -240,28 +229,33 @@ export default function RecordModal({
 
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="space-y-1 md:col-span-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto ID</span>
-                    <input
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto</span>
+                    <select
                       value={detailForm?.producto_id ?? ''}
                       onChange={(event) => onDetailFieldChange('producto_id', event.target.value)}
-                      type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                      placeholder="PROD-001"
-                    />
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    >
+                      <option value="">Selecciona un producto disponible</option>
+                      {products.map((producto) => (
+                        <option key={producto.codigo} value={producto.codigo}>
+                          {producto.codigo} - {producto.nombre} - Stock {producto.stockActual}
+                        </option>
+                      ))}
+                    </select>
                   </label>
 
                   <label className="space-y-1 md:col-span-2">
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Producto nombre</span>
                     <input
                       value={detailForm?.producto_nombre ?? ''}
-                      onChange={(event) => onDetailFieldChange('producto_nombre', event.target.value)}
+                      readOnly
                       type="text"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                      placeholder="Servicio de mantenimiento"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                      placeholder="Selecciona un producto"
                     />
                   </label>
 
-                  <label className="space-y-1">
+                  <label className="space-y-1 md:col-span-2">
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Cantidad</span>
                     <input
                       value={detailForm?.cantidad ?? ''}
@@ -269,30 +263,8 @@ export default function RecordModal({
                       type="number"
                       min="1"
                       step="1"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     />
-                  </label>
-
-                  <label className="space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">Precio unitario</span>
-                    <input
-                      value={detailForm?.precio_unitario ?? ''}
-                      onChange={(event) => onDetailFieldChange('precio_unitario', event.target.value)}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </label>
-
-                  <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 md:col-span-2">
-                    <input
-                      checked={Boolean(detailForm?.graba_iva)}
-                      onChange={(event) => onDetailFieldChange('graba_iva', event.target.checked)}
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="font-medium text-slate-700 dark:text-slate-200">Graba IVA</span>
                   </label>
                 </div>
 
@@ -345,12 +317,12 @@ export default function RecordModal({
                     <span className="font-black text-slate-900 dark:text-slate-100">${formatMoney(totals.subtotal)}</span>
                   </div>
                   <div className="rounded-xl bg-white px-3 py-2 text-sm dark:bg-slate-900">
-                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">IVA ({IVA_PERCENT}%)</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">IVA</span>
                     <span className="font-black text-slate-900 dark:text-slate-100">${formatMoney(totals.total_iva)}</span>
                   </div>
-                  <div className="rounded-xl bg-indigo-50 px-3 py-2 text-sm dark:bg-indigo-950/30">
-                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">Total</span>
-                    <span className="font-black text-indigo-700 dark:text-indigo-300">${formatMoney(totals.total)}</span>
+                  <div className="rounded-xl bg-red-50 px-3 py-2 text-sm dark:bg-red-950/30">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-red-600">Total</span>
+                    <span className="font-black text-red-800 dark:text-red-300">${formatMoney(totals.total)}</span>
                   </div>
                 </div>
               </div>
@@ -368,7 +340,7 @@ export default function RecordModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-xl bg-red-700 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? 'Guardando...' : 'Registrar'}
             </button>

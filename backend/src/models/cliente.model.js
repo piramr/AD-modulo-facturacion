@@ -1,70 +1,26 @@
-// src/models/cliente.model.js
-//
-// Este modelo refleja EXACTAMENTE la tabla que definió el equipo
-// de Administración de Clientes (Torres, Ramírez, Gómez, Colta).
-//
-// Facturación NO crea ni edita clientes — eso lo hace el módulo de
-// Clientes. Aquí solo necesitamos el modelo para:
-//   1. Que Sequelize reconozca la FK cliente_id en facturas
-//   2. Poder hacer JOINs al consultar facturas (traer nombre del cliente)
-//
-// IMPORTANTE: NO llamamos al módulo de Clientes por HTTP para validar
-// si el cliente existe — la FK real en Postgres lo hace automáticamente
-// (lanzará un error de FK si cliente_id no existe en la tabla clientes).
-
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+const sequelize = require('../config/db');
 
 const Cliente = sequelize.define('Cliente', {
-  id: {
-    type: DataTypes.UUID,
-    primaryKey: true,
-    defaultValue: DataTypes.UUIDV4
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  cedula: { type: DataTypes.STRING, unique: true, allowNull: false },
+  nombre: { type: DataTypes.STRING, allowNull: false },
+  fechaNacimiento: { type: DataTypes.DATEONLY, allowNull: false, field: 'fecha_nacimiento' },
+  
+  tipoCliente: { 
+    type: DataTypes.ENUM('CONTADO', 'CREDITO'), 
+    allowNull: false, 
+    field: 'tipo_cliente' 
   },
-  cedula: {
-    type: DataTypes.STRING(15),
-    allowNull: false,
-    unique: true
-  },
-  nombre: {
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  fecha_nacimiento: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
-  },
-  tipo_cliente: {
-    type: DataTypes.STRING(20),
-    allowNull: false,
-    validate: {
-      isIn: [['Contado', 'Crédito']]
-    }
-  },
-  direccion: {
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
-  telefono: {
-    type: DataTypes.STRING(20),
-    allowNull: false
-  },
-  email: {
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
-  estado: {
-    type: DataTypes.STRING(15),
-    allowNull: false,
-    defaultValue: 'Activo',
-    validate: {
-      isIn: [['Activo', 'Inactivo']]
-    }
-  }
+
+  direccion: { type: DataTypes.STRING, allowNull: false },
+  telefono: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, validate: { isEmail: true } },
+  estado: { type: DataTypes.ENUM('ACTIVO', 'INACTIVO'), defaultValue: 'ACTIVO' }
 }, {
   tableName: 'clientes',
   timestamps: true,
-  underscored: true,
+  underscored: true
 });
 
 module.exports = Cliente;

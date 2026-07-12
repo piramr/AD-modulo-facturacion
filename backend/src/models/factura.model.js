@@ -1,74 +1,35 @@
-// src/models/factura.model.js
-//
-// Refleja exactamente la tabla facturas del SQL compartido.
-// Cambios clave vs versiones anteriores:
-//   - id: UUID (no INTEGER autoincremental)
-//   - cliente_id: UUID con FK real a clientes(id) — misma BD
-//   - tipo_pago: 'Efectivo' o 'Crédito' (nuevo campo)
-//   - estado: VARCHAR (no ENUM de Postgres para mayor flexibilidad)
-//   - numero_factura: formato XXX-XXX-XXXXXXXXX
-
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+const sequelize = require('../config/db');
+const Cliente = require('./cliente.model');
+const SesionCaja = require('./sesionCaja.model');
 
 const Factura = sequelize.define('Factura', {
-  id: {
-    type: DataTypes.UUID,
-    primaryKey: true,
-    defaultValue: DataTypes.UUIDV4
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  clienteId: { type: DataTypes.INTEGER, allowNull: false, references: { model: Cliente, key: 'id' }, field: 'cliente_id' },
+  sesionCajaId: { type: DataTypes.INTEGER, allowNull: false, references: { model: SesionCaja, key: 'id' }, field: 'sesion_caja_id' },
+  
+  tipoPago: { 
+    type: DataTypes.ENUM('EFECTIVO', 'CREDITO', 'TRANSFERENCIA'), 
+    allowNull: false, 
+    field: 'tipo_pago' 
   },
-  numero_factura: {
-    type: DataTypes.STRING(20),
-    allowNull: false,
-    unique: true,
-    comment: 'Formato: XXX-XXX-XXXXXXXXX (ej: 001-001-000000001)'
-  },
-  cliente_id: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'clientes', // nombre de la tabla (string, no el modelo)
-      key: 'id'
-    }
-  },
-  tipo_pago: {
-    type: DataTypes.STRING(20),
-    allowNull: false,
-    validate: {
-      isIn: [['Efectivo', 'Crédito']]
-    }
-  },
-  fecha_emision: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
-  },
-  subtotal: {
-    type: DataTypes.DECIMAL(12, 2),
-    allowNull: false,
-    defaultValue: 0,
-    validate: { min: 0 }
-  },
-  total_iva: {
-    type: DataTypes.DECIMAL(12, 2),
-    allowNull: false,
-    defaultValue: 0,
-    validate: { min: 0 }
-  },
-  total: {
-    type: DataTypes.DECIMAL(12, 2),
-    allowNull: false,
-    defaultValue: 0,
-    validate: { min: 0 }
-  },
-  estado: {
-    type: DataTypes.STRING(20),
-    allowNull: false,
-    defaultValue: 'Emitida'
-  }
+  
+  numeroFactura: { type: DataTypes.STRING, unique: true, allowNull: false, field: 'numero_factura' },
+  fechaEmision: { type: DataTypes.DATE, allowNull: false, field: 'fecha_emision' },
+  
+  estado: { type: DataTypes.ENUM('PAGADA', 'EMITIDA', 'ANULADA'), allowNull: false, defaultValue: 'PAGADA', field: 'estado' },
+  saldoPendiente: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0.00, field: 'saldo_pendiente' },
+  
+  porcentajeIva: { type: DataTypes.DECIMAL(5, 2), allowNull: false, field: 'porcentaje_iva' },
+  subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  ivaTotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false, field: 'iva_total' },
+  total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  
+  isPrinted: { type: DataTypes.BOOLEAN, defaultValue: false, field: 'is_printed' }
 }, {
   tableName: 'facturas',
-  timestamps: false // el SQL original no tiene created_at/updated_at en facturas
+  timestamps: true,
+  underscored: true
 });
 
 module.exports = Factura;

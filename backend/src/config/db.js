@@ -1,4 +1,3 @@
-// src/config/db.js
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
@@ -11,18 +10,11 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: false,
+    dialectOptions: process.env.NODE_ENV === 'production' ? {
+      ssl: { require: true, rejectUnauthorized: false }
+    } : {},
     pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
   }
 );
 
-async function probarConexion() {
-  try {
-    await sequelize.sync({ force: false });
-    await sequelize.authenticate();
-    console.log('✅ Conexión a Postgres establecida correctamente.');
-  } catch (error) {
-    console.error('❌ No se pudo conectar a Postgres:', error.message);
-  }
-}
-
-module.exports = { sequelize, probarConexion };
+module.exports = sequelize ;

@@ -1,30 +1,25 @@
-// server.js
 require('dotenv').config();
-
 const crearApp = require('./src/app');
-const { sequelize, probarConexion } = require('./src/config/db');
-
-// Registrar modelos propios (Facturación gestiona estas tablas)
-require('./src/models/factura.model');
-require('./src/models/detalleFactura.model');
-require('./src/models/pistaAuditoria.model');
-
-// Registrar modelo de Clientes SIN sincronizarlo (lo gestiona el otro módulo)
-require('./src/models/cliente.model');
+const { sequelize } = require('./src/models');
+const ejecutarSeeders = require('./src/config/seeders');
 
 const PORT = process.env.PORT || 3001;
 
 async function iniciar() {
-  await probarConexion();
- 
-  console.log('✅ Tablas de Facturación sincronizadas (facturas, detalle_facturas, pistas_auditoria).');
+  await sequelize.authenticate();
+  console.log('✅ Conexión a la base de datos establecida');
+
+  await sequelize.sync({ force: false, alter: true });
+  console.log('✅ Tablas de Facturación sincronizadas');
+
+  await ejecutarSeeders();
+  console.log('✅ Seeders aplicados');
 
   const app = await crearApp();
 
   app.listen(PORT, () => {
-    console.log(`🚀 Módulo de Facturación en http://localhost:${PORT}`);
     console.log(`   GraphQL Playground: http://localhost:${PORT}/graphql`);
-    console.log(`   Health check:       http://localhost:${PORT}/health`);
+    console.log(`   Documentación: http://localhost:${PORT}/docs`);
   });
 }
 

@@ -1,0 +1,15 @@
+scalar JSON
+
+"""Evento registrado en la auditoria local de Facturacion."""
+type AuditoriaEvento {
+  id: ID!
+  usuarioId: String!
+  fechaHora: DateTime!
+  accion: String!
+  detalles: JSON
+}
+
+type Query {
+  """Ultimos eventos reales de auditoria registrados por el modulo."""
+  auditoriaReciente(limit: Int): [AuditoriaEvento!]!
+}

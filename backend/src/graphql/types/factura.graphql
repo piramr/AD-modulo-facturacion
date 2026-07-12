@@ -1,45 +1,67 @@
 scalar DateTime
 
+"""Campos que se acepta para ingresar ordenación ascendente/descendente en facturas."""
+enum FacturaOrderByCampo {
+  numeroFactura
+  tipoPago
+  fechaEmision
+  total
+  estadoPago
+}
+
 """Detalle de una línea de factura con información de producto."""
 type DetalleFactura {
   """Identificador único de la línea de detalle."""
   id: ID!
-  """Código del producto facturado."""
-  productoCodigo: String!
-  """Nombre del producto facturado."""
-  productoNombre: String!
+  """ID único del producto facturado (Proviene del Módulo de Inventario)."""
+  productoId: String!
+  """Nombre del producto (Resuelto asíncronamente desde Inventario)."""
+  productoNombre: String
   """Cantidad del producto en esta línea de factura."""
-  cantidad: Int!
-  """Precio unitario aplicado al producto."""
-  precioUnitario: Float!
+  cantidad: Float!
+  """Precio unitario histórico aplicado al producto en el momento de la venta."""
+  pvpUnitario: Float!
   """Indica si la línea grava IVA."""
   grabaIva: Boolean!
-  """Subtotal de la línea antes de impuestos."""
-  subtotalLinea: Float!
+  """Subtotal exacto de la línea antes de impuestos."""
+  subtotal: Float!
 }
 
 """Factura emitida para un cliente con totales y detalles."""
 type Factura {
   """Identificador único de la factura."""
   id: ID!
-  """Número interno o visible de la factura."""
+  """Número secuencial único y visible de la factura (Ej: 001-001-000000123)."""
   numeroFactura: String!
   """Identificador del cliente asociado a la factura."""
-  clienteId: String!
+  clienteId: ID!
   """Resumen del cliente asociado a la factura."""
   cliente: ClienteResumen
-  """Modalidad de pago de la factura, por ejemplo 'Efectivo' o 'Crédito'."""
+  """Sesión de caja en la que se emitió esta factura."""
+  sesionCajaId: ID!
+  """Modalidad de pago: 'EFECTIVO', 'CREDITO' o 'TRANSFERENCIA'."""
   tipoPago: String!
-  """Fecha y hora de emisión de la factura."""
+  """Fecha y hora exacta de emisión de la factura."""
   fechaEmision: DateTime!
+  
+  # --- Valores Económicos e Históricos ---
+  """Porcentaje de IVA que estaba vigente en el momento exacto de la compra."""
+  porcentajeIva: Float!
   """Subtotal de la factura antes de impuestos."""
   subtotal: Float!
   """Total de IVA aplicado en la factura."""
-  totalIva: Float!
+  ivaTotal: Float!
   """Total final de la factura incluyendo impuestos."""
   total: Float!
-  """Estado de la factura como 'Emitida', 'Anulada' o 'Pagada'."""
-  estado: String!
+  
+  # --- Integración CXC y Seguridad ---
+  """Estado actual de cobro: 'PAGADA' o 'EMITIDA'."""
+  estadoPago: String!
+  """Monto de deuda restante (0.00 si fue en efectivo o si CXC ya la cobró por completo)."""
+  saldoPendiente: Float!
+  """Candado de seguridad: Indica si la factura ya fue impresa en PDF y es inmutable."""
+  isPrinted: Boolean!
+  
   """Detalle de los productos incluidos en la factura."""
   detalles: [DetalleFactura!]!
 }
@@ -57,16 +79,17 @@ type Facturas {
 """Detalle de producto enviado al crear una factura."""
 input DetalleInput {
   """Código del producto a facturar."""
-  productoCodigo: String!
+  codigoProducto: String!
   """Cantidad del producto en la factura."""
-  cantidad: Int!
+  cantidad: Float!
 }
 
 """Datos necesarios para crear una factura."""
 input CrearFacturaInput {
-  """Identificador del cliente asociado a la factura."""
-  clienteId: String!
-  """Modalidad de pago de la factura."""
+  clienteId: ID!
+  """ID de la sesión de caja abierta por el cajero actual."""
+  sesionCajaId: ID!
+  """Modalidad de pago: 'EFECTIVO', 'CREDITO' o 'TRANSFERENCIA'."""
   tipoPago: String!
   """Lista de productos y cantidades incluidos en la factura."""
   detalles: [DetalleInput!]!
@@ -74,17 +97,22 @@ input CrearFacturaInput {
 
 """Criterios de filtrado y búsqueda unificados para la consulta de facturas."""
 input FacturasFilter {
-  """Filtra por el estado actual de la factura. Valores válidos: 'Emitida', 'Anulada', 'Pagada'."""
-  estado: String
-
-  """Filtra las facturas pertenecientes a un cliente específico mediante su UUID."""
-  clienteId: String
-
-  """Filtra por la modalidad de pago de la transacción. Valores esperados: 'Efectivo', 'Crédito'."""
+  """Filtra por el estado de deuda. Valores válidos: 'PAGADA', 'PENDIENTE_PAGO'."""
+  estadoPago: String
+  """Filtra las facturas pertenecientes a un cliente específico mediante su ID."""
+  clienteId: ID
+  """Filtra por el ID del método de pago."""
   tipoPago: String
-
+  """Filtra para ver solo facturas impresas (true) o borradores/no impresas (false)."""
+  isPrinted: Boolean
   """Realiza una coincidencia parcial sobre el número de factura."""
   search: String
+}
+
+"""Input para ordenamiento por campo y dirección"""
+input FacturasOrderBy {
+  campo: FacturaOrderByCampo!
+  direccion: SortDirection! = ASC
 }
 
 # Módulo de Facturas
@@ -92,33 +120,28 @@ input FacturasFilter {
 type Query {
   """Devuelve una página de facturas según filtros y paginación."""
   facturas(
-    """Filtro opcional para limitar las facturas devueltas."""
     filter: FacturasFilter,
-    """Número de página a obtener para la paginación."""
     page: Int,
-    """Cantidad máxima de facturas por página."""
-    limit: Int
+    limit: Int,
+    orderBy: [FacturasOrderBy!]
   ): Facturas!
+  
   """Devuelve una factura por su ID único."""
-  factura(
-    """ID único de la factura."""
-    id: ID!
-  ): Factura
+  factura(id: ID!): Factura
+  
+  """(API Interna) Devuelve facturas con estado 'PENDIENTE_PAGO' para el Módulo CXC."""
+  facturasPendientesPorCliente(clienteId: ID!): [Factura!]!
 }
 
 # Operaciones de Facturas
 """Operaciones disponibles para facturas."""
 type Mutation {
-  """Crea una factura y devuelve el registro creado."""
-  crearFactura(
-    """Datos de la factura a crear."""
-    input: CrearFacturaInput!
-  ): Factura!
-  """Actualiza el estado de una factura y devuelve la factura actualizada."""
-  actualizarEstadoFactura(
-    """ID único de la factura."""
-    id: ID!,
-    """Estado nuevo para la factura."""
-    estado: String!
-  ): Factura!
+  """Crea una factura y la guarda en la base de datos. (Calcula totales automáticamente)."""
+  crearFactura(input: CrearFacturaInput!): Factura!
+  
+  """Bloquea la factura (isPrinted = true), genera el número secuencial definitivo y descuenta inventario."""
+  imprimirFactura(id: ID!): Factura!
+  
+  """(API Interna) Actualiza el saldo pendiente de una factura cuando CXC registra un pago."""
+  registrarAbonoCXC(id: ID!, montoPagado: Float!): Factura!
 }

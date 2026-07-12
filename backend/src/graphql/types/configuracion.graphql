@@ -1,0 +1,25 @@
+"""Configuraciones globales, fiscales y de secuenciales de la empresa."""
+type PreferenciaSistema {
+  id: ID!
+  nombreEmpresa: String!
+  rucEmpresa: String!
+  """Porcentaje de IVA actual (Ej: 15.00) a aplicar en las nuevas facturas."""
+  porcentajeIva: Float!
+  cuentaBancariaDefaultId: String
+}
+
+input ActualizarPreferenciasInput {
+  nombreEmpresa: String
+  rucEmpresa: String
+  porcentajeIva: Float
+  cuentaBancariaDefaultId: String
+}
+
+extend type Query {
+  """Devuelve el registro único de configuración del sistema."""
+  obtenerPreferencias: PreferenciaSistema!
+}
+
+extend type Mutation {
+  actualizarPreferencias(input: ActualizarPreferenciasInput!): PreferenciaSistema!
+}
