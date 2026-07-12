@@ -3,9 +3,10 @@ const sequelize = require('../config/db');
 const Caja = require('./caja.model');
 
 const SesionCaja = sequelize.define('SesionCaja', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  cajaId: { type: DataTypes.INTEGER, allowNull: false, references: { model: Caja, key: 'id' }, field: 'caja_id' },
-  usuarioId: { type: DataTypes.STRING, allowNull: false, field: 'usuario_id' }, 
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  cajaId: { type: DataTypes.UUID, allowNull: false, references: { model: Caja, key: 'id' }, field: 'caja_id' },
+  
+  usuarioId: { type: DataTypes.INTEGER, allowNull: false, field: 'usuario_id' }, 
   
   // -- Apertura --
   fechaApertura: { type: DataTypes.DATE, allowNull: false, field: 'fecha_apertura' },

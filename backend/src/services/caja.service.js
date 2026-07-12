@@ -1,7 +1,9 @@
 const { Caja, SesionCaja, Factura } = require('../models');
 const { Op } = require('sequelize');
 const { registrarEvento } = require('./external/auditoria.service');
+const { getCurrentUserId, getCurrentUsername } = require('../middlewares/auth.middleware');
 
+const idFuncionCajaAuditoria = 22;
 
 async function obtenerCajas() {
   return await Caja.findAll({
@@ -31,6 +33,13 @@ async function crearCaja(input) {
   if (existePuntoEmision) {
     throw new Error(`El punto de emisión ${input.establecimiento}-${input.puntoEmision} ya está asignado a otra caja. Cada caja debe tener uno único.`);
   }
+
+  registrarEvento({
+    idFuncion: idFuncionCajaAuditoria,
+    accion: 'CREAR_CAJA',
+    descripcion: `Creación de caja ${input.codigo} por ${getCurrentUsername()}`,
+    observacion: `Nueva caja creada con los siguientes datos: ${JSON.stringify(input)}`
+  });
 
   return await Caja.create(input);
 }
@@ -63,6 +72,13 @@ async function actualizarCaja(id, input) {
     }
   }
 
+  registrarEvento({
+    idFuncion: idFuncionCajaAuditoria,
+    accion: 'ACTUALIZAR_CAJA',
+    descripcion: `Actualización de caja ${caja.codigo} por ${getCurrentUsername()}`,
+    observacion: `Datos actualizados: ${JSON.stringify(input)}`
+  });
+
   return await caja.update(input);
 }
 
@@ -78,6 +94,13 @@ async function inactivarCaja(id) {
   if (sesionAbierta) {
     throw new Error('No puedes inactivar esta caja porque tiene un turno de cajero abierto en este momento.');
   }
+
+  registrarEvento({
+    idFuncion: idFuncionCajaAuditoria,
+    accion: 'INACTIVAR_CAJA',
+    descripcion: `Inactivación de caja ${caja.codigo} por ${getCurrentUsername()}`,
+    observacion: `La caja ha sido inactivada.`
+  });
 
   return await caja.update({ estado: 'INACTIVO' });
 }
@@ -98,7 +121,7 @@ async function obtenerSesionActiva(usuarioId) {
 }
 
 async function abrirSesionCaja(input) {
-  const { cajaId, usuarioId, montoApertura } = input;
+  const { cajaId, montoApertura } = input;
 
   if (montoApertura < 0) {
     throw new Error('El monto de apertura no puede ser negativo. Debe ser mayor o igual a cero.');
@@ -116,9 +139,14 @@ async function abrirSesionCaja(input) {
     throw new Error('Esta caja ya está siendo operada por otro usuario.');
   }
 
+
+  if (!getCurrentUserId()) {
+    throw new Error('No se pudo determinar el usuario actual. Asegúrese de estar autenticado.');
+  }
+
   // Validar que el usuario no tenga otra caja abierta
   const usuarioOcupado = await SesionCaja.findOne({
-    where: { usuarioId, estado: 'ABIERTA' }
+    where: { usuarioId: getCurrentUserId(), estado: 'ABIERTA' }
   });
   if (usuarioOcupado) {
     throw new Error('Ya tienes un turno abierto en otra caja. Ciérralo primero.');
@@ -126,7 +154,7 @@ async function abrirSesionCaja(input) {
 
   const nuevaSesion = await SesionCaja.create({
     cajaId,
-    usuarioId,
+    usuarioId: getCurrentUserId(),
     montoApertura,
     fechaApertura: new Date(),
     cantidadFacturas: 0,
@@ -136,9 +164,9 @@ async function abrirSesionCaja(input) {
   });
 
   registrarEvento({
-    idFuncion: 101, // ID de la función de apertura de caja
+    idFuncion: idFuncionCajaAuditoria, // ID de la función de apertura de caja
     accion: 'APERTURA_CAJA',
-    descripcion: `Apertura de caja ${caja.codigo} por usuario ${usuarioId}`,
+    descripcion: `Apertura de caja ${caja.codigo} por ${getCurrentUsername()}`,
     observacion: `Monto de apertura: ${montoApertura}`
   });
 
@@ -153,6 +181,12 @@ async function cerrarSesionCaja(input) {
   const sesion = await SesionCaja.findByPk(sesionCajaId, {
     include: [{ model: Caja, as: 'caja' }]
   });
+
+  if (!sesion) throw new Error('La sesión de caja no existe.');
+
+  if (sesion.usuarioId !== getCurrentUserId()) {
+    throw new Error('Operación denegada: No puedes cerrar una sesión de caja que no te pertenece.');
+  }
 
   if (!sesion) throw new Error('La sesión de caja no existe.');
   if (sesion.estado === 'CERRADA') throw new Error('Esta sesión de caja ya fue cerrada.');
@@ -195,9 +229,9 @@ async function cerrarSesionCaja(input) {
 
 
   registrarEvento({
-    idFuncion: 102, // ID de la función de cierre de caja
+    idFuncion: idFuncionCajaAuditoria, // ID de la función de cierre de caja
     accion: 'CIERRE_CAJA',
-    descripcion: `Cierre de caja ${sesion.caja.codigo}`,
+    descripcion: `Cierre de caja ${sesion.caja.codigo} por ${getCurrentUsername()}`,
     observacion: `Monto de cierre real: ${montoCierreReal}, Diferencia: ${diferencia}`
   });
 

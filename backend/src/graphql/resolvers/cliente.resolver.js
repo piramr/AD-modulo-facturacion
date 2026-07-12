@@ -4,7 +4,6 @@ const { getCurrentContext } = require('../../store/contextStore');
 const resolvers = {
   Query: {
     clientes: async (_, args) => {
-      console.log('Contexto actual:', getCurrentContext()); // Muestra el contexto actual en la consola
       const MAX_LIMIT = 1_000;
       const filter = args.filter || {};
 

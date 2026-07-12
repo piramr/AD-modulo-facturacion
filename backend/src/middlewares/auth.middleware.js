@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { getCurrentContext } = require('../store/contextStore');
 
 function decodificarToken(authHeader) {
   if (!authHeader) throw new Error('No se proporciono un token de autenticacion');
@@ -46,7 +47,16 @@ function verificarRol(rolesPermitidos = []) {
   };
 }
 
-
+/* EJEMPLO DE PAYLOAD DECODIFICADO DEL TOKEN
+{
+  "user_id": 14,
+  "user_name": "alexander",
+  "email": "admin.facturacion@gmail.com",
+  "roles": [],
+  "permissions": [],
+  "exp": 1783885096
+}
+*/
 function extractPayloadFromToken(token) {
   if (!token) return null;
   try {
@@ -64,4 +74,23 @@ function extractPayloadFromToken(token) {
   }
 }
 
-module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken, extractPayloadFromToken };
+function getCurrentUserId() {
+  const context = getCurrentContext();
+  if (!context || !context.token) {
+    return null;
+  }
+
+  const payload = extractPayloadFromToken(context.token);
+  return payload ? payload.user_id : null;
+}
+
+function getCurrentUsername() {
+  const context = getCurrentContext();
+  if (!context || !context.token) {
+    return null;
+  }
+  const payload = extractPayloadFromToken(context.token);
+  return payload ? payload.user_name : null;
+}
+
+module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken, extractPayloadFromToken, getCurrentUsername, getCurrentUserId };

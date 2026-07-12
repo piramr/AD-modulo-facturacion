@@ -1,5 +1,9 @@
 const PDFDocument = require('pdfkit');
 const facturaService = require('./factura.service');
+const { registrarEvento } = require('./external/auditoria.service');
+
+const idFuncionReportesAuditoria = 20; // ID de la función de auditoría para reportes de clientes
+
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
@@ -188,7 +192,12 @@ async function generarPdfFactura(facturaId, usuario = null) {
   const buffer = await done;
 
 
-  // AUDITORIA: Registrar la impresión de la factura
+  registrarEvento({
+    idFuncion: idFuncionReportesAuditoria,
+    accion: 'GENERAR_PDF_FACTURA',
+    descripcion: `Se generó el PDF de la factura ${numeroFactura}`,
+    observacion: `Usuario: ${usuario || 'Desconocido'}, Factura ID: ${facturaId}, Total: ${data.total}`
+  });
 
   return {
     buffer,
@@ -297,6 +306,13 @@ async function generarPdfReporteFacturas(query = {}) {
 
   doc.end();
   const buffer = await done;
+
+  registrarEvento({
+    idFuncion: idFuncionReportesAuditoria,
+    accion: 'GENERAR_PDF_REPORTE_FACTURAS',
+    descripcion: `Se generó el PDF del reporte de facturas`,
+    observacion: `Filtros aplicados: ${JSON.stringify(query)}, Total facturas: ${reporte.totalCount}`
+  });
 
   return {
     ...reporte,

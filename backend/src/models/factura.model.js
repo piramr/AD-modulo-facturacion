@@ -4,9 +4,9 @@ const Cliente = require('./cliente.model');
 const SesionCaja = require('./sesionCaja.model');
 
 const Factura = sequelize.define('Factura', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  clienteId: { type: DataTypes.INTEGER, allowNull: false, references: { model: Cliente, key: 'id' }, field: 'cliente_id' },
-  sesionCajaId: { type: DataTypes.INTEGER, allowNull: false, references: { model: SesionCaja, key: 'id' }, field: 'sesion_caja_id' },
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  clienteId: { type: DataTypes.UUID, allowNull: false, references: { model: Cliente, key: 'id' }, field: 'cliente_id' },
+  sesionCajaId: { type: DataTypes.UUID, allowNull: false, references: { model: SesionCaja, key: 'id' }, field: 'sesion_caja_id' },
   
   tipoPago: { 
     type: DataTypes.ENUM('EFECTIVO', 'CREDITO', 'TRANSFERENCIA'), 

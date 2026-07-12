@@ -1,5 +1,8 @@
 const { Op } = require('sequelize');
 const Cliente = require('../models/cliente.model');
+const { registrarEvento } = require('./external/auditoria.service');
+
+const idFuncionClienteAuditoria = 19; // ID de la función de auditoría para clientes
 
 function construirWhere(filtros = {}) {
   const where = {};
@@ -89,7 +92,12 @@ async function crearCliente(datos) {
 
   const nuevoCliente = await Cliente.create(datos);
 
-  // AUDITORIA: Registrar la acción de creación de cliente
+  registrarEvento({
+    idFuncion: idFuncionClienteAuditoria,
+    accion: 'CREAR_CLIENTE',
+    descripcion: `Creación de cliente ${nuevoCliente.nombre} con cédula ${nuevoCliente.cedula}`,
+    observacion: `Datos del cliente: ${JSON.stringify(datos)}`
+  });
 
   return nuevoCliente;
 }
@@ -109,23 +117,52 @@ async function actualizarCliente(id, datos) {
 
   await cliente.update(datos);
 
-  // AUDITORIA: Registrar la acción de actualización de cliente
+  registrarEvento({
+    idFuncion: idFuncionClienteAuditoria,
+    accion: 'ACTUALIZAR_CLIENTE',
+    descripcion: `Actualización de cliente ${cliente.nombre} con cédula ${cliente.cedula}`,
+    observacion: `Datos actualizados: ${JSON.stringify(datos)}`
+  });
 
   return cliente;
 }
+
 
 // Cambiar el estado del cliente (Inactivar de forma lógica)
 async function actualizarEstadoCliente(id, nuevoEstado) {
   if (!['ACTIVO', 'INACTIVO'].includes(nuevoEstado)) {
     throw new Error('Estado no permitido. Use "ACTIVO" o "INACTIVO".');
   }
+  let cliente;
 
-  const cliente = await obtenerClientePorId(id);
-  await cliente.update({ estado: nuevoEstado });
+  try {
+    cliente = await obtenerClientePorId(id);
+    
+    if (!cliente) {
+      throw new Error(`El cliente con ID ${id} no existe.`);
+    }
 
-  // AUDITORIA: Registrar la acción de inactivación de cliente
+    await cliente.update({ estado: nuevoEstado });
 
-  return cliente;
+    registrarEvento({
+      idFuncion: idFuncionClienteAuditoria,
+      accion: 'ACTUALIZAR_ESTADO_CLIENTE',
+      descripcion: `ÉXITO: Actualización de estado para cliente ${cliente.nombre} con cédula ${cliente.cedula}`,
+      observacion: `El cliente ha sido ${nuevoEstado === 'ACTIVO' ? 'activado' : 'inactivado'} correctamente.`
+    });
+
+    return cliente; // Retornamos aquí solo si todo salió bien
+
+  } catch (error) {
+    registrarEvento({
+      idFuncion: idFuncionClienteAuditoria,
+      accion: 'ACTUALIZAR_ESTADO_CLIENTE_FALLO',
+      descripcion: `ERROR: No se pudo actualizar el estado para cliente ${cliente ? cliente.nombre : 'Desconocido'}`,
+      observacion: `Error al intentar cambiar el estado a ${nuevoEstado}. Detalle: ${error.message || error}`
+    });
+
+    throw error; 
+  }
 }
 
 module.exports = {
