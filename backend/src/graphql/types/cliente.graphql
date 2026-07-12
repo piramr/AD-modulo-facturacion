@@ -1,6 +1,5 @@
 scalar DateTime
 
-
 """Campos que se acepta para ingresar ordenación ascendente/descendente en clientes."""
 enum ClienteOrderByCampo {
   id
@@ -20,8 +19,8 @@ type ClienteResumen {
   nombre: String!
   """Documento de identificación del cliente."""
   cedula: String!
-  """Tipo de cliente: 'Contado' o 'Crédito'."""
-  tipoCliente: String!
+  """Relación al catálogo de tipo de cliente."""
+  tipoCliente: String! 
 }
 
 """Detalle completo de un cliente."""
@@ -34,23 +33,22 @@ type Cliente {
   nombre: String!
   """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String!
-  """Tipo de cliente: 'Contado' o 'Crédito'."""
-  tipoCliente: String!     # 'Contado' o 'Crédito' (HU1)
+  """Relación al catálogo de tipo de cliente."""
+  tipoCliente: String!
   """Dirección postal o fiscal del cliente."""
   direccion: String!
   """Teléfono de contacto del cliente."""
   telefono: String!
   """Correo electrónico del cliente."""
-  email: String!
-  """Estado del cliente: 'Activo' o 'Inactivo'."""
-  estado: String!         # 'Activo' o 'Inactivo' (HU1)
+  email: String
+  """Estado del cliente: 'ACTIVO' o 'INACTIVO'."""
+  estado: String!        
   """Fecha y hora de creación del registro."""
   createdAt: DateTime
   """Fecha y hora de la última actualización."""
   updatedAt: DateTime
 }
 
-# Contenedor nativo para la paginación de clientes
 """Contenedor paginado de clientes."""
 type Clientes {
   """Número total de clientes que coinciden con el filtro."""
@@ -69,16 +67,16 @@ input CrearClienteInput {
   nombre: String!
   """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String!
-  """Tipo de cliente: 'Contado' o 'Crédito'."""
-  tipoCliente: String!   # 'Contado' o 'Crédito'
+  """Tipo de Cliente: 'CONTADO' o 'CREDITO'."""
+  tipoCliente: String!  
   """Dirección postal o fiscal del cliente."""
   direccion: String!
   """Teléfono de contacto del cliente."""
   telefono: String!
   """Correo electrónico del cliente."""
-  email: String!
-  """Estado del cliente. Si se omite, se asume 'Activo'."""
-  estado: String         # Default 'Activo'
+  email: String
+  """Estado del cliente. Si se omite, se asume 'ACTIVO'."""
+  estado: String         
 }
 
 """Campos opcionales para actualizar un cliente."""
@@ -89,7 +87,7 @@ input ActualizarClienteInput {
   nombre: String
   """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String
-  """Tipo de cliente: 'Contado' o 'Crédito'."""
+  """Tipo de Cliente: 'CONTADO' o 'CREDITO'."""
   tipoCliente: String
   """Dirección postal o fiscal del cliente."""
   direccion: String
@@ -97,21 +95,21 @@ input ActualizarClienteInput {
   telefono: String
   """Correo electrónico del cliente."""
   email: String
-  """Estado del cliente: 'Activo' o 'Inactivo'."""
+  """Estado del cliente: 'ACTIVO' o 'INACTIVO'."""
   estado: String
 }
 
 """Criterios de búsqueda y filtrado para clientes."""
 input ClientesFilter {
-  """Filtra por estado del cliente: 'Activo' o 'Inactivo'."""
+  """Filtra por estado del cliente: 'ACTIVO' o 'INACTIVO'."""
   estado: String
   """Filtra por cédula o documento de identificación."""
   cedula: String
   """Filtra por nombre completo del cliente."""
   nombre: String
-  """Filtra por tipo de cliente: 'Contado' o 'Crédito'."""
+  """Filtra por ID del catálogo de Tipo de Cliente."""
   tipoCliente: String
-  """Búsqueda libre sobre campos relevantes del cliente (nombre, cédula, teléfono y email)."""
+  """Búsqueda libre sobre campos relevantes del cliente."""
   search: String
 }
 
@@ -121,45 +119,25 @@ input ClientesOrderBy {
   direccion: SortDirection! = ASC
 }
 
-
 """Consultas disponibles para clientes."""
 type Query {
   """Devuelve una página de clientes según filtros y paginación."""
   clientes(
-    """Filtro opcional para limitar los clientes devueltos."""
     filter: ClientesFilter,
-    """Número de página a obtener para la paginación."""
     page: Int,
-    """Cantidad máxima de clientes por página."""
     limit: Int
-    """Permite ordenar por múltiples campos"""
     orderBy: [ClientesOrderBy!]
   ): Clientes!
   """Devuelve un cliente por su ID único."""
-  cliente(
-    """ID único del cliente."""
-    id: ID!
-  ): Cliente
+  cliente(id: ID!): Cliente
 }
 
-# Operaciones de Clientes
 """Operaciones de creación y actualización de clientes."""
 type Mutation {
   """Crea un cliente nuevo y devuelve el registro creado."""
-  crearCliente(
-    """Datos del cliente a crear."""
-    input: CrearClienteInput!
-  ): Cliente!
+  crearCliente(input: CrearClienteInput!): Cliente!
   """Actualiza un cliente existente y devuelve el cliente actualizado."""
-  actualizarCliente(
-    """ID único del cliente."""
-    id: ID!,
-    """Datos a actualizar del cliente."""
-    input: ActualizarClienteInput!
-  ): Cliente!
+  actualizarCliente(id: ID!, input: ActualizarClienteInput!): Cliente!
   """Marca un cliente como inactivo y devuelve el registro actualizado."""
-  inactivarCliente(
-    """ID único del cliente."""
-    id: ID!
-  ): Cliente!
+  inactivarCliente(id: ID!): Cliente!
 }

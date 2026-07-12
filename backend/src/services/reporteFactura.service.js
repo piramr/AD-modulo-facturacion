@@ -1,6 +1,5 @@
 const PDFDocument = require('pdfkit');
 const facturaService = require('./factura.service');
-const auditoriaService = require('./auditoria.service');
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
@@ -188,17 +187,8 @@ async function generarPdfFactura(facturaId, usuario = null) {
 
   const buffer = await done;
 
-  if (usuario?.id) {
-    await auditoriaService.registrarAuditoria({
-      usuarioId: usuario.id,
-      accion: 'FACTURA_IMPRESA',
-      detalles: {
-        factura_id: data.id,
-        numero_factura: numeroFactura,
-        documento_bloqueado: true
-      }
-    });
-  }
+
+  // AUDITORIA: Registrar la impresión de la factura
 
   return {
     buffer,

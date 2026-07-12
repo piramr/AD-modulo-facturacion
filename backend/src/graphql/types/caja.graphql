@@ -1,0 +1,83 @@
+"""Representa una caja física o lógica en el punto de venta."""
+type Caja {
+  id: ID!
+  codigo: String!
+  descripcion: String!
+  estado: String!
+  establecimiento: String!
+  puntoEmision: String!
+  secuencialActual: Int!
+}
+
+"""Representa el turno de trabajo de un cajero."""
+type SesionCaja {
+  id: ID!
+  cajaId: ID!
+  caja: Caja
+  usuarioId: String!
+  fechaApertura: DateTime!
+  montoApertura: Float!
+  cantidadFacturas: Int!
+  totalVentasEfectivo: Float!
+  totalVentasCredito: Float!
+  fechaCierre: DateTime
+  montoCierreEsperado: Float!
+  montoCierreReal: Float
+  diferencia: Float
+  estado: String! # 'ABIERTA' o 'CERRADA'
+}
+
+# --- INPUTS ---
+
+input CrearCajaInput {
+  codigo: String!
+  descripcion: String!
+  establecimiento: String!
+  puntoEmision: String!
+  """Opcional. Si no se envía, la base de datos pondrá 0 por defecto"""
+  secuencialActual: Int
+}
+
+input ActualizarCajaInput {
+  codigo: String
+  descripcion: String
+  establecimiento: String
+  puntoEmision: String
+  secuencialActual: Int
+  estado: String
+}
+
+input AbrirSesionCajaInput {
+  cajaId: ID!
+  usuarioId: String!
+  montoApertura: Float!
+}
+
+input CerrarSesionCajaInput {
+  sesionCajaId: ID!
+  montoCierreReal: Float!
+}
+
+# --- QUERIES Y MUTATIONS ---
+
+extend type Query {
+  """Lista todas las cajas (Para el admin o para escoger al iniciar turno)"""
+  obtenerCajas: [Caja!]!
+  
+  """Obtiene una caja en específico para el formulario de edición"""
+  obtenerCaja(id: ID!): Caja
+  
+  """Útil para validar si el usuario actual ya tiene un turno abierto"""
+  obtenerSesionActiva(usuarioId: String!): SesionCaja
+}
+
+extend type Mutation {
+  # Administración
+  crearCaja(input: CrearCajaInput!): Caja!
+  actualizarCaja(id: ID!, input: ActualizarCajaInput!): Caja!
+  inactivarCaja(id: ID!): Caja!
+
+  # Operación del Cajero
+  abrirSesionCaja(input: AbrirSesionCajaInput!): SesionCaja!
+  cerrarSesionCaja(input: CerrarSesionCajaInput!): SesionCaja!
+}
