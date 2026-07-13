@@ -7,7 +7,7 @@ const SaldoCuenta = sequelize.define('SaldoCuenta', {
   saldoActual: { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0.00 },
   ultimaActualizacion: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
-  tableName: 'saldos_cuentas',
+  tableName: 'saldos_cuenta',
   timestamps: false
 });
 
