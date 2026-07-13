@@ -127,7 +127,6 @@ async function actualizarCliente(id, datos) {
   return cliente;
 }
 
-
 // Cambiar el estado del cliente (Inactivar de forma lógica)
 async function actualizarEstadoCliente(id, nuevoEstado) {
   if (!['ACTIVO', 'INACTIVO'].includes(nuevoEstado)) {

@@ -11,8 +11,8 @@ const MovimientoCuenta = sequelize.define('MovimientoCuenta', {
   // Opcional: Para saber si vino de cierre de caja o de un pago de cxc
   referencia: { type: DataTypes.STRING } 
 }, {
-  tableName: 'movimientos_cuentas',
-  timestamps: true, // Automáticamente guarda el createdAt
+  tableName: 'movimientos_cuenta',
+  timestamps: true,
   underscored: true
 });
 
