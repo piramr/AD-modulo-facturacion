@@ -8,11 +8,7 @@ const Factura = sequelize.define('Factura', {
   clienteId: { type: DataTypes.UUID, allowNull: false, references: { model: Cliente, key: 'id' }, field: 'cliente_id' },
   sesionCajaId: { type: DataTypes.UUID, allowNull: false, references: { model: SesionCaja, key: 'id' }, field: 'sesion_caja_id' },
   
-  tipoPago: { 
-    type: DataTypes.ENUM('EFECTIVO', 'CREDITO'), 
-    allowNull: false, 
-    field: 'tipo_pago' 
-  },
+  tipoPago: { type: DataTypes.ENUM('EFECTIVO', 'CREDITO'), allowNull: false, field: 'tipo_pago' },
   
   numeroFactura: { type: DataTypes.STRING, unique: true, allowNull: false, field: 'numero_factura' },
   fechaEmision: { type: DataTypes.DATE, allowNull: false, field: 'fecha_emision' },

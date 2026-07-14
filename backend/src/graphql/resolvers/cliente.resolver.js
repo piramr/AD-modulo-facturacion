@@ -1,5 +1,4 @@
 const clienteService = require('../../services/cliente.service');
-const { getCurrentContext } = require('../../store/contextStore');
 
 const resolvers = {
   Query: {

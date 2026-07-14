@@ -2,10 +2,6 @@ const { Router } = require('express');
 const express = require('express');
 const path = require('path');
 const router = Router();
-const authController = require('../controllers/authController');
-
-// Ruta de prueba de token
-router.get('/auth/test-token', authController.getTestToken);
 
 // Configuración estática y fallbacks para la documentación
 router.use('/docs', express.static(path.join(__dirname, '../../public/docs'), {

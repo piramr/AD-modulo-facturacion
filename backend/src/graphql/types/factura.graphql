@@ -39,7 +39,7 @@ type Factura {
   cliente: ClienteResumen
   """Sesión de caja en la que se emitió esta factura."""
   sesionCajaId: ID!
-  """Modalidad de pago: 'EFECTIVO', 'CREDITO' o 'TRANSFERENCIA'."""
+  """Modalidad de pago: 'EFECTIVO' o 'CREDITO'."""
   tipoPago: String!
   """Fecha y hora exacta de emisión de la factura."""
   fechaEmision: DateTime!
@@ -55,7 +55,7 @@ type Factura {
   total: Float!
   
   # --- Integración CXC y Seguridad ---
-  """Estado actual de cobro: 'PAGADA' o 'EMITIDA'."""
+  """Estado actual de cobro: 'PAGADA' o 'PAGO_PENDIENTE'."""
   estado: String!
   """Monto de deuda restante (0.00 si fue en efectivo o si CXC ya la cobró por completo)."""
   saldoPendiente: Float!

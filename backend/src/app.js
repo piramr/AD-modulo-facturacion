@@ -6,7 +6,6 @@ const { ApolloServer } = require('apollo-server-express');
 
 const { contextStorage, getCurrentContext } = require('./store/contextStore');
 const schema = require('./graphql/schema');
-const { extractPayloadFromToken } = require('./middlewares/auth.middleware');
 
 const reportesRoutes = require('./routes/reportes.routes');
 const utilRoutes = require('./routes/util.routes');
@@ -21,10 +20,12 @@ async function crearApp() {
     const authHeader = req.headers.authorization;
     const tokenLimpio = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     
+    const ipUsuario = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.socket.remoteAddress || '127.0.0.1';
+
     const storeData = {
       token: tokenLimpio,
-      user: extractPayloadFromToken(tokenLimpio),
-      ip: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1',
+      ip: ipUsuario,
+      user: null
     };
 
     contextStorage.run(storeData, next);

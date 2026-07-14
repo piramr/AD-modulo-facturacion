@@ -29,6 +29,6 @@ extend type Query {
 }
 
 extend type Mutation {
-  """Moreta (o tu cierre de caja) usa esto para meter o sacar dinero"""
-  registrarMovimiento(input: MovimientoInput!): SaldoCuenta!
+  """ Se abona con cierre de caja o CXC usa esto para meter o sacar dinero"""
+  crearMovimiento(input: MovimientoInput!): SaldoCuenta!
 }

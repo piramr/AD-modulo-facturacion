@@ -19,7 +19,7 @@ type ClienteResumen {
   nombre: String!
   """Documento de identificación del cliente."""
   cedula: String!
-  """Relación al catálogo de tipo de cliente."""
+  """Tipo de cliente: 'CONTADO' o 'CREDITO'."""
   tipoCliente: String! 
 }
 
@@ -33,7 +33,7 @@ type Cliente {
   nombre: String!
   """Fecha de nacimiento del cliente en formato ISO 8601."""
   fechaNacimiento: String!
-  """Relación al catálogo de tipo de cliente."""
+  """Tipo de cliente: 'CONTADO' o 'CREDITO'."""
   tipoCliente: String!
   """Dirección postal o fiscal del cliente."""
   direccion: String!
@@ -107,7 +107,7 @@ input ClientesFilter {
   cedula: String
   """Filtra por nombre completo del cliente."""
   nombre: String
-  """Filtra por ID del catálogo de Tipo de Cliente."""
+  """Filtra por tipo de cliente: 'CONTADO' o 'CREDITO'."""
   tipoCliente: String
   """Búsqueda libre sobre campos relevantes del cliente."""
   search: String

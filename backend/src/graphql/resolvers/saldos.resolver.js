@@ -7,7 +7,7 @@ const saldosResolvers = {
     }
   },
   Mutation: {
-    registrarMovimiento: async (_, { input }) => {
+    crearMovimiento: async (_, { input }) => {
       return await saldosService.registrarMovimiento(input);
     }
   }
