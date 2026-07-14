@@ -1,7 +1,8 @@
-const { Caja, SesionCaja, Factura } = require('../models');
+const { Caja, SesionCaja, Factura, SaldoCuenta, MovimientoCuenta } = require('../models');
 const { Op } = require('sequelize');
 const { registrarEvento } = require('./external/auditoria.service');
 const { getCurrentUserId, getCurrentUsername } = require('../middlewares/auth.middleware');
+const { sequelize } = require('../config/db');
 
 const idFuncionCajaAuditoria = 22;
 
@@ -107,7 +108,7 @@ async function inactivarCaja(id) {
 
 
 // ==========================================
-// 2. FUNCIONES DE OPERACIÓN (SESIONES CAJERO)
+// 2. FUNCIONES DE OPERACIÓN (SESIONES CAJERO Y ADMIN)
 // ==========================================
 
 async function obtenerSesionActiva(usuarioId) {
@@ -131,7 +132,6 @@ async function abrirSesionCaja(input) {
   if (!caja) throw new Error('La caja seleccionada no existe.');
   if (caja.estado !== 'ACTIVO') throw new Error('La caja seleccionada está inactiva.');
 
-  // Validar que la caja no esté ocupada
   const cajaOcupada = await SesionCaja.findOne({
     where: { cajaId, estado: 'ABIERTA' }
   });
@@ -139,14 +139,13 @@ async function abrirSesionCaja(input) {
     throw new Error('Esta caja ya está siendo operada por otro usuario.');
   }
 
-
-  if (!getCurrentUserId()) {
+  const userId = getCurrentUserId();
+  if (!userId) {
     throw new Error('No se pudo determinar el usuario actual. Asegúrese de estar autenticado.');
   }
 
-  // Validar que el usuario no tenga otra caja abierta
   const usuarioOcupado = await SesionCaja.findOne({
-    where: { usuarioId: getCurrentUserId(), estado: 'ABIERTA' }
+    where: { usuarioId: userId, estado: 'ABIERTA' }
   });
   if (usuarioOcupado) {
     throw new Error('Ya tienes un turno abierto en otra caja. Ciérralo primero.');
@@ -154,7 +153,7 @@ async function abrirSesionCaja(input) {
 
   const nuevaSesion = await SesionCaja.create({
     cajaId,
-    usuarioId: getCurrentUserId(),
+    usuarioId: userId,
     montoApertura,
     fechaApertura: new Date(),
     cantidadFacturas: 0,
@@ -164,7 +163,7 @@ async function abrirSesionCaja(input) {
   });
 
   registrarEvento({
-    idFuncion: idFuncionCajaAuditoria, // ID de la función de apertura de caja
+    idFuncion: idFuncionCajaAuditoria,
     accion: 'APERTURA_CAJA',
     descripcion: `Apertura de caja ${caja.codigo} por ${getCurrentUsername()}`,
     observacion: `Monto de apertura: ${montoApertura}`
@@ -175,7 +174,10 @@ async function abrirSesionCaja(input) {
   });
 }
 
-async function cerrarSesionCaja(input) {
+// ------------------------------------------------------------------
+// NUEVO FLUJO: CAJERO ENVÍA A REVISIÓN
+// ------------------------------------------------------------------
+async function revisarSesionCaja(input) {
   const { sesionCajaId, montoCierreReal } = input;
 
   const sesion = await SesionCaja.findByPk(sesionCajaId, {
@@ -183,13 +185,14 @@ async function cerrarSesionCaja(input) {
   });
 
   if (!sesion) throw new Error('La sesión de caja no existe.');
-
+  
   if (sesion.usuarioId !== getCurrentUserId()) {
-    throw new Error('Operación denegada: No puedes cerrar una sesión de caja que no te pertenece.');
+    throw new Error('Operación denegada: No puedes enviar a revisión una sesión de caja que no te pertenece.');
   }
 
-  if (!sesion) throw new Error('La sesión de caja no existe.');
-  if (sesion.estado === 'CERRADA') throw new Error('Esta sesión de caja ya fue cerrada.');
+  if (sesion.estado !== 'ABIERTA') {
+    throw new Error(`No puedes enviar a revisión esta sesión porque su estado actual es ${sesion.estado}.`);
+  }
 
   // 1. Contabilizar ventas
   const facturas = await Factura.findAll({
@@ -199,7 +202,7 @@ async function cerrarSesionCaja(input) {
     }
   });
 
-  // 2. Cálculos de Arqueo (Solo se suma el EFECTIVO, el crédito no entra al cajón)
+  // 2. Cálculos de Arqueo
   const cantidadFacturas = facturas.length;
   
   const totalVentasEfectivo = facturas
@@ -212,32 +215,123 @@ async function cerrarSesionCaja(input) {
 
   const montoCierreEsperado = Number((Number(sesion.montoApertura) + totalVentasEfectivo).toFixed(2));
   
-  // Positivo = Sobra dinero / Negativo = Falta dinero
+  // 3. Cálculo de Faltante y Sobrante
   const diferencia = Number((montoCierreReal - montoCierreEsperado).toFixed(2));
+  let sobrante = 0.00;
+  let faltante = 0.00;
 
-  // 3. Cerrar turno y guardar contabilidad
+  if (diferencia > 0) {
+    sobrante = diferencia;
+  } else if (diferencia < 0) {
+    faltante = Math.abs(diferencia); // Guardamos el valor absoluto del faltante
+  }
+
+  // 4. Actualizar estado a EN_REVISION (El cajero ya no puede modificarla)
   await sesion.update({
-    fechaCierre: new Date(),
     cantidadFacturas,
     totalVentasEfectivo,
     totalVentasCredito,
     montoCierreEsperado,
     montoCierreReal,
-    diferencia,
-    estado: 'CERRADA'
+    faltante,
+    sobrante,
+    estado: 'EN_REVISION'
   });
 
-
   registrarEvento({
-    idFuncion: idFuncionCajaAuditoria, // ID de la función de cierre de caja
-    accion: 'CIERRE_CAJA',
-    descripcion: `Cierre de caja ${sesion.caja.codigo} por ${getCurrentUsername()}`,
-    observacion: `Monto de cierre real: ${montoCierreReal}, Diferencia: ${diferencia}`
+    idFuncion: idFuncionCajaAuditoria,
+    accion: 'REVISION_CAJA',
+    descripcion: `Caja ${sesion.caja.codigo} enviada a revisión por el cajero ${getCurrentUsername()}`,
+    observacion: `Esperado: ${montoCierreEsperado} | Real: ${montoCierreReal} | Sobrante: ${sobrante} | Faltante: ${faltante}`
   });
 
   return sesion;
 }
 
+async function cerrarSesionCaja(input) {
+  const { sesionCajaId, distribucionCuentas = [] } = input; 
+
+  const sesion = await SesionCaja.findByPk(sesionCajaId, {
+    include: [{ model: Caja, as: 'caja' }]
+  });
+
+  if (!sesion) throw new Error('La sesión de caja no existe.');
+  
+  if (sesion.estado !== 'EN_REVISION') {
+    throw new Error('Solo se pueden cerrar definitivamente las sesiones que se encuentran EN_REVISION.');
+  }
+
+  const totalADepositar = distribucionCuentas.reduce((sum, item) => sum + Number(item.monto), 0);
+  const ventasGanancias = Number(sesion.totalVentasEfectivo);
+
+  if (totalADepositar !== ventasGanancias) {
+    throw new Error(`El total a depositar en las cuentas ($${totalADepositar.toFixed(2)}) debe ser exactamente igual al total de las ventas en efectivo del turno ($${ventasGanancias.toFixed(2)}).`);
+  }
+
+  // Iniciamos la transacción
+  const t = await sequelize.transaction();
+
+  try {
+    // 1. Procesar los depósitos y actualizar saldos
+    if (distribucionCuentas.length > 0) {
+      for (const deposito of distribucionCuentas) {
+        if (deposito.monto > 0) {
+          
+          // A) Verificar que la cuenta exista
+          const cuentaBancaria = await SaldoCuenta.findByPk(deposito.cuentaId, { transaction: t });
+          if (!cuentaBancaria) {
+            throw new Error(`La cuenta bancaria con ID ${deposito.cuentaId} no existe.`);
+          }
+
+          // B) Crear el registro utilizando el modelo MovimientoCuenta
+          await MovimientoCuenta.create({
+            cuentaId: deposito.cuentaId,
+            tipo: 'INGRESO',
+            monto: deposito.monto,
+            fechaMovimiento: new Date(),
+            referencia: `CIERRE-CAJA-${sesion.caja.codigo}`,
+            descripcion: `Depósito automático por ganancias del cierre de caja. Sesión ID: ${sesion.id}`
+          }, { transaction: t }); 
+
+          // C) Aumentar 'saldoActual' y actualizar la fecha
+          await cuentaBancaria.increment('saldoActual', { 
+            by: deposito.monto, 
+            transaction: t 
+          });
+          
+          await cuentaBancaria.update({ 
+            ultimaActualizacion: new Date() 
+          }, { 
+            transaction: t 
+          });
+        }
+      }
+    }
+
+    // 2. Cierre definitivo de la caja
+    await sesion.update({
+      fechaCierre: new Date(),
+      estado: 'CERRADA'
+    }, { transaction: t }); 
+
+    // 3. Confirmar la transacción
+    await t.commit();
+
+    // 4. Registrar auditoría
+    registrarEvento({
+      idFuncion: idFuncionCajaAuditoria,
+      accion: 'CIERRE_CAJA',
+      descripcion: `Cierre definitivo de caja ${sesion.caja.codigo} aprobado por ${getCurrentUsername()}`,
+      observacion: `Se depositó el total de ventas ($${ventasGanancias}) distribuido en ${distribucionCuentas.length} cuentas bancarias.`
+    });
+
+    return sesion;
+
+  } catch (error) {
+    await t.rollback();
+    throw error; 
+  }
+}
 module.exports = {
   obtenerCajas,
   obtenerCaja,

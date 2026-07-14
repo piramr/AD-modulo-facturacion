@@ -20,10 +20,13 @@ async function crearApp() {
     const authHeader = req.headers.authorization;
     const tokenLimpio = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     
+    const apiKey = req.headers['x-api-key'] || null;
+
     const ipUsuario = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.socket.remoteAddress || '127.0.0.1';
 
     const storeData = {
       token: tokenLimpio,
+      apiKey: apiKey, // Lo agregamos al contexto
       ip: ipUsuario,
       user: null
     };

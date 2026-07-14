@@ -1,11 +1,11 @@
 const axios = require('axios');
+const { getCurrentToken } = require('../../utils/auth.utils');
 
 const clienteInventario = axios.create({
   baseURL: process.env.INVENTARIO_URL,
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
-    'api-key': process.env.INVENTARIO_API_KEY
   }
 });
 
@@ -47,7 +47,11 @@ async function obtenerProductoPorCodigo(codigo) {
 async function registrarCardexVenta(facturaCompleta) {
   try {
     const body = buildBodyForCardexVenta(facturaCompleta);
-    const respuesta = await clienteInventario.post('/cardex/movimientos', body);
+    const respuesta = await clienteInventario.post('/cardex/movimientos', body, {
+      headers: {
+        'Authorization': `Bearer ${getCurrentToken()}`
+      }
+    });
     return respuesta.data;
 
   } catch (error) {

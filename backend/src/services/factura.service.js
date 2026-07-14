@@ -55,13 +55,11 @@ async function crearFactura(datos) {
     throw error;
   }
   
-  // ¡El candado principal! El usuario logueado DEBE ser el dueño de la sesión de caja para poder facturar en ella
-  // FALTA VALIDAR CON EL JWT DE SEGURIDAD
-  // if (sesion.usuarioId !== context.id) {  
-  //   const error = new Error('Operación denegada: No puedes facturar en una caja asignada a otro cajero.');
-  //   error.codigo = 403;
-  //   throw error;
-  // }
+  if (sesion.usuarioId !== context.id) {  
+    const error = new Error('Operación denegada: No puedes facturar en una caja asignada a otro cajero.');
+    error.codigo = 403;
+    throw error;
+  }
 
   const cliente = await Cliente.findByPk(clienteId);
   if (!cliente) {

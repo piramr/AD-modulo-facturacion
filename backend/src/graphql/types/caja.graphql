@@ -23,8 +23,9 @@ type SesionCaja {
   fechaCierre: DateTime
   montoCierreEsperado: Float!
   montoCierreReal: Float
-  diferencia: Float
-  estado: String! # 'ABIERTA' o 'CERRADA'
+  faltante: Float
+  sobrante: Float
+  estado: String! # 'ABIERTA' 'EN_REVISION' 'CERRADA'
 }
 
 # --- INPUTS ---
@@ -52,9 +53,22 @@ input AbrirSesionCajaInput {
   montoApertura: Float!
 }
 
-input CerrarSesionCajaInput {
+# NUEVO: Input para que el cajero mande su conteo de dinero a revisión
+input RevisarSesionCajaInput {
   sesionCajaId: ID!
   montoCierreReal: Float!
+}
+
+# NUEVO: Estructura para distribuir el dinero en las cuentas
+input DistribucionCuentaInput {
+  cuentaId: ID!
+  monto: Float!
+}
+
+# ACTUALIZADO: Input para que el admin apruebe y deposite
+input CerrarSesionCajaInput {
+  sesionCajaId: ID!
+  distribucionCuentas: [DistribucionCuentaInput!]!
 }
 
 # --- QUERIES Y MUTATIONS ---
@@ -69,12 +83,17 @@ extend type Query {
 }
 
 extend type Mutation {
-  # Administración
+  # Administración de Cajas
   crearCaja(input: CrearCajaInput!): Caja!
   actualizarCaja(id: ID!, input: ActualizarCajaInput!): Caja!
   inactivarCaja(id: ID!): Caja!
 
-  # Operación del Cajero
+  # Operación de Turnos (Cajero y Admin)
   abrirSesionCaja(input: AbrirSesionCajaInput!): SesionCaja!
+  
+  """Pasa la caja a estado EN_REVISION (Ejecutado por el cajero)"""
+  revisarSesionCaja(input: RevisarSesionCajaInput!): SesionCaja!
+  
+  """Pasa la caja a estado CERRADA y genera los movimientos bancarios (Ejecutado por el Admin)"""
   cerrarSesionCaja(input: CerrarSesionCajaInput!): SesionCaja!
 }

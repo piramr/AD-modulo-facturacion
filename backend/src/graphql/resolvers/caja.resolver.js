@@ -29,6 +29,9 @@ const cajaResolvers = {
     abrirSesionCaja: async (_, { input }) => {
       return await cajaService.abrirSesionCaja(input);
     },
+    revisarSesionCaja: async (_, { input }) => {
+      return await cajaService.revisarSesionCaja(input);
+    },
     cerrarSesionCaja: async (_, { input }) => {
       return await cajaService.cerrarSesionCaja(input);
     }

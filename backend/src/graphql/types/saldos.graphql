@@ -1,3 +1,5 @@
+# --- TIPOS ---
+
 type SaldoCuenta {
   cuentaId: ID!
   saldoActual: Float!
@@ -12,7 +14,19 @@ type MovimientoCuenta {
   monto: Float!
   descripcion: String!
   referencia: String
-  fecha: DateTime!
+  """Cambiado a fechaMovimiento para coincidir con tu modelo de Sequelize"""
+  fechaMovimiento: DateTime!
+}
+
+# --- INPUTS ---
+
+input CrearSaldoCuentaInput {
+  cuentaId: ID!
+  saldoActual: Float
+}
+
+input ActualizarSaldoCuentaInput {
+  saldoActual: Float!
 }
 
 input MovimientoInput {
@@ -23,12 +37,20 @@ input MovimientoInput {
   referencia: String
 }
 
+# --- QUERIES Y MUTATIONS ---
+
 extend type Query {
   """Moreta usará esto para ver cuánto dinero hay en una cuenta específica"""
   saldoCuenta(cuentaId: ID!): SaldoCuenta!
 }
 
 extend type Mutation {
-  """ Se abona con cierre de caja o CXC usa esto para meter o sacar dinero"""
+  # --- Gestión Administrativa de Saldos ---
+  crearSaldoCuenta(input: CrearSaldoCuentaInput!): SaldoCuenta!
+  actualizarSaldoCuenta(id: ID!, input: ActualizarSaldoCuentaInput!): SaldoCuenta!
+  inactivarSaldoCuenta(id: ID!): SaldoCuenta!
+
+  # --- Operaciones / Movimientos ---
+  """Se abona con cierre de caja o CXC usa esto para meter o sacar dinero"""
   crearMovimiento(input: MovimientoInput!): SaldoCuenta!
 }

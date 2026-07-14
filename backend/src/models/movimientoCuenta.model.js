@@ -7,9 +7,9 @@ const MovimientoCuenta = sequelize.define('MovimientoCuenta', {
 
   tipo: { type: DataTypes.ENUM('INGRESO', 'EGRESO'), allowNull: false },
   monto: { type: DataTypes.DECIMAL(12, 2), allowNull: false },
-  descripcion: { type: DataTypes.STRING, allowNull: false },
-  // Opcional: Para saber si vino de cierre de caja o de un pago de cxc
-  referencia: { type: DataTypes.STRING } 
+  fechaMovimiento: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+  referencia: { type: DataTypes.STRING },
+  descripcion: { type: DataTypes.STRING, allowNull: false }
 }, {
   tableName: 'movimientos_cuenta',
   timestamps: true,

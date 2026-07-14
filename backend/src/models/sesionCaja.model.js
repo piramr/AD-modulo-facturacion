@@ -21,7 +21,8 @@ const SesionCaja = sequelize.define('SesionCaja', {
   fechaCierre: { type: DataTypes.DATE, allowNull: true, field: 'fecha_cierre' },
   montoCierreEsperado: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0.00, allowNull: false, field: 'monto_cierre_esperado' }, // Apertura + Ventas Efectivo
   montoCierreReal: { type: DataTypes.DECIMAL(10, 2), allowNull: true, field: 'monto_cierre_real' }, // Lo que declara el cajero
-  diferencia: { type: DataTypes.DECIMAL(10, 2), allowNull: true, field: 'diferencia' }, // Positivo = Sobrante, Negativo = Faltante
+  faltante: { type: DataTypes.DECIMAL(10, 2), allowNull: true, defaultValue: 0.00, field: 'faltante' }, // Diferencia negativa
+  sobrante: { type: DataTypes.DECIMAL(10, 2), allowNull: true, defaultValue: 0.00, field: 'sobrante' }, // Diferencia positiva
   
   estado: { type: DataTypes.ENUM('ABIERTA', 'EN_REVISION' ,'CERRADA'), defaultValue: 'ABIERTA' }
 }, {

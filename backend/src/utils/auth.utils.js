@@ -1,6 +1,15 @@
 const { getCurrentContext } = require('../store/contextStore');
 
 /**
+ * 
+ * @returns {string|null} El token del contexto actual de la petición
+ */
+function getCurrentToken() {
+  const context = getCurrentContext();
+  return context && context.token ? context.token : null;
+}
+
+/**
  * Obtiene el objeto de usuario completo e hidratado desde el contexto asíncrono.
  * @returns {Object|null} El perfil del usuario (id, user_name, roles, permissions, etc.) o null si no se ha autenticado.
  */
@@ -32,4 +41,5 @@ module.exports = {
   getCurrentUser,
   getCurrentUserId,
   getCurrentUsername,
+  getCurrentToken
 };

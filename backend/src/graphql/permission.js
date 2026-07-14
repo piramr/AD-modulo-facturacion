@@ -1,13 +1,17 @@
+// permission.js
 const { shield, rule, chain, or, deny } = require('graphql-shield');
 const { validarTokenConSeguridad } = require('../services/external/seguridad.service');
 const { contextStorage } = require('../store/contextStore');
 
-// Roles autorizados a operar en tu módulo
 const ROLES_PERMITIDOS_FACTURACION = [
-  'FAC_FACTURADOR',
-  'FAC_ADMIN',
-  'CXC_ADMIN',
+  'FAC_CAJERO',
+  'FAC_ADMIN'
 ];
+
+const isApiKey = rule({ cache: 'contextual' })((parent, args, context) => {
+  const API_KEY_ESPERADA = process.env.API_KEY_CXC || 'tu_api_key_secreta';
+  return context.apiKey === API_KEY_ESPERADA;
+});
 
 const isAuthenticated = rule({ cache: 'contextual' })(
   async (parent, args, context) => {
@@ -20,7 +24,6 @@ const isAuthenticated = rule({ cache: 'contextual' })(
     
     try {
       const usuarioValido = await validarTokenConSeguridad(context.token);
-
       if (!usuarioValido) {
         const error = new Error('El token proporcionado ha expirado o es inválido.');
         error.code = 'TOKEN_EXPIRED';
@@ -28,14 +31,9 @@ const isAuthenticated = rule({ cache: 'contextual' })(
         throw error;
       }
 
-      // 1. Guardamos en el contexto local de GraphQL
       context.user = usuarioValido;
-
-      // Lo inyectamos en el AsyncLocalStorage para que esté disponible en servicios/helpers
       const store = contextStorage.getStore();
-      if (store) {
-        store.user = usuarioValido; 
-      }
+      if (store) store.user = usuarioValido; 
 
       return true;
     } catch (err) {
@@ -44,54 +42,73 @@ const isAuthenticated = rule({ cache: 'contextual' })(
   }
 );
 
-
 const isInAllowedRoles = () => 
   rule({ cache: 'contextual' })(
     async (parent, args, context) => {
       if (!context.user) return false;
-
-      const tieneRolValido = Array.isArray(context.user.roles) && 
+      return Array.isArray(context.user.roles) && 
         context.user.roles.some(rol => ROLES_PERMITIDOS_FACTURACION.includes(rol));
-      return tieneRolValido;
     }
   );
-
 
 const hasPermission = (requiredPermission) => 
   rule({ cache: 'contextual' })(
     async (parent, args, context) => {
       if (!context.user) return false;
-
-      const tienePermisoValido = Array.isArray(context.user.permissions) && 
+      return Array.isArray(context.user.permissions) && 
         context.user.permissions.includes(requiredPermission);
-
-      return tieneRolValido && tienePermisoValido;
     }
   );
 
+// --- HELPERS ---
+const requierePermiso = (permiso) => or(
+  isApiKey, 
+  chain(isAuthenticated, isInAllowedRoles(), hasPermission(permiso))
+);
 
+const requiereEstarLogeado = or(
+  isApiKey, 
+  chain(isAuthenticated, isInAllowedRoles())
+);
+
+// --- ASIGNACIÓN DE SHIELD ---
 const permissions = shield({
   Query: {
-    '*': chain(isAuthenticated, isInAllowedRoles()),
+    '*': requiereEstarLogeado, 
   },
   Mutation: {
     '*': deny,
-    crearCaja: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CAJA')),
-    inactivarCaja: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CAJA')),
-    abrirSesionCaja: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CAJA')),
-    cerrarSesionCaja: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CAJA')),
     
-    crearFactura: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_FACTURAS')),
-    imprimirFactura: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_FACTURAS')),
-    registrarAbonoCXC: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_FACTURAS')),
+    // --- MANTENIMIENTO DE CAJAS (Admin) ---
+    crearCaja: requierePermiso('FAC_CAJAS_CREAR'),
+    actualizarCaja: requierePermiso('FAC_CAJAS_EDITAR'),
+    inactivarCaja: requierePermiso('FAC_CAJAS_INACTIVAR'),
     
-    crearCliente: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CLIENTES')),
-    actualizarCliente: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CLIENTES')),
-    inactivarCliente: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_CLIENTES')),
+    // --- OPERACIÓN DE CAJAS (Flujo separado) ---
+    abrirSesionCaja: requierePermiso('FAC_CAJAS_SESION_ABRIR'),      // Cajero
+    revisarSesionCaja: requierePermiso('FAC_CAJAS_SESION_REVISAR'),  // Cajero (manda a revisión)
+    cerrarSesionCaja: requierePermiso('FAC_CAJAS_SESION_CERRAR'),    // Admin (aprueba el cierre)
+    
+    // --- FACTURACIÓN (Cajero) ---
+    crearFactura: requierePermiso('FAC_FACTURAS_CREAR'),
+    imprimirFactura: requierePermiso('FAC_FACTURAS_IMPRIMIR'),
+    
+    // --- INTEGRACIÓN CXC (Exclusivo API Key) ---
+    registrarAbonoCXC: isApiKey, 
+    
+    // --- CLIENTES (Cajero) ---
+    crearCliente: requierePermiso('FAC_CLIENTES_CREAR'),
+    actualizarCliente: requierePermiso('FAC_CLIENTES_EDITAR'),
+    inactivarCliente: requierePermiso('FAC_CLIENTES_INACTIVAR'),
 
-    crearMovimiento: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_MOVIMIENTOS')),
+    // --- SALDOS DE CUENTA Y MOVIMIENTOS BANCARIOS (Admin) ---
+    crearSaldoCuenta: requierePermiso('FAC_SALDO_CUENTA_CREAR'),
+    actualizarSaldoCuenta: requierePermiso('FAC_SALDO_CUENTA_EDITAR'),
+    inactivarSaldoCuenta: requierePermiso('FAC_SALDO_CUENTA_INACTIVAR'),
+    crearMovimiento: requierePermiso('FAC_MOVIMIENTOS_CREAR'),
 
-    actualizarPreferencias: chain(isAuthenticated, isInAllowedRoles(), hasPermission('FAC_PREFERENCIAS')),
+    // --- CONFIGURACIÓN (Admin) ---
+    actualizarPreferencias: requierePermiso('FAC_PREFERENCIAS_EDITAR'),
   }
 }, {
   fallbackError: (err) => {

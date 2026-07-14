@@ -1,5 +1,7 @@
 const { SaldoCuenta, MovimientoCuenta } = require('../models');
 const { sequelize } = require('../config/db');
+const { obtenerCuentaDesdeCXC } = require('../services/external/cuentasxcobrar.service');
+
 
 /**
  * Devuelve el saldo actual. Si la cuenta es nueva y no existe, devuelve 0.
@@ -64,6 +66,66 @@ async function registrarMovimiento(input) {
     return saldoRecord;
   });
 }
+
+/**
+ * Crea el registro inicial en la tabla de saldos_cuenta
+ */
+async function crearSaldoCuenta(input) {
+  const { cuentaId, saldoActual = 0.00 } = input;
+
+  const cuentaExistente = await SaldoCuenta.findByPk(cuentaId);
+  if (cuentaExistente) {
+    throw new Error('Esta cuenta bancaria ya ha sido inicializada en el módulo de facturación.');
+  }
+
+  if (obtenerCuentaDesdeCXC(cuentaId) === null) {
+    throw new Error('La cuenta bancaria no existe en el sistema de cuentas por cobrar.');
+  }
+
+  if (saldoActual < 0) {
+    throw new Error('El saldo inicial no puede ser negativo.');
+  }
+
+  return await SaldoCuenta.create({
+    cuentaId,
+    saldoActual,
+    ultimaActualizacion: new Date()
+  });
+}
+
+/**
+ * Permite a un administrador corregir manualmente el saldo (Ajuste de inventario/dinero)
+ */
+async function actualizarSaldoCuenta(id, input) {
+  const cuenta = await SaldoCuenta.findByPk(id);
+  if (!cuenta) {
+    throw new Error('La cuenta bancaria no existe en los registros de facturación.');
+  }
+
+  // Si se necesita registrar el ajuste como movimiento, deberías hacerlo aquí.
+  // Por ahora, solo actualiza el valor matemático crudo.
+  return await cuenta.update({
+    saldoActual: input.saldoActual,
+    ultimaActualizacion: new Date()
+  });
+}
+
+/**
+ * Pasa el estado de la cuenta a inactivo para que no reciba más movimientos
+ * (Requiere que añadas el campo 'estado' a tu modelo SaldoCuenta)
+ */
+async function inactivarSaldoCuenta(id) {
+  const cuenta = await SaldoCuenta.findByPk(id);
+  if (!cuenta) {
+    throw new Error('La cuenta bancaria no existe en los registros de facturación.');
+  }
+
+  return await cuenta.update({
+    estado: 'INACTIVO',
+    ultimaActualizacion: new Date()
+  });
+}
+
 
 module.exports = {
   obtenerSaldoCuenta,

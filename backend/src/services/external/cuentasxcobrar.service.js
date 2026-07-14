@@ -42,4 +42,29 @@ async function validarDeudaCliente(clienteId) {
   }
 }
 
-module.exports = { registrarCuentaPorCobrar, validarDeudaCliente };
+/**
+ * Consulta la API de CXC para validar la existencia y estado de una cuenta.
+ */
+async function obtenerCuentaDesdeCXC(cuentaId) {
+  try {
+    // Reemplaza con la URL real del entorno de desarrollo de CXC
+    const API_URL = process.env.CUENTASXCOBRAR_URL;
+    
+    const respuesta = await fetch(`${API_URL}/cuentas-bancarias`);
+    if (!respuesta.ok) {
+      throw new Error('Error al conectar con el microservicio de CXC');
+    }
+
+    const cuentas = await respuesta.json();
+    
+    // Filtramos la cuenta específica
+    const cuentaEncontrada = cuentas.find(cuenta => cuenta.id === cuentaId);
+    return cuentaEncontrada || null;
+
+  } catch (error) {
+    console.error('Error de integración con CXC:', error.message);
+    throw new Error('No se pudo validar la cuenta bancaria en este momento.');
+  }
+}
+
+module.exports = { registrarCuentaPorCobrar, validarDeudaCliente, obtenerCuentaDesdeCXC };
