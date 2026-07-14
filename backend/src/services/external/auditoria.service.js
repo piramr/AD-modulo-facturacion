@@ -85,6 +85,7 @@ async function registrarEvento({ idFuncion, accion, descripcion, observacion }) 
   try {
     const resProto = await enviarPorProtobuf(payloadUnificado);
     console.log(`[AUDIT PROTOBUF SUCCESS]: [${accion}] — Éxito: ${resProto.success} — ${resProto.message}`);
+    console.log('DATA AUDIT:', payloadUnificado);
     return; // Si funciona, termina el proceso de forma exitosa
   } catch (errProto) {
     console.warn(`[AUDIT WARN]: Falló el envío principal por Protobuf (${errProto.message}). Iniciando contingencia por GraphQL...`);
@@ -94,6 +95,7 @@ async function registrarEvento({ idFuncion, accion, descripcion, observacion }) 
   try {
     const resGraph = await enviarPorGraphQL(payloadUnificado);
     console.log(`[AUDIT GRAPHQL FALLBACK SUCCESS]: [${accion}] — Éxito: ${resGraph?.success} — ${resGraph?.message}`);
+    console.log('DATA AUDIT:', payloadUnificado);
   } catch (errGraph) {
     console.error(`[AUDIT CRITICAL ERROR]: Ambos métodos de auditoría han fallado.`);
     console.error(`-> Error GraphQL: ${errGraph.message}`);
