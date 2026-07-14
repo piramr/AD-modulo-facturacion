@@ -33,7 +33,6 @@ async function ejecutarSeeders() {
     await MovimientoCuenta.findOrCreate({
       where: { referencia: 'INIT-GYE-001' },
       defaults: {
-        fecha: new Date(),
         cuentaId: cuentaGuayaquilId,
         tipo: 'INGRESO',
         monto: 1000.00,
@@ -44,7 +43,6 @@ async function ejecutarSeeders() {
     await MovimientoCuenta.findOrCreate({
       where: { referencia: 'INIT-PRO-001' },
       defaults: {
-        fecha: new Date(),
         cuentaId: cuentaProdubancoId,
         tipo: 'INGRESO',
         monto: 2500.00,

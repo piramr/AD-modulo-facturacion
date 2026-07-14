@@ -5,7 +5,6 @@ const MovimientoCuenta = sequelize.define('MovimientoCuenta', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   cuentaId: { type: DataTypes.UUID, allowNull: false, field: 'cuenta_id' },
 
-  fecha: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   tipo: { type: DataTypes.ENUM('INGRESO', 'EGRESO'), allowNull: false },
   monto: { type: DataTypes.DECIMAL(12, 2), allowNull: false },
   descripcion: { type: DataTypes.STRING, allowNull: false },
