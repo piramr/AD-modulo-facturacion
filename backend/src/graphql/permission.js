@@ -19,7 +19,7 @@ const isAuthenticated = rule({ cache: 'contextual' })(
       const error = new Error('No autorizado: No se proporcionó un token de autenticación.');
       error.code = 'UNAUTHORIZED';
       error.status = 401;
-      throw error;
+      return error;
     }
     
     try {
@@ -28,7 +28,7 @@ const isAuthenticated = rule({ cache: 'contextual' })(
         const error = new Error('El token proporcionado ha expirado o es inválido.');
         error.code = 'TOKEN_EXPIRED';
         error.status = 401;
-        throw error;
+        return error; 
       }
 
       context.user = usuarioValido;
@@ -37,7 +37,13 @@ const isAuthenticated = rule({ cache: 'contextual' })(
 
       return true;
     } catch (err) {
-      if (err.code) throw err;
+      if (err.code) return err; 
+      
+      // Fallback genérico por si falla el servicio de seguridad
+      const error = new Error('Error interno al validar credenciales');
+      error.code = 'INTERNAL_AUTH_ERROR';
+      error.status = 500;
+      return error;
     }
   }
 );
