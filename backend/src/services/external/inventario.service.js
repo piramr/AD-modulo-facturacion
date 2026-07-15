@@ -49,7 +49,7 @@ async function registrarCardexVenta(facturaCompleta) {
     const body = buildBodyForCardexVenta(facturaCompleta);
     const respuesta = await clienteInventario.post('/cardex/movimientos', body, {
       headers: {
-        'Authorization': `Bearer ${getCurrentToken()}`
+        'x-api-key': process.env.INVENTARIO_API_KEY
       }
     });
     return respuesta.data;

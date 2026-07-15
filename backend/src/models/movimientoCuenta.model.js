@@ -7,7 +7,7 @@ const MovimientoCuenta = sequelize.define('MovimientoCuenta', {
 
   tipo: { type: DataTypes.ENUM('INGRESO', 'EGRESO'), allowNull: false },
   monto: { type: DataTypes.DECIMAL(12, 2), allowNull: false },
-  fechaMovimiento: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+  fechaMovimiento: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: true, field: 'fecha_movimiento' },
   referencia: { type: DataTypes.STRING },
   descripcion: { type: DataTypes.STRING, allowNull: false }
 }, {

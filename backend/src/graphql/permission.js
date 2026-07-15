@@ -9,7 +9,7 @@ const ROLES_PERMITIDOS_FACTURACION = [
 ];
 
 const isApiKey = rule({ cache: 'contextual' })((parent, args, context) => {
-  const API_KEY_ESPERADA = process.env.API_KEY_CXC || 'tu_api_key_secreta';
+  const API_KEY_ESPERADA = process.env.API_KEY_PARA_CXC;
   return context.apiKey === API_KEY_ESPERADA;
 });
 
