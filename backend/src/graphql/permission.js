@@ -5,7 +5,7 @@ const { contextStorage } = require('../store/contextStore');
 
 const ROLES_PERMITIDOS_FACTURACION = [
   'FAC_CAJERO',
-  'FAC_ADMIN'
+  'FAC_ADMINISTRADOR',
 ];
 
 const isApiKey = rule({ cache: 'contextual' })((parent, args, context) => {
