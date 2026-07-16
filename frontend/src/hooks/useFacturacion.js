@@ -23,6 +23,17 @@ import {
   validateFacturaForm,
 } from '../utils/validators'
 
+import {
+  getCajas,
+  getSesionActiva,
+  crearCaja,
+  actualizarCaja,
+  inactivarCaja,
+  abrirSesionCaja,
+  revisarSesionCaja,
+  cerrarSesionCaja,
+} from '../api/facturacionService'
+
 const THEME_KEY = 'facturacion-theme'
 const INITIAL_CLIENT_FORM = {
   cedula: '',
@@ -98,7 +109,7 @@ export function useFacturacion() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   })
 
   const currentSection = useMemo(() => getSectionFromPath(location.pathname), [location.pathname])
@@ -131,6 +142,26 @@ export function useFacturacion() {
     facturasLimit: overrides.facturasLimit || facturasLimit,
     facturasFilter: overrides.facturasFilter ?? snapshotFilters.facturasFilter,
   })
+
+  // ── CAJAS ────────────────────────────────────────────────────────────────────
+  const [cajas, setCajas] = useState([])
+  const [sesionActiva, setSesionActiva] = useState(null)
+  const [cajasLoading, setCajasLoading] = useState(false)
+
+  const INITIAL_CAJA_FORM = {
+    codigo: '',
+    descripcion: '',
+    establecimiento: '001',
+    puntoEmision: '001',
+    secuencialActual: 0,
+  }
+  const [cajaForm, setCajaForm] = useState(INITIAL_CAJA_FORM)
+  const [editingCajaId, setEditingCajaId] = useState(null)
+  const [showCajaModal, setShowCajaModal] = useState(false)
+  const [showSesionModal, setShowSesionModal] = useState(false)
+  const [showRevisarModal, setShowRevisarModal] = useState(false)
+  const [sesionForm, setSesionForm] = useState({ cajaId: '', montoApertura: '' })
+  const [revisarForm, setRevisarForm] = useState({ sesionCajaId: '', montoCierreReal: '' })
 
   useEffect(() => {
     let mounted = true
@@ -403,7 +434,7 @@ export function useFacturacion() {
         }
       },
     })
-  } 
+  }
 
   const handleDeleteFactura = (id) => {
     setConfirmDialog({
@@ -477,6 +508,173 @@ export function useFacturacion() {
     }
   }
 
+  // ── Carga inicial de cajas ────────────────────────────────────────────────────
+  const reloadCajas = async () => {
+    setCajasLoading(true)
+    try {
+      const listaCajas = await getCajas()
+      setCajas(listaCajas)
+    } catch (error) {
+      toast.error('No fue posible cargar las cajas.')
+    } finally {
+      setCajasLoading(false)
+    }
+  }
+
+  // ── Sesión activa ─────────────────────────────────────────────────────────────
+  const reloadSesionActiva = async (usuarioId) => {
+    try {
+      const sesion = await getSesionActiva(usuarioId)
+      setSesionActiva(sesion || null)
+    } catch {
+      setSesionActiva(null)
+    }
+  }
+
+  // ── CRUD de cajas ─────────────────────────────────────────────────────────────
+  const openCajaModal = () => {
+    setEditingCajaId(null)
+    setCajaForm(INITIAL_CAJA_FORM)
+    setShowCajaModal(true)
+  }
+
+  const openEditCajaModal = (caja) => {
+    setEditingCajaId(caja.id)
+    setCajaForm({
+      codigo: caja.codigo,
+      descripcion: caja.descripcion,
+      establecimiento: caja.establecimiento,
+      puntoEmision: caja.puntoEmision,
+      secuencialActual: caja.secuencialActual,
+    })
+    setShowCajaModal(true)
+  }
+
+  const closeCajaModal = () => setShowCajaModal(false)
+
+  const handleCajaFieldChange = (field, value) =>
+    setCajaForm((prev) => ({ ...prev, [field]: value }))
+
+  const submitCaja = async () => {
+    if (!cajaForm.codigo.trim() || !cajaForm.descripcion.trim()) {
+      toast.error('El código y la descripción son obligatorios.')
+      return false
+    }
+    setBusyAction('caja')
+    try {
+      if (editingCajaId) {
+        await actualizarCaja(editingCajaId, {
+          codigo: cajaForm.codigo,
+          descripcion: cajaForm.descripcion,
+          establecimiento: cajaForm.establecimiento,
+          puntoEmision: cajaForm.puntoEmision,
+          secuencialActual: Number(cajaForm.secuencialActual),
+        })
+        toast.success(`Caja "${cajaForm.codigo}" actualizada correctamente.`)
+      } else {
+        await crearCaja({
+          codigo: cajaForm.codigo,
+          descripcion: cajaForm.descripcion,
+          establecimiento: cajaForm.establecimiento,
+          puntoEmision: cajaForm.puntoEmision,
+          secuencialActual: Number(cajaForm.secuencialActual) || 0,
+        })
+        toast.success(`Caja "${cajaForm.codigo}" creada correctamente.`)
+      }
+      await reloadCajas()
+      closeCajaModal()
+      return true
+    } catch (error) {
+      toast.error(error.message || 'No fue posible guardar la caja.')
+      return false
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  const handleInactivarCaja = (id, codigo) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Inactivar caja?',
+      message: `La caja "${codigo}" se inactivará. No podrá ser usada mientras esté inactiva.`,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }))
+        setBusyAction(`inactivar-caja-${id}`)
+        try {
+          await inactivarCaja(id)
+          await reloadCajas()
+          toast.success('Caja inactivada correctamente.')
+        } catch (error) {
+          toast.error(error.message || 'No fue posible inactivar la caja.')
+        } finally {
+          setBusyAction(null)
+        }
+      },
+    })
+  }
+
+  // ── Sesiones de caja ──────────────────────────────────────────────────────────
+  const openSesionModal = () => {
+    setSesionForm({ cajaId: '', montoApertura: '' })
+    setShowSesionModal(true)
+  }
+
+  const closeSesionModal = () => setShowSesionModal(false)
+
+  const handleAbrirSesion = async () => {
+    if (!sesionForm.cajaId || sesionForm.montoApertura === '') {
+      toast.error('Selecciona una caja e ingresa el monto de apertura.')
+      return false
+    }
+    setBusyAction('abrir-sesion')
+    try {
+      const sesion = await abrirSesionCaja({
+        cajaId: sesionForm.cajaId,
+        montoApertura: Number(sesionForm.montoApertura),
+      })
+      setSesionActiva(sesion)
+      toast.success(`Turno abierto en caja "${sesion.caja.codigo}".`)
+      closeSesionModal()
+      return true
+    } catch (error) {
+      toast.error(error.message || 'No fue posible abrir el turno.')
+      return false
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  const openRevisarModal = () => {
+    if (!sesionActiva) { toast.error('No tienes un turno abierto.'); return }
+    setRevisarForm({ sesionCajaId: sesionActiva.id, montoCierreReal: '' })
+    setShowRevisarModal(true)
+  }
+
+  const closeRevisarModal = () => setShowRevisarModal(false)
+
+  const handleRevisarSesion = async () => {
+    if (!revisarForm.montoCierreReal) {
+      toast.error('Ingresa el monto de cierre real.')
+      return false
+    }
+    setBusyAction('revisar-sesion')
+    try {
+      const sesion = await revisarSesionCaja({
+        sesionCajaId: revisarForm.sesionCajaId,
+        montoCierreReal: Number(revisarForm.montoCierreReal),
+      })
+      setSesionActiva(sesion)
+      toast.success('Turno enviado a revisión correctamente.')
+      closeRevisarModal()
+      return true
+    } catch (error) {
+      toast.error(error.message || 'No fue posible enviar a revisión.')
+      return false
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
   return {
     currentSection,
     clientes,
@@ -541,5 +739,33 @@ export function useFacturacion() {
     setFacturasLimit: updateFacturasLimit,
     pageSize: DEFAULT_PAGE_SIZE,
     editingClienteId,
+
+    // Cajas
+    cajas,
+    cajasLoading,
+    cajaForm,
+    editingCajaId,
+    showCajaModal,
+    showSesionModal,
+    showRevisarModal,
+    sesionActiva,
+    sesionForm,
+    revisarForm,
+    reloadCajas,
+    reloadSesionActiva,
+    openCajaModal,
+    openEditCajaModal,
+    closeCajaModal,
+    handleCajaFieldChange,
+    submitCaja,
+    handleInactivarCaja,
+    openSesionModal,
+    closeSesionModal,
+    setSesionForm,
+    handleAbrirSesion,
+    openRevisarModal,
+    closeRevisarModal,
+    setRevisarForm,
+    handleRevisarSesion,
   }
 }

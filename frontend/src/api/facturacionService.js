@@ -381,3 +381,109 @@ export const downloadReporteClientesPdf = (token = '') =>
 
 export const downloadReporteFacturasPdf = (token = '') =>
   downloadPdf('/api/reportes/facturas?format=pdf', 'reporte-facturas.pdf', token)
+
+// ── CAJAS - MATEO ─────────────────────────────────────────────────────────────────────
+
+export async function getCajas(token = '') {
+  const query = `
+    query {
+      obtenerCajas {
+        id
+        codigo
+        descripcion
+        estado
+        establecimiento
+        puntoEmision
+        secuencialActual
+      }
+    }
+  `
+  return (await fetchGraphQL(query, {}, token)).obtenerCajas
+}
+
+export async function getSesionActiva(usuarioId, token = '') {
+  const query = `
+    query ObtenerSesionActiva($usuarioId: String!) {
+      obtenerSesionActiva(usuarioId: $usuarioId) {
+        id
+        cajaId
+        caja { id codigo descripcion establecimiento puntoEmision }
+        usuarioId
+        fechaApertura
+        montoApertura
+        cantidadFacturas
+        totalVentasEfectivo
+        totalVentasCredito
+        fechaCierre
+        montoCierreEsperado
+        montoCierreReal
+        faltante
+        sobrante
+        estado
+      }
+    }
+  `
+  return (await fetchGraphQL(query, { usuarioId }, token)).obtenerSesionActiva
+}
+
+export async function crearCaja(input, token = '') {
+  const mutation = `
+    mutation CrearCaja($input: CrearCajaInput!) {
+      crearCaja(input: $input) { id codigo descripcion estado establecimiento puntoEmision secuencialActual }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).crearCaja
+}
+
+export async function actualizarCaja(id, input, token = '') {
+  const mutation = `
+    mutation ActualizarCaja($id: ID!, $input: ActualizarCajaInput!) {
+      actualizarCaja(id: $id, input: $input) { id codigo descripcion estado establecimiento puntoEmision secuencialActual }
+    }
+  `
+  return (await fetchGraphQL(mutation, { id, input }, token)).actualizarCaja
+}
+
+export async function inactivarCaja(id, token = '') {
+  const mutation = `
+    mutation InactivarCaja($id: ID!) {
+      inactivarCaja(id: $id) { id estado }
+    }
+  `
+  return (await fetchGraphQL(mutation, { id }, token)).inactivarCaja
+}
+
+export async function abrirSesionCaja(input, token = '') {
+  const mutation = `
+    mutation AbrirSesion($input: AbrirSesionCajaInput!) {
+      abrirSesionCaja(input: $input) {
+        id cajaId caja { codigo descripcion } usuarioId
+        fechaApertura montoApertura estado
+      }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).abrirSesionCaja
+}
+
+export async function revisarSesionCaja(input, token = '') {
+  const mutation = `
+    mutation RevisarSesion($input: RevisarSesionCajaInput!) {
+      revisarSesionCaja(input: $input) {
+        id estado montoCierreReal montoCierreEsperado faltante sobrante
+        cantidadFacturas totalVentasEfectivo totalVentasCredito
+      }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).revisarSesionCaja
+}
+
+export async function cerrarSesionCaja(input, token = '') {
+  const mutation = `
+    mutation CerrarSesion($input: CerrarSesionCajaInput!) {
+      cerrarSesionCaja(input: $input) {
+        id estado fechaCierre
+      }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).cerrarSesionCaja
+}

@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronRight, FileText, LogOut, Menu, Moon, Sun, BarChart3, Users, ClipboardList } from 'lucide-react'
+import { ChevronDown, ChevronRight, FileText, LogOut, Menu, Moon, Sun, BarChart3, Users, ClipboardList,  ShoppingBag } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const navigation = [
   { label: 'Resumen', to: '/facturacion/resumen', icon: BarChart3 },
+  { label: 'Cajas',    to: '/facturacion/cajas',    icon: ShoppingBag },
   { label: 'Clientes', to: '/facturacion/clientes', icon: Users },
   { label: 'Facturas', to: '/facturacion/facturas', icon: FileText },
   { label: 'Reportes', to: '/facturacion/reportes', icon: ClipboardList },
