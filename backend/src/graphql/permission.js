@@ -72,10 +72,7 @@ const hasPermission = (requiredPermission) =>
   );
 
 // --- HELPERS ---
-const requierePermiso = (permiso) => or(
-  isApiKey, 
-  chain(isAuthenticated, isInAllowedRoles(), hasPermission(permiso))
-);
+const requierePermiso = (permiso) => chain(isAuthenticated, isInAllowedRoles(), hasPermission(permiso));
 
 const requiereEstarLogeado = or(
   isApiKey, 
