@@ -98,7 +98,7 @@ input CrearFacturaInput {
 """Criterios de filtrado y búsqueda unificados para la consulta de facturas."""
 input FacturasFilter {
   """Filtra por el estado de deuda. Valores válidos: 'PAGADA', 'PENDIENTE_PAGO'."""
-  estadoPago: String
+  estado: String
   """Filtra las facturas pertenecientes a un cliente específico mediante su ID."""
   clienteId: ID
   """Filtra por el ID del método de pago."""

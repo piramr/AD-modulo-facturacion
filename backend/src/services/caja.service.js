@@ -2,7 +2,7 @@ const { Caja, SesionCaja, Factura, SaldoCuenta, MovimientoCuenta } = require('..
 const { Op } = require('sequelize');
 const { registrarEvento } = require('./external/auditoria.service');
 const { getCurrentUserId, getCurrentUsername } = require('../middlewares/auth.middleware');
-const { sequelize } = require('../config/db');
+const sequelize = require('../config/db');
 
 const idFuncionCajaAuditoria = 22;
 
@@ -340,5 +340,6 @@ module.exports = {
   inactivarCaja,
   obtenerSesionActiva,
   abrirSesionCaja,
+  revisarSesionCaja,
   cerrarSesionCaja
 };

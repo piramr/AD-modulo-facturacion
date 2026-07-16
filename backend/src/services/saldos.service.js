@@ -1,5 +1,5 @@
 const { SaldoCuenta, MovimientoCuenta } = require('../models');
-const { sequelize } = require('../config/db');
+const sequelize = require('../config/db');
 const { obtenerCuentaDesdeCXC } = require('../services/external/cuentasxcobrar.service');
 
 
@@ -129,5 +129,8 @@ async function inactivarSaldoCuenta(id) {
 
 module.exports = {
   obtenerSaldoCuenta,
-  registrarMovimiento
+  registrarMovimiento,
+  crearSaldoCuenta,
+  actualizarSaldoCuenta,
+  inactivarSaldoCuenta
 };
