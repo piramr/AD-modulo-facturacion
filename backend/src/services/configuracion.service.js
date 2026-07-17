@@ -50,6 +50,8 @@ async function actualizarPreferencias(input) {
     descripcion: `Se actualizaron las preferencias del sistema`,
     observacion: `Campos actualizados: ${JSON.stringify(input)}`
   });
+
+  return resultado;
 }
 
 module.exports = {

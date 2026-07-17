@@ -97,7 +97,7 @@ input CrearFacturaInput {
 
 """Criterios de filtrado y búsqueda unificados para la consulta de facturas."""
 input FacturasFilter {
-  """Filtra por el estado de deuda. Valores válidos: 'PAGADA', 'PENDIENTE_PAGO'."""
+  """Filtra por el estado de deuda. Valores válidos: 'PAGADA', 'PAGO_PENDIENTE'."""
   estadoPago: String
   """Filtra las facturas pertenecientes a un cliente específico mediante su ID."""
   clienteId: ID
@@ -129,7 +129,7 @@ type Query {
   """Devuelve una factura por su ID único."""
   factura(id: ID!): Factura
   
-  """(API Interna) Devuelve facturas con estado 'PENDIENTE_PAGO' para el Módulo CXC."""
+  """(API Interna) Devuelve facturas con estado 'PAGO_PENDIENTE' para el Módulo CXC."""
   facturasPendientesPorCliente(clienteId: ID!): [Factura!]!
 }
 

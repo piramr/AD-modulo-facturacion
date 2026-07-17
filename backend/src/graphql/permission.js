@@ -10,6 +10,11 @@ const ROLES_PERMITIDOS_FACTURACION = [
 
 const isApiKey = rule({ cache: 'contextual' })((parent, args, context) => {
   const API_KEY_ESPERADA = process.env.API_KEY_PARA_CXC;
+  
+  if (!context.apiKey || !API_KEY_ESPERADA) {
+    return false;
+  }
+  
   return context.apiKey === API_KEY_ESPERADA;
 });
 
@@ -67,10 +72,7 @@ const hasPermission = (requiredPermission) =>
   );
 
 // --- HELPERS ---
-const requierePermiso = (permiso) => or(
-  isApiKey, 
-  chain(isAuthenticated, isInAllowedRoles(), hasPermission(permiso))
-);
+const requierePermiso = (permiso) => chain(isAuthenticated, isInAllowedRoles(), hasPermission(permiso));
 
 const requiereEstarLogeado = or(
   isApiKey, 

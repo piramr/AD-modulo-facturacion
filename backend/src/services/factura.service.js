@@ -1,8 +1,10 @@
 const { Op } = require('sequelize');
 const { sequelize, Caja, SesionCaja, Factura, DetalleFactura, Cliente, PreferenciaSistema } = require('../models');
 const { validarDeudaCliente } = require('./external/cuentasxcobrar.service');
-const { registrarCardexVenta, obtenerProductoPorCodigo } = require('./external/inventario.service');
+const { registrarKardexVenta, obtenerProductos } = require('./external/inventario.service');
 const { registrarEvento } = require('./external/auditoria.service');
+const { getCurrentUserId } = require('../utils/auth.utils');
+
 
 const { getCurrentContext } = require('../store/contextStore');
 const tiposPagoPermitidos = ['CONTADO', 'CREDITO'];
@@ -12,7 +14,7 @@ const idFuncionFacturaAuditoria = 21; // ID de la función de auditoría para fa
 function construirWhere(filtros = {}) {
   const where = {};
 
-  if (filtros.estadoPago) where.estadoPago = filtros.estadoPago;
+  if (filtros.estadoPago) where.estado = filtros.estadoPago;
   if (filtros.clienteId) where.clienteId = filtros.clienteId;
   if (filtros.tipoPago) where.tipoPago = filtros.tipoPago;
   if (typeof filtros.isPrinted === 'boolean') where.isPrinted = filtros.isPrinted;
@@ -55,7 +57,7 @@ async function crearFactura(datos) {
     throw error;
   }
   
-  if (sesion.usuarioId !== context.id) {  
+  if (sesion.usuarioId !== getCurrentUserId()) {  
     const error = new Error('Operación denegada: No puedes facturar en una caja asignada a otro cajero.');
     error.codigo = 403;
     throw error;
@@ -90,13 +92,29 @@ async function crearFactura(datos) {
   const porcentajeIva = Number(preferencias.porcentajeIva);
   const factorIva = porcentajeIva / 100;
 
+  // =========================================================================
+  // CAMBIO CLAVE: Obtener todo el catálogo de productos de una sola llamada HTTP
+  // =========================================================================
+  const catalogoProductos = await obtenerProductos();
+  
+  // Indexamos el catálogo en un Map para búsquedas ultrarrápidas por código
+  const mapaProductos = new Map(catalogoProductos.map(p => [p.codigo, p]));
+  // =========================================================================
+
   let subtotal = 0;
   let ivaTotal = 0;
   const detallesConDatos = [];
 
-  // 2. Procesar cálculos por producto
+  // 2. Procesar cálculos por producto utilizando el catálogo local cargado en memoria
   for (const item of detalles) {
-    const producto = await obtenerProductoPorCodigo(item.codigoProducto);
+    // Buscamos el producto en nuestro Map de memoria en vez de consultar a la API por cada uno
+    const producto = mapaProductos.get(item.codigoProducto);
+
+    if (!producto) {
+      const error = new Error(`El producto con código "${item.codigoProducto}" no existe en el Inventario.`);
+      error.codigo = 404;
+      throw error;
+    }
 
     if (producto.estado && producto.estado.toLowerCase() === 'inactivo') {
       const error = new Error(`El producto "${producto.nombre}" no está disponible`);
@@ -105,7 +123,7 @@ async function crearFactura(datos) {
     }
 
     if (producto.stock_actual < item.cantidad) {
-      const error = new Error(`Stock insuficiente para "${producto.nombre}"`);
+      const error = new Error(`Stock insuficiente para "${producto.nombre}". Stock disponible: ${producto.stock_actual}`);
       error.codigo = 400;
       throw error;
     }
@@ -134,14 +152,13 @@ async function crearFactura(datos) {
   const total = Number((subtotal + ivaTotal).toFixed(2));
 
   // 3. Lógica Financiera y Cuentas por Cobrar
-  const estadoPago = tipoPago === 'CREDITO' ? 'EMITIDA' : 'PAGADA';
+  const estadoPago = tipoPago === 'CREDITO' ? 'PAGO_PENDIENTE' : 'PAGADA';
   const saldoPendiente = tipoPago === 'CREDITO' ? total : 0.00;
 
   // 4. Guardar todo en una transacción atómica
   const resultado = await sequelize.transaction(async (t) => {
     
     // A. Bloquear y actualizar el secuencial directamente en la CAJA
-    // Usamos sesion.cajaId porque ya validamos la sesión más arriba
     const cajaTransaccion = await Caja.findByPk(sesion.cajaId, { transaction: t, lock: true });
     
     if (!cajaTransaccion) {
@@ -154,6 +171,7 @@ async function crearFactura(datos) {
     // B. Armar el número de factura con los datos de la Caja
     const numeroFactura = `${cajaTransaccion.establecimiento}-${cajaTransaccion.puntoEmision}-${String(cajaTransaccion.secuencialActual).padStart(9, '0')}`;
     const fechaEmision = new Date().toISOString();
+    
     // C. Crear Cabecera
     const nuevaFactura = await Factura.create({
       numeroFactura,
@@ -179,8 +197,7 @@ async function crearFactura(datos) {
     
     const data = { factura: nuevaFactura, detalles: detallesCreados };
     
-    // Desactivo porque no está funcionando la API
-    // await registrarCardexVenta(data);
+    await registrarKardexVenta(data);
 
     return data;
   });

@@ -6,28 +6,30 @@ const clienteInventario = axios.create({
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
+    'x-api-key': process.env.INVENTARIO_API_KEY
   }
 });
 
 
-async function obtenerProductoPorCodigo(codigo) {
+async function obtenerProductos() {
   try {
-    const respuesta = await clienteInventario.get(`/productos/${codigo}`);
-    const producto = respuesta.data?.data;
+    const respuesta = await clienteInventario.get(`/productos/catalogo`);
+    
+    const productos = respuesta.data?.data;
 
-    if (!producto) {
-      const error = new Error(`Producto "${codigo}" no encontrado en Inventario`);
+    if (!productos || !Array.isArray(productos)) {
+      const error = new Error(`No se pudo obtener el catálogo de productos de Inventario`);
       error.codigo = 404;
       throw error;
     }
 
-    return producto;
+    return productos; // Retorna el array completo de productos
 
   } catch (error) {
     if (error.codigo) throw error;
 
     if (error.response?.status === 404) {
-      const e = new Error(`Producto "${codigo}" no existe en Inventario`);
+      const e = new Error(`El catálogo de productos no existe en Inventario`);
       e.codigo = 404;
       throw e;
     }
@@ -44,19 +46,15 @@ async function obtenerProductoPorCodigo(codigo) {
   }
 }
 
-async function registrarCardexVenta(facturaCompleta) {
+async function registrarKardexVenta(facturaCompleta) {
   try {
-    const body = buildBodyForCardexVenta(facturaCompleta);
-    const respuesta = await clienteInventario.post('/cardex/movimientos', body, {
-      headers: {
-        'x-api-key': process.env.INVENTARIO_API_KEY
-      }
-    });
+    const body = buildBodyForKardexVenta(facturaCompleta);
+    const respuesta = await clienteInventario.post('/kardex/movimientos', body);
     return respuesta.data;
 
   } catch (error) {
     if (error.response?.status === 400) {
-      const e = new Error(`Error en la solicitud de cardex de venta: ${error.response.data?.message || 'Solicitud inválida'}`);
+      const e = new Error(`Error en la solicitud de kardex de venta: ${error.response.data?.message || 'Solicitud inválida'}`);
       e.codigo = 400;
       throw e;
     }
@@ -64,7 +62,7 @@ async function registrarCardexVenta(facturaCompleta) {
   }
 }
 
-function buildBodyForCardexVenta(facturaCompleta) {
+function buildBodyForKardexVenta(facturaCompleta) {
   const body = {
     tipoMovimiento: 'VENTA',
     documentoReferencia: facturaCompleta.factura.numeroFactura,
@@ -89,4 +87,4 @@ function buildBodyForCardexVenta(facturaCompleta) {
   return body;
 }
 
-module.exports = { obtenerProductoPorCodigo, registrarCardexVenta };
+module.exports = { obtenerProductos, registrarKardexVenta };
