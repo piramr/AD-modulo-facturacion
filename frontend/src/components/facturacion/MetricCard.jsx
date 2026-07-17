@@ -8,9 +8,9 @@ const toneClasses = {
 
 export default function MetricCard({ title, value, sub, tone = 'indigo' }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-transform hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-900">
-      <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">{title}</p>
-      <p className={`mt-2 text-2xl font-black ${toneClasses[tone] ?? toneClasses.indigo}`}>{value}</p>
+    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{title}</p>
+      <p className={`mt-3 text-2xl font-semibold tracking-tight ${toneClasses[tone] ?? toneClasses.indigo}`}>{value}</p>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{sub}</p>
     </article>
   )

@@ -5,18 +5,12 @@
 @layer base {
   :root {
     color-scheme: light;
-    --app-bg:
-      radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 35%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 30%),
-      linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+    --app-bg: #f8fafc;
   }
 
   html.dark {
     color-scheme: dark;
-    --app-bg:
-      radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 35%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 30%),
-      linear-gradient(180deg, #020617 0%, #0f172a 100%);
+    --app-bg: #020617;
   }
 
   body {
@@ -33,6 +27,6 @@
 }
 
 @layer components {
-  .Toastify__toast { border-radius: 1rem; box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18); }
+  .Toastify__toast { border-radius: 0.5rem; box-shadow: 0 16px 48px rgba(15, 23, 42, 0.16); }
 }
 

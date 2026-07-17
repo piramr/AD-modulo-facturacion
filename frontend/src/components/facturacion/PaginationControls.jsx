@@ -14,7 +14,7 @@ export default function PaginationControls({
   const totalCount = pageInfo?.totalCount || 0
   const wrapperClass = compact
     ? 'mb-3 flex flex-col gap-3 border-t border-slate-100 pt-3 text-xs dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between'
-    : 'flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between'
+    : 'flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-center sm:justify-between'
 
   if (totalCount <= pageSizeOptions[0] && totalPages <= 1 && !onPageSizeChange) return null
 
@@ -31,7 +31,7 @@ export default function PaginationControls({
               value={pageSize}
               disabled={disabled}
               onChange={(event) => onPageSizeChange(Number(event.target.value))}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold tracking-normal text-slate-700 outline-none transition-colors focus:border-red-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium tracking-normal text-slate-700 outline-none transition-colors focus:border-slate-400 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
             >
               {pageSizeOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -43,7 +43,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={disabled || !pageInfo?.hasPreviousPage}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           <ChevronLeft className="h-4 w-4" />
           Anterior
@@ -52,7 +52,7 @@ export default function PaginationControls({
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={disabled || !pageInfo?.hasNextPage}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           Siguiente
           <ChevronRight className="h-4 w-4" />

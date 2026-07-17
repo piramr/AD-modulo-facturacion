@@ -12,5 +12,5 @@ const styleMap = {
 }
 
 export default function StatusBadge({ value }) {
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold ${styleMap[value] ?? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{value}</span>
+  return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${styleMap[value] ?? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{value}</span>
 }

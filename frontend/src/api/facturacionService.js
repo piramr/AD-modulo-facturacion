@@ -1,18 +1,13 @@
 import { normalizeDocument, sanitizeText } from '../utils/validators'
 import { API_BASE, API_GRAPHQL } from '../config/api'
+import { getStoredToken } from './authService'
 
 const TOKEN_STORAGE_KEY = 'facturacion-demo-token'
 
 export async function getAuthToken() {
-  const savedToken = window.localStorage.getItem(TOKEN_STORAGE_KEY)
+  const savedToken = getStoredToken() || window.localStorage.getItem(TOKEN_STORAGE_KEY)
   if (savedToken) return savedToken
-
-  const response = await fetch(`${API_BASE}/auth/test-token`)
-  if (!response.ok) throw new Error('No fue posible obtener el token de prueba.')
-
-  const data = await response.json()
-  window.localStorage.setItem(TOKEN_STORAGE_KEY, data.token)
-  return data.token
+  throw new Error('No hay una sesion activa. Inicia sesion nuevamente.')
 }
 
 async function fetchGraphQL(query, variables = {}, token = '') {

@@ -1,10 +1,20 @@
 import { Outlet } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import FacturacionLayout from '../components/facturacion/FacturacionLayout'
 import { useFacturacion } from '../hooks/useFacturacion'
 import ConfirmDialog from '../components/facturacion/ConfirmDialog'
+import { clearSession, getStoredUser } from '../api/authService'
 
 export default function FacturacionPage() {
   const facturacion = useFacturacion()
+  const navigate = useNavigate()
+  const user = getStoredUser()
+
+  const handleLogout = () => {
+    clearSession()
+    facturacion.handleLogout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <>
@@ -16,7 +26,8 @@ export default function FacturacionPage() {
       onToggleTheme={facturacion.toggleTheme}
       userMenuOpen={facturacion.userMenuOpen}
       onToggleUserMenu={() => facturacion.setUserMenuOpen((currentValue) => !currentValue)}
-      onLogout={facturacion.handleLogout}
+      onLogout={handleLogout}
+      user={user}
     >
       <Outlet context={facturacion} />
     </FacturacionLayout>
