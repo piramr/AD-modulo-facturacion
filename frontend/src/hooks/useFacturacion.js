@@ -34,6 +34,8 @@ import {
   cerrarSesionCaja,
 } from '../api/facturacionService'
 
+import { getStoredUser } from '../api/authService'
+
 const THEME_KEY = 'facturacion-theme'
 const INITIAL_CLIENT_FORM = {
   cedula: '',
@@ -105,6 +107,18 @@ export function useFacturacion() {
   const [detalleForm, setDetalleForm] = useState(INITIAL_DETALLE_FORM)
   const [detalleItems, setDetalleItems] = useState([])
   const [busyAction, setBusyAction] = useState(null)
+
+  // ── ROL DEL USUARIO ───────────────────────────────────────────────────────────
+  const storedUser = getStoredUser()
+  const userRoles = useMemo(() =>
+    (storedUser?.roles || []).map((r) => r.nombreRol?.toUpperCase() || ''),
+    []
+  )
+  const isAdmin = userRoles.some((r) => r.includes('ADMIN') || r.includes('FAC_ADMIN'))
+  const isCajero = !isAdmin
+
+  // ── SESIÓN INICIAL ────────────────────────────────────────────────────────────
+  const [sesionCargada, setSesionCargada] = useState(false)
 
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -196,6 +210,11 @@ export function useFacturacion() {
     window.document.documentElement.classList.toggle('dark', themeMode === 'dark')
     window.localStorage.setItem(THEME_KEY, themeMode)
   }, [themeMode])
+
+  // Carga la sesión activa automáticamente al iniciar
+  useEffect(() => {
+    reloadSesionActiva()
+  }, [])
 
   const availableClients = useMemo(() => clientes, [clientes])
   const availableProducts = useMemo(() => productos.filter((producto) => producto.stockActual > 0), [productos])
@@ -529,14 +548,18 @@ export function useFacturacion() {
   }
 
   // ── Sesión activa ─────────────────────────────────────────────────────────────
-  const reloadSesionActiva = async (usuarioId) => {
-    try {
-      const sesion = await getSesionActiva(usuarioId)
-      setSesionActiva(sesion || null)
-    } catch {
-      setSesionActiva(null)
-    }
+ const reloadSesionActiva = async (usuarioId) => {
+  try {
+    const uid = usuarioId || storedUser?.id
+    if (!uid) { setSesionActiva(null); setSesionCargada(true); return }
+    const sesion = await getSesionActiva(String(uid))
+    setSesionActiva(sesion || null)
+  } catch {
+    setSesionActiva(null)
+  } finally {
+    setSesionCargada(true)
   }
+}
 
   // ── CRUD de cajas ─────────────────────────────────────────────────────────────
   const openCajaModal = () => {
@@ -774,5 +797,10 @@ export function useFacturacion() {
     closeRevisarModal,
     setRevisarForm,
     handleRevisarSesion,
+    isAdmin,
+    isCajero,
+    sesionCargada,
+    userRoles,
+    storedUser,
   }
 }
