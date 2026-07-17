@@ -1,4 +1,20 @@
 const facturaService = require('../../services/factura.service');
+const { obtenerProductos } = require('../../services/external/inventario.service');
+
+function mapearProductoInventario(producto) {
+  const grabaIva = producto.grabaIva ?? producto.graba_iva ?? false;
+
+  return {
+    codigo: producto.codigo,
+    nombre: producto.nombre,
+    descripcion: producto.descripcion || null,
+    pvp: Number(producto.pvp || 0),
+    grabaIva: Boolean(grabaIva),
+    estado: producto.estado || null,
+    stockActual: Number(producto.stockActual ?? producto.stock_actual ?? 0),
+    porcentajeIvaAplicado: producto.porcentajeIvaAplicado ?? producto.porcentaje_iva_aplicado ?? null
+  };
+}
 
 const resolvers = {
   Query: {
@@ -66,12 +82,29 @@ const resolvers = {
         throw err;
       }
     },
+
+    facturasPendientesPorCliente: async (_, { clienteId }) => {
+      return await facturaService.obtenerFacturasPendientesPorCliente(clienteId);
+    },
+
+    productos: async () => {
+      const productos = await obtenerProductos();
+      return productos.map(mapearProductoInventario);
+    },
   },
 
 Mutation: {
     crearFactura: async (_, { input }) => {
       const factura = await facturaService.crearFactura(input);
       return factura;
+    },
+
+    imprimirFactura: async (_, { id }) => {
+      return await facturaService.bloquearEImprimirFactura(id);
+    },
+
+    registrarAbonoCXC: async (_, { id, montoPagado }) => {
+      return await facturaService.procesarAbono(id, montoPagado);
     },
   }
 };

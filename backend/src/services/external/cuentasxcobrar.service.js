@@ -31,10 +31,9 @@ async function registrarCuentaPorCobrar(factura) {
 }
 
 async function validarDeudaCliente(clienteId) {
-  return true;
   try {
     const respuesta = await clienteCXC.get(`/cxc/validador-deuda/${clienteId}`);
-    return respuesta.estadoCliente === 'APTO_PARA_CREDITO';
+    return respuesta.data?.estadoCliente === 'APTO_PARA_CREDITO';
 
   } catch (error) {
     console.error('No se pudo verificar la deuda del cliente en Cuentas por Cobrar:', error.message);

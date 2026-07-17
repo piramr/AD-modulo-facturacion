@@ -57,7 +57,7 @@ export default function ClientesView() {
         onSearchQueryChange={facturacion.setSearchQuery}
         filterEstado={facturacion.filterEstado}
         onFilterEstadoChange={facturacion.setFilterEstado}
-        filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'Activo', label: 'Activo' }, { value: 'Inactivo', label: 'Inactivo' }]}
+        filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'ACTIVO', label: 'Activo' }, { value: 'INACTIVO', label: 'Inactivo' }]}
         onCreate={facturacion.openClienteModal}
         createLabel="Gestión de clientes"
         createButtonLabel="Nuevo cliente"

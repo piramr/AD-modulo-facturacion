@@ -36,15 +36,15 @@ function mapearFacturaReporte(factura) {
     tipoPago: pick(data, 'tipoPago', 'tipo_pago'),
     fechaEmision: pick(data, 'fechaEmision', 'fecha_emision'),
     subtotal: Number(data.subtotal),
-    totalIva: Number(pick(data, 'totalIva', 'total_iva')),
+    totalIva: Number(pick(data, 'ivaTotal', 'iva_total')),
     total: Number(data.total),
     estado: data.estado,
     articulos: (data.detalles || []).map((detalle) => ({
-      productoCodigo: pick(detalle, 'productoCodigo', 'producto_id'),
-      productoNombre: pick(detalle, 'productoNombre', 'producto_nombre'),
+      productoCodigo: pick(detalle, 'codigoProducto', 'codigo_producto'),
+      productoNombre: pick(detalle, 'nombreProducto', 'nombre_producto'),
       cantidad: detalle.cantidad,
-      precioUnitario: Number(pick(detalle, 'precioUnitario', 'precio_unitario')),
-      subtotalLinea: Number(pick(detalle, 'subtotalLinea', 'subtotal_linea'))
+      precioUnitario: Number(pick(detalle, 'pvpUnitario', 'pvp_unitario')),
+      subtotalLinea: Number(detalle.subtotal)
     }))
   };
 }
@@ -89,11 +89,11 @@ function drawInvoiceTable(doc, detalles, startY) {
       y = 50;
     }
 
-    drawText(doc, pick(detalle, 'productoCodigo', 'producto_id'), columns.codigo, y, { width: 65 });
-    drawText(doc, pick(detalle, 'productoNombre', 'producto_nombre'), columns.producto, y, { width: 175 });
+    drawText(doc, pick(detalle, 'codigoProducto', 'codigo_producto'), columns.codigo, y, { width: 65 });
+    drawText(doc, pick(detalle, 'nombreProducto', 'nombre_producto'), columns.producto, y, { width: 175 });
     drawText(doc, detalle.cantidad, columns.cantidad, y, { width: 45, align: 'right' });
-    drawText(doc, money(pick(detalle, 'precioUnitario', 'precio_unitario')), columns.precio, y, { width: 65, align: 'right' });
-    drawText(doc, money(pick(detalle, 'subtotalLinea', 'subtotal_linea')), columns.subtotal, y, { width: 85, align: 'right' });
+    drawText(doc, money(pick(detalle, 'pvpUnitario', 'pvp_unitario')), columns.precio, y, { width: 65, align: 'right' });
+    drawText(doc, money(detalle.subtotal), columns.subtotal, y, { width: 85, align: 'right' });
 
     y += 24;
   });
@@ -108,7 +108,7 @@ async function generarPdfFactura(facturaId, usuario = null) {
   const numeroFactura = pick(data, 'numeroFactura', 'numero_factura');
   const fechaEmision = pick(data, 'fechaEmision', 'fecha_emision');
   const tipoPago = pick(data, 'tipoPago', 'tipo_pago');
-  const totalIva = pick(data, 'totalIva', 'total_iva');
+  const totalIva = pick(data, 'ivaTotal', 'iva_total');
 
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
   const chunks = [];
@@ -210,7 +210,7 @@ async function generarPdfFactura(facturaId, usuario = null) {
 async function obtenerDatosReporteFacturas(query = {}) {
   const inicio = Date.now();
   const filtros = {
-    estado: query.estado,
+    estadoPago: query.estadoPago || query.estado,
     clienteId: query.clienteId,
     tipoPago: query.tipoPago,
     search: query.search

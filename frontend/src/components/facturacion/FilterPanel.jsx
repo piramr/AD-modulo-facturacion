@@ -39,7 +39,9 @@ function ClienteFilters({ onApply, onCancel }) {
           onChange={(e) => set('tipoCliente', e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >
-          {['Todos', 'Contado', 'Crédito'].map((o) => <option key={o}>{o}</option>)}
+          <option value="Todos">Todos</option>
+          <option value="CONTADO">Contado</option>
+          <option value="CREDITO">Credito</option>
         </select>
       </label>
       <label className="space-y-1">
@@ -49,7 +51,9 @@ function ClienteFilters({ onApply, onCancel }) {
           onChange={(e) => set('estado', e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >
-          {['Todos', 'Activo', 'Inactivo'].map((o) => <option key={o}>{o}</option>)}
+          <option value="Todos">Todos</option>
+          <option value="ACTIVO">Activo</option>
+          <option value="INACTIVO">Inactivo</option>
         </select>
       </label>
       <Actions onApply={() => onApply(form)} onCancel={onCancel} />
@@ -97,7 +101,9 @@ function FacturaFilters({ onApply, onCancel }) {
           onChange={(e) => set('tipoPago', e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >
-          {['Todos', 'Efectivo', 'Crédito'].map((o) => <option key={o}>{o}</option>)}
+          <option value="Todos">Todos</option>
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="CREDITO">Credito</option>
         </select>
       </label>
       <label className="space-y-1">
@@ -107,7 +113,9 @@ function FacturaFilters({ onApply, onCancel }) {
           onChange={(e) => set('estado', e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
         >
-          {['Todos', 'Emitida', 'Pagada', 'Anulada'].map((o) => <option key={o}>{o}</option>)}
+          <option value="Todos">Todos</option>
+          <option value="PAGADA">Pagada</option>
+          <option value="PAGO_PENDIENTE">Pendiente</option>
         </select>
       </label>
       <label className="space-y-1">

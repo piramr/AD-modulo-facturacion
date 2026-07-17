@@ -13,10 +13,10 @@ enum FacturaOrderByCampo {
 type DetalleFactura {
   """Identificador único de la línea de detalle."""
   id: ID!
-  """ID único del producto facturado (Proviene del Módulo de Inventario)."""
-  productoId: String!
-  """Nombre del producto (Resuelto asíncronamente desde Inventario)."""
-  productoNombre: String
+  """Código único del producto facturado (Proviene del Módulo de Inventario)."""
+  codigoProducto: String!
+  """Nombre histórico del producto al momento de facturar."""
+  nombreProducto: String!
   """Cantidad del producto en esta línea de factura."""
   cantidad: Float!
   """Precio unitario histórico aplicado al producto en el momento de la venta."""
@@ -76,6 +76,26 @@ type Facturas {
   items: [Factura!]!
 }
 
+"""Producto disponible para facturación, provisto por el Módulo de Inventario."""
+type Producto {
+  """Código único del producto en Inventario."""
+  codigo: String!
+  """Nombre comercial del producto."""
+  nombre: String!
+  """Descripción del producto, si Inventario la proporciona."""
+  descripcion: String
+  """Precio de venta al público."""
+  pvp: Float!
+  """Indica si el producto grava IVA."""
+  grabaIva: Boolean!
+  """Estado del producto en Inventario."""
+  estado: String
+  """Stock disponible actual."""
+  stockActual: Float!
+  """Porcentaje de IVA aplicable informado por Inventario, si existe."""
+  porcentajeIvaAplicado: Float
+}
+
 """Detalle de producto enviado al crear una factura."""
 input DetalleInput {
   """Código del producto a facturar."""
@@ -89,7 +109,7 @@ input CrearFacturaInput {
   clienteId: ID!
   """ID de la sesión de caja abierta por el cajero actual."""
   sesionCajaId: ID!
-  """Modalidad de pago: 'EFECTIVO', 'CREDITO' o 'TRANSFERENCIA'."""
+  """Modalidad de pago: 'EFECTIVO' o 'CREDITO'."""
   tipoPago: String!
   """Lista de productos y cantidades incluidos en la factura."""
   detalles: [DetalleInput!]!
@@ -128,6 +148,9 @@ type Query {
   
   """Devuelve una factura por su ID único."""
   factura(id: ID!): Factura
+
+  """Devuelve el catálogo de productos disponible desde el Módulo de Inventario."""
+  productos: [Producto!]!
   
   """(API Interna) Devuelve facturas con estado 'PAGO_PENDIENTE' para el Módulo CXC."""
   facturasPendientesPorCliente(clienteId: ID!): [Factura!]!

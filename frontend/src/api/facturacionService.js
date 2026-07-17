@@ -111,17 +111,17 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
           tipoPago
           fechaEmision
           subtotal
-          totalIva
+          ivaTotal
           total
           estado
           detalles {
             id
-            productoCodigo
-            productoNombre
+            codigoProducto
+            nombreProducto
             cantidad
-            precioUnitario
+            pvpUnitario
             grabaIva
-            subtotalLinea
+            subtotal
           }
         }
       }
@@ -133,13 +133,6 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
         pvp
         grabaIva
         porcentajeIvaAplicado
-      }
-      auditoriaReciente(limit: 5) {
-        id
-        usuarioId
-        fechaHora
-        accion
-        detalles
       }
     }
   `
@@ -177,7 +170,7 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
       tipo_pago: factura.tipoPago,
       fecha_emision: factura.fechaEmision,
       subtotal: factura.subtotal,
-      total_iva: factura.totalIva,
+      total_iva: factura.ivaTotal,
       total: factura.total,
       estado: factura.estado,
       detalles: factura.detalles,
@@ -185,15 +178,15 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
     detalle_facturas: facturas.flatMap((factura) => (factura.detalles || []).map((detalle) => ({
       id: detalle.id,
       factura_id: factura.id,
-      producto_id: detalle.productoCodigo,
-      producto_nombre: detalle.productoNombre,
+      producto_id: detalle.codigoProducto,
+      producto_nombre: detalle.nombreProducto,
       cantidad: detalle.cantidad,
-      precio_unitario: detalle.precioUnitario,
+      precio_unitario: detalle.pvpUnitario,
       graba_iva: detalle.grabaIva,
-      subtotal_linea: detalle.subtotalLinea,
+      subtotal_linea: detalle.subtotal,
     }))),
     productos: data.productos || [],
-    auditoria: data.auditoriaReciente || [],
+    auditoria: [],
   }
 }
 
@@ -215,7 +208,7 @@ export async function createCliente(input, token = '') {
       direccion: sanitizeText(input.direccion),
       telefono: sanitizeText(input.telefono),
       email: sanitizeText(input.email),
-      estado: sanitizeText(input.estado || 'Activo'),
+      estado: sanitizeText(input.estado || 'ACTIVO'),
     },
   }, token)
 
@@ -241,7 +234,7 @@ export async function updateCliente(clienteId, input, token = '') {
       direccion: sanitizeText(input.direccion),
       telefono: sanitizeText(input.telefono),
       email: sanitizeText(input.email),
-      estado: sanitizeText(input.estado || 'Activo'),
+      estado: sanitizeText(input.estado || 'ACTIVO'),
     },
   }, token)
 
@@ -260,9 +253,10 @@ export async function createFactura(input, token = '') {
   await fetchGraphQL(mutation, {
     input: {
       clienteId: input.cliente_id || input.clienteId,
+      sesionCajaId: input.sesion_caja_id || input.sesionCajaId,
       tipoPago: sanitizeText(input.tipo_pago || input.tipoPago),
       detalles: (input.detalles || []).map((detalle) => ({
-        productoCodigo: sanitizeText(detalle.producto_id || detalle.productoCodigo),
+        codigoProducto: sanitizeText(detalle.producto_id || detalle.codigoProducto),
         cantidad: Number(detalle.cantidad),
       })),
     },
@@ -285,18 +279,8 @@ export async function deleteCliente(clienteId, token = '') {
   return getFacturacionSnapshot(token)
 }
 
-export async function deleteFactura(facturaId, token = '') {
-  const mutation = `
-    mutation AnularFactura($id: ID!, $estado: String!) {
-      actualizarEstadoFactura(id: $id, estado: $estado) {
-        id
-        estado
-      }
-    }
-  `
-
-  await fetchGraphQL(mutation, { id: facturaId, estado: 'Anulada' }, token)
-  return getFacturacionSnapshot(token)
+export async function deleteFactura() {
+  throw new Error('El backend aun no expone una operacion para anular facturas.')
 }
 
 export async function getReporteClientes(options = {}, token = '') {

@@ -3,10 +3,10 @@ const DOCUMENT_REGEX = /^[0-9]{6,15}$/
 const PHONE_REGEX = /^[+0-9()\-\s]{7,20}$/
 const NAME_REGEX = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/
 
-export const CLIENTE_ESTADOS = ['Activo', 'Inactivo']
-export const TIPO_CLIENTE_OPTIONS = ['Contado', 'Crédito']
-export const FACTURA_ESTADOS = ['Emitida', 'Pagada', 'Anulada']
-export const TIPO_PAGO_OPTIONS = ['Efectivo', 'Crédito']
+export const CLIENTE_ESTADOS = ['ACTIVO', 'INACTIVO']
+export const TIPO_CLIENTE_OPTIONS = ['CONTADO', 'CREDITO']
+export const FACTURA_ESTADOS = ['PAGADA', 'PAGO_PENDIENTE']
+export const TIPO_PAGO_OPTIONS = ['EFECTIVO', 'CREDITO']
 export const IVA_PERCENT = 15
 
 export const sanitizeText = (value) => String(value ?? '').trim()

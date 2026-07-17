@@ -7,7 +7,7 @@ const { getCurrentUserId } = require('../utils/auth.utils');
 
 
 const { getCurrentContext } = require('../store/contextStore');
-const tiposPagoPermitidos = ['CONTADO', 'CREDITO'];
+const tiposPagoPermitidos = ['EFECTIVO', 'CREDITO'];
 
 const idFuncionFacturaAuditoria = 21; // ID de la función de auditoría para facturas
 
@@ -36,6 +36,12 @@ async function contarFacturasConFiltro(filtros = {}) {
  */
 async function crearFactura(datos) {
   const { clienteId, sesionCajaId, tipoPago, detalles } = datos;
+
+  if (!tiposPagoPermitidos.includes(tipoPago)) {
+    const error = new Error(`Tipo de pago no permitido. Use: ${tiposPagoPermitidos.join(', ')}.`);
+    error.codigo = 400;
+    throw error;
+  }
 
   if (!detalles || detalles.length === 0) {
     const error = new Error('La factura debe tener al menos un producto');
@@ -183,7 +189,7 @@ async function crearFactura(datos) {
       subtotal,
       ivaTotal,      
       total,
-      estadoPago,
+      estado: estadoPago,
       saldoPendiente,
       isPrinted: false
     }, { transaction: t });
@@ -226,7 +232,7 @@ async function listarFacturas(filtros = {}) {
 
   if (filtros.orderBy && filtros.orderBy.length > 0) {
     orderClause = filtros.orderBy.map(item => {
-      const columnaBD = item.campo || 'fechaEmision'; 
+      const columnaBD = item.campo === 'estadoPago' ? 'estado' : (item.campo || 'fechaEmision'); 
       return [columnaBD, item.direccion];
     });
   }
@@ -298,22 +304,48 @@ async function bloquearEImprimirFactura(id) {
  * API Interna: Procesa un abono notificado por el Módulo CXC
  */
 async function procesarAbono(id, montoPagado) {
+  if (montoPagado <= 0) {
+    const error = new Error('El monto pagado debe ser mayor a cero.');
+    error.codigo = 400;
+    throw error;
+  }
+
   const factura = await Factura.findByPk(id);
-  if (!factura) throw new Error('Factura no encontrada');
+  if (!factura) {
+    const error = new Error('Factura no encontrada');
+    error.codigo = 404;
+    throw error;
+  }
 
   if (factura.saldoPendiente <= 0) {
-    throw new Error('Esta factura no tiene deudas pendientes');
+    const error = new Error('Esta factura no tiene deudas pendientes');
+    error.codigo = 409;
+    throw error;
   }
 
   const nuevoSaldo = Number((factura.saldoPendiente - montoPagado).toFixed(2));
   
   factura.saldoPendiente = nuevoSaldo < 0 ? 0 : nuevoSaldo;
   if (factura.saldoPendiente === 0) {
-    factura.estadoPago = 'PAGADA';
+    factura.estado = 'PAGADA';
   }
 
   await factura.save();
   return factura;
+}
+
+async function obtenerFacturasPendientesPorCliente(clienteId) {
+  return Factura.findAll({
+    where: {
+      clienteId,
+      estado: 'PAGO_PENDIENTE'
+    },
+    order: [['fechaEmision', 'DESC']],
+    include: [
+      { model: DetalleFactura, as: 'detalles' },
+      { model: Cliente, as: 'cliente', attributes: ['id', 'nombre', 'cedula', 'tipoCliente'] }
+    ]
+  });
 }
 
 module.exports = {
@@ -322,5 +354,6 @@ module.exports = {
   listarFacturas,
   obtenerFacturaPorId,
   bloquearEImprimirFactura,
-  procesarAbono
+  procesarAbono,
+  obtenerFacturasPendientesPorCliente
 };

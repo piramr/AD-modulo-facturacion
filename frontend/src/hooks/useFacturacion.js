@@ -39,17 +39,17 @@ const INITIAL_CLIENT_FORM = {
   cedula: '',
   nombre: '',
   fecha_nacimiento: '',
-  tipo_cliente: 'Contado',
+  tipo_cliente: 'CONTADO',
   direccion: '',
   telefono: '',
   email: '',
-  estado: 'Activo',
+  estado: 'ACTIVO',
 }
 const INITIAL_FACTURA_FORM = {
   cliente_id: '',
-  tipo_pago: 'Efectivo',
+  tipo_pago: 'EFECTIVO',
   fecha_emision: new Date().toISOString().split('T')[0],
-  estado: 'Emitida',
+  estado: 'PAGADA',
 }
 const INITIAL_DETALLE_FORM = {
   producto_id: '',
@@ -62,7 +62,7 @@ const INITIAL_DETALLE_FORM = {
 }
 
 const DEFAULT_PAGE_SIZE = 10
-const CLIENTE_ESTADOS = ['Activo', 'Inactivo']
+const CLIENTE_ESTADOS = ['ACTIVO', 'INACTIVO']
 
 const formatMoney = (value) => `$${new Intl.NumberFormat('es-CO').format(Number(value) || 0)}`
 
@@ -70,6 +70,7 @@ const getSectionFromPath = (pathname) => {
   if (pathname.includes('/clientes')) return 'Clientes'
   if (pathname.includes('/facturas')) return 'Facturas'
   if (pathname.includes('/reportes')) return 'Reportes'
+  if (pathname.includes('/cajas')) return 'Cajas'
   return 'Resumen'
 }
 
@@ -130,7 +131,7 @@ export function useFacturacion() {
 
     return {
       clientesFilter: currentSection === 'Clientes' && clienteEstado ? { estado: clienteEstado } : null,
-      facturasFilter: currentSection === 'Facturas' && facturaEstado ? { estado: facturaEstado } : null,
+      facturasFilter: currentSection === 'Facturas' && facturaEstado ? { estadoPago: facturaEstado } : null,
     }
   }, [currentSection, filterEstado])
 
@@ -202,9 +203,9 @@ export function useFacturacion() {
 
   const kpis = useMemo(() => {
     const totalFacturado = facturas.reduce((accumulator, factura) => accumulator + Number(factura.total || 0), 0)
-    const pagadasCount = facturas.filter((factura) => factura.estado === 'Pagada').length
-    const emitidasCount = facturas.filter((factura) => factura.estado === 'Emitida').length
-    const clientesActivos = clientes.filter((cliente) => cliente.estado === 'Activo').length
+    const pagadasCount = facturas.filter((factura) => factura.estado === 'PAGADA').length
+    const pendientesCount = facturas.filter((factura) => factura.estado === 'PAGO_PENDIENTE').length
+    const clientesActivos = clientes.filter((cliente) => cliente.estado === 'ACTIVO').length
 
     if (currentSection === 'Clientes') {
       return [
@@ -219,7 +220,7 @@ export function useFacturacion() {
       return [
         { title: 'Total facturas', value: facturas.length, sub: 'Cabeceras emitidas', tone: 'indigo' },
         { title: 'Pagadas', value: pagadasCount, sub: 'Conciliadas', tone: 'emerald' },
-        { title: 'Emitidas', value: emitidasCount, sub: 'Pendientes de cobro', tone: 'amber' },
+        { title: 'Pendientes', value: pendientesCount, sub: 'Pendientes de cobro', tone: 'amber' },
         { title: 'Tipos de pago', value: TIPO_PAGO_OPTIONS.length, sub: 'Efectivo / Crédito', tone: 'blue' },
       ]
     }
@@ -383,6 +384,11 @@ export function useFacturacion() {
   }
 
   const submitFactura = async () => {
+    if (!sesionActiva || sesionActiva.estado !== 'ABIERTA') {
+      toast.error('Debes abrir un turno de caja antes de emitir una factura.')
+      return false
+    }
+
     const validation = validateFacturaForm(facturaForm, clientes, facturas, detalleItems)
     if (!validation.valid) {
       toast.error(getFirstError(validation.errors))
@@ -396,6 +402,7 @@ export function useFacturacion() {
       await createFactura({
         ...validation.values,
         ...totals,
+        sesionCajaId: sesionActiva.id,
         detalles: detalleItems,
       })
       setFacturasPage(1)

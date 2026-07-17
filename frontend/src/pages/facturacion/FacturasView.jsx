@@ -96,7 +96,7 @@ export default function FacturasView() {
         onSearchQueryChange={facturacion.setSearchQuery}
         filterEstado={facturacion.filterEstado}
         onFilterEstadoChange={facturacion.setFilterEstado}
-        filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'Emitida', label: 'Emitida' }, { value: 'Pagada', label: 'Pagada' }, { value: 'Anulada', label: 'Anulada' }]}
+        filterOptions={[{ value: 'Todos', label: 'Todos' }, { value: 'PAGADA', label: 'Pagada' }, { value: 'PAGO_PENDIENTE', label: 'Pendiente' }]}
         onCreate={facturacion.openFacturaModal}
         createLabel="Gestión de facturas"
         createButtonLabel="Nueva factura"
