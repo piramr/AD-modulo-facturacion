@@ -14,7 +14,7 @@ const idFuncionFacturaAuditoria = 21; // ID de la función de auditoría para fa
 function construirWhere(filtros = {}) {
   const where = {};
 
-  if (filtros.estado) where.estado = filtros.estado;
+  if (filtros.estadoPago) where.estado = filtros.estadoPago;
   if (filtros.clienteId) where.clienteId = filtros.clienteId;
   if (filtros.tipoPago) where.tipoPago = filtros.tipoPago;
   if (typeof filtros.isPrinted === 'boolean') where.isPrinted = filtros.isPrinted;
