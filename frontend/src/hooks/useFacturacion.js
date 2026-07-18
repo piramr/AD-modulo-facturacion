@@ -110,12 +110,17 @@ export function useFacturacion() {
 
   // ── ROL DEL USUARIO ───────────────────────────────────────────────────────────
   const storedUser = getStoredUser()
-  const userRoles = useMemo(() =>
-    (storedUser?.roles || []).map((r) => r.nombreRol?.toUpperCase() || ''),
-    []
-  )
-  const isAdmin = userRoles.some((r) => r.includes('ADMIN') || r.includes('FAC_ADMIN'))
-  const isCajero = !isAdmin
+  const userRoles = useMemo(() => (
+    (storedUser?.roles || [])
+      .map((rol) => {
+        if (typeof rol === 'string') return rol
+        return rol?.nombreRol || rol?.name || ''
+      })
+      .map((rol) => rol.toUpperCase())
+      .filter(Boolean)
+  ), [storedUser])
+  const isAdmin = userRoles.some((rol) => rol.includes('ADMIN') || rol.includes('FAC_ADMIN'))
+  const isCajero = userRoles.some((rol) => rol.includes('CAJERO') || rol.includes('FAC_CAJERO'))
 
   // ── SESIÓN INICIAL ────────────────────────────────────────────────────────────
   const [sesionCargada, setSesionCargada] = useState(false)
