@@ -6,6 +6,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
+  Clock3,
+  CreditCard,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -23,6 +25,8 @@ const navigationGroups = [
     items: [
       { label: 'Resumen', to: '/facturacion/resumen', icon: LayoutDashboard },
       { label: 'Cajas', to: '/facturacion/cajas', icon: BadgeDollarSign },
+      { label: 'Turnos revisión', to: '/facturacion/turnos-revision', icon: Clock3, adminOnly: true },
+      { label: 'Cuentas', to: '/facturacion/cuentas', icon: CreditCard },
     ],
   },
   {
@@ -35,8 +39,10 @@ const navigationGroups = [
   },
 ]
 
-function SidebarLink({ item, sidebarOpen }) {
+function SidebarLink({ item, sidebarOpen, isAdmin }) {
   const Icon = item.icon
+
+  if (item.adminOnly && !isAdmin) return null
 
   return (
     <NavLink
@@ -69,6 +75,7 @@ export default function FacturacionLayout({
   onToggleUserMenu,
   onLogout,
   user,
+  isCajero,
   children,
 }) {
   const displayName = user?.userName || user?.user_name || 'Usuario'
@@ -109,7 +116,7 @@ export default function FacturacionLayout({
                 ) : null}
                 <div className="space-y-1">
                   {group.items.map((item) => (
-                    <SidebarLink key={item.to} item={item} sidebarOpen={sidebarOpen} />
+                    <SidebarLink key={item.to} item={item} sidebarOpen={sidebarOpen} isAdmin={!isCajero} />
                   ))}
                 </div>
               </div>

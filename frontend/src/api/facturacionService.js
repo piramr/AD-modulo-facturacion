@@ -361,6 +361,43 @@ export const downloadReporteClientesPdf = (token = '') =>
 export const downloadReporteFacturasPdf = (token = '') =>
   downloadPdf('/api/reportes/facturas?format=pdf', 'reporte-facturas.pdf', token)
 
+export async function getPreferencias(token = '') {
+  const query = `
+    query ObtenerPreferencias {
+      obtenerPreferencias {
+        id
+        nombreEmpresa
+        rucEmpresa
+        porcentajeIva
+        cuentaBancariaDefaultId
+      }
+    }
+  `
+  return (await fetchGraphQL(query, {}, token)).obtenerPreferencias
+}
+
+export async function getSaldosCuentas(token = '') {
+  const query = `
+    query ObtenerSaldosCuentas {
+      obtenerSaldosCuentas {
+        cuentaId
+        saldoActual
+        ultimaActualizacion
+        movimientos {
+          id
+          cuentaId
+          tipo
+          monto
+          descripcion
+          referencia
+          fechaMovimiento
+        }
+      }
+    }
+  `
+  return (await fetchGraphQL(query, {}, token)).obtenerSaldosCuentas
+}
+
 // ── CAJAS - MATEO ─────────────────────────────────────────────────────────────────────
 
 export async function getCajas(token = '') {
@@ -403,6 +440,31 @@ export async function getSesionActiva(usuarioId, token = '') {
     }
   `
   return (await fetchGraphQL(query, { usuarioId }, token)).obtenerSesionActiva
+}
+
+export async function getSesionesRevision(token = '') {
+  const query = `
+    query ObtenerSesionesRevision {
+      obtenerSesionesRevision {
+        id
+        cajaId
+        caja { id codigo descripcion establecimiento puntoEmision }
+        usuarioId
+        fechaApertura
+        montoApertura
+        cantidadFacturas
+        totalVentasEfectivo
+        totalVentasCredito
+        fechaCierre
+        montoCierreEsperado
+        montoCierreReal
+        faltante
+        sobrante
+        estado
+      }
+    }
+  `
+  return (await fetchGraphQL(query, {}, token)).obtenerSesionesRevision
 }
 
 export async function crearCaja(input, token = '') {

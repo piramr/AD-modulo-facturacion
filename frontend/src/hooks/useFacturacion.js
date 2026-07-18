@@ -26,6 +26,8 @@ import {
 import {
   getCajas,
   getSesionActiva,
+  getSesionesRevision,
+  getPreferencias,
   crearCaja,
   actualizarCaja,
   inactivarCaja,
@@ -73,6 +75,7 @@ const getSectionFromPath = (pathname) => {
   if (pathname.includes('/facturas')) return 'Facturas'
   if (pathname.includes('/reportes')) return 'Reportes'
   if (pathname.includes('/cajas')) return 'Cajas'
+  if (pathname.includes('/cuentas')) return 'Cuentas'
   return 'Resumen'
 }
 
@@ -161,6 +164,7 @@ export function useFacturacion() {
   // ── CAJAS ────────────────────────────────────────────────────────────────────
   const [cajas, setCajas] = useState([])
   const [sesionActiva, setSesionActiva] = useState(null)
+  const [sesionesRevision, setSesionesRevision] = useState([])
   const [cajasLoading, setCajasLoading] = useState(false)
 
   const INITIAL_CAJA_FORM = {
@@ -175,8 +179,14 @@ export function useFacturacion() {
   const [showCajaModal, setShowCajaModal] = useState(false)
   const [showSesionModal, setShowSesionModal] = useState(false)
   const [showRevisarModal, setShowRevisarModal] = useState(false)
+  const [showCerrarModal, setShowCerrarModal] = useState(false)
   const [sesionForm, setSesionForm] = useState({ cajaId: '', montoApertura: '' })
   const [revisarForm, setRevisarForm] = useState({ sesionCajaId: '', montoCierreReal: '' })
+  const [cierreForm, setCierreForm] = useState({
+    sesionCajaId: '',
+    totalVentasEfectivo: 0,
+    distribucionCuentas: [{ cuentaId: '', monto: '' }],
+  })
 
   useEffect(() => {
     let mounted = true
@@ -548,19 +558,34 @@ export function useFacturacion() {
   }
 
   // ── Sesión activa ─────────────────────────────────────────────────────────────
- const reloadSesionActiva = async (usuarioId) => {
-  try {
-    const uid = usuarioId || storedUser?.id
-    if (!uid) { setSesionActiva(null); setSesionCargada(true); return }
-    const sesion = await getSesionActiva(String(uid))
-    setSesionActiva(sesion || null)
-  } catch {
-    setSesionActiva(null)
-  } finally {
-    setSesionCargada(true)
+ const reloadSesionActiva = async (usuarioId, sesionExplicita = null) => {
+    try {
+      if (sesionExplicita) {
+        setSesionActiva(sesionExplicita)
+        setSesionCargada(true)
+        return sesionExplicita
+      }
+      const uid = usuarioId || storedUser?.id
+      if (!uid) { setSesionActiva(null); setSesionCargada(true); return null }
+      const sesion = await getSesionActiva(String(uid))
+      setSesionActiva(sesion || null)
+      return sesion || null
+    } catch {
+      setSesionActiva(null)
+      return null
+    } finally {
+      setSesionCargada(true)
+    }
   }
-}
 
+  const reloadSesionesRevision = async () => {
+    try {
+      const sesiones = await getSesionesRevision()
+      setSesionesRevision(Array.isArray(sesiones) ? sesiones : [])
+    } catch {
+      setSesionesRevision([])
+    }
+  }
   // ── CRUD de cajas ─────────────────────────────────────────────────────────────
   const openCajaModal = () => {
     setEditingCajaId(null)
@@ -693,12 +718,124 @@ export function useFacturacion() {
         sesionCajaId: revisarForm.sesionCajaId,
         montoCierreReal: Number(revisarForm.montoCierreReal),
       })
-      setSesionActiva(sesion)
+      const sesionActualizada = {
+        ...(sesionActiva || {}),
+        ...sesion,
+        id: sesion?.id || revisarForm.sesionCajaId,
+        estado: sesion?.estado || 'EN_REVISION',
+        caja: sesionActiva?.caja || sesion?.caja || null,
+      }
+      setSesionActiva(sesionActualizada)
+      await reloadSesionActiva(storedUser?.id, sesionActualizada)
+      await reloadSesionesRevision()
       toast.success('Turno enviado a revisión correctamente.')
       closeRevisarModal()
       return true
     } catch (error) {
       toast.error(error.message || 'No fue posible enviar a revisión.')
+      return false
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  const openCerrarModal = async (sesionSeleccionada = null) => {
+    const sesion = (sesionSeleccionada && typeof sesionSeleccionada === 'object' && 'id' in sesionSeleccionada)
+      ? sesionSeleccionada
+      : sesionActiva
+
+    if (!sesion || sesion.estado !== 'EN_REVISION') {
+      toast.error('Solo puedes cerrar un turno que ya haya pasado a revisión.')
+      return
+    }
+
+    setSesionActiva(sesion)
+
+    try {
+      const preferencias = await getPreferencias()
+      const cuentaDefault = preferencias?.cuentaBancariaDefaultId || ''
+      const montoDefault = String(Number(sesion.totalVentasEfectivo || 0).toFixed(2))
+      setCierreForm({
+        sesionCajaId: sesion.id,
+        totalVentasEfectivo: Number(sesion.totalVentasEfectivo || 0),
+        distribucionCuentas: cuentaDefault
+          ? [{ cuentaId: cuentaDefault, monto: montoDefault }]
+          : [{ cuentaId: '', monto: montoDefault }],
+      })
+    } catch {
+      setCierreForm({
+        sesionCajaId: sesion.id,
+        totalVentasEfectivo: Number(sesion.totalVentasEfectivo || 0),
+        distribucionCuentas: [{ cuentaId: '', monto: String(Number(sesion.totalVentasEfectivo || 0).toFixed(2)) }],
+      })
+    } finally {
+      setShowCerrarModal(true)
+    }
+  }
+
+  const closeCerrarModal = () => setShowCerrarModal(false)
+
+  const updateDistribucionCuenta = (index, field, value) => {
+    setCierreForm((prev) => ({
+      ...prev,
+      distribucionCuentas: prev.distribucionCuentas.map((row, rowIndex) => (
+        rowIndex === index ? { ...row, [field]: value } : row
+      )),
+    }))
+  }
+
+  const addDistribucionCuenta = () => {
+    setCierreForm((prev) => ({
+      ...prev,
+      distribucionCuentas: [...prev.distribucionCuentas, { cuentaId: '', monto: '' }],
+    }))
+  }
+
+  const removeDistribucionCuenta = (index) => {
+    setCierreForm((prev) => ({
+      ...prev,
+      distribucionCuentas: prev.distribucionCuentas.filter((_, rowIndex) => rowIndex !== index),
+    }))
+  }
+
+  const handleCerrarSesion = async () => {
+    const distribucion = (cierreForm.distribucionCuentas || [])
+      .filter((row) => row?.cuentaId && row?.monto !== '')
+      .map((row) => ({ cuentaId: row.cuentaId, monto: Number(row.monto) }))
+
+    if (!cierreForm.sesionCajaId) {
+      toast.error('No se encontró la sesión de caja a cerrar.')
+      return false
+    }
+    if (distribucion.length === 0) {
+      toast.error('Agrega al menos una cuenta y un monto para depositar.')
+      return false
+    }
+
+    const totalDepositar = distribucion.reduce((sum, item) => sum + Number(item.monto || 0), 0)
+    const totalEsperado = Number(cierreForm.totalVentasEfectivo ?? sesionActiva?.totalVentasEfectivo ?? 0)
+
+    if (Math.abs(totalDepositar - totalEsperado) > 0.0001) {
+      toast.error(`El total a depositar debe ser exactamente ${formatMoney(totalEsperado)}.`)
+      return false
+    }
+
+    setBusyAction('cerrar-sesion')
+    try {
+      const sesion = await cerrarSesionCaja({
+        sesionCajaId: cierreForm.sesionCajaId,
+        distribucionCuentas: distribucion,
+      })
+      setSesionActiva((prev) => (prev ? { ...prev, ...sesion, estado: 'CERRADA' } : sesion))
+      setSesionesRevision((prev) => prev.filter((item) => item.id !== cierreForm.sesionCajaId))
+      await reloadSesionActiva(storedUser?.id)
+      await reloadSesionesRevision()
+      await reloadCajas()
+      toast.success('Turno cerrado correctamente y depósitos registrados.')
+      closeCerrarModal()
+      return true
+    } catch (error) {
+      toast.error(error.message || 'No fue posible cerrar el turno.')
       return false
     } finally {
       setBusyAction(null)
@@ -778,11 +915,15 @@ export function useFacturacion() {
     showCajaModal,
     showSesionModal,
     showRevisarModal,
+    showCerrarModal,
     sesionActiva,
+    sesionesRevision,
     sesionForm,
     revisarForm,
+    cierreForm,
     reloadCajas,
     reloadSesionActiva,
+    reloadSesionesRevision,
     openCajaModal,
     openEditCajaModal,
     closeCajaModal,
@@ -797,6 +938,13 @@ export function useFacturacion() {
     closeRevisarModal,
     setRevisarForm,
     handleRevisarSesion,
+    openCerrarModal,
+    closeCerrarModal,
+    setCierreForm,
+    updateDistribucionCuenta,
+    addDistribucionCuenta,
+    removeDistribucionCuenta,
+    handleCerrarSesion,
     isAdmin,
     isCajero,
     sesionCargada,

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
+  Banknote,
+  CheckCircle2,
   ClipboardCheck,
   Edit2,
   MonitorCheck,
@@ -289,52 +291,176 @@ function RevisarModal({
   );
 }
 
+function CerrarModal({
+  isOpen,
+  sesionActiva,
+  form,
+  onChange,
+  onAddRow,
+  onRemoveRow,
+  onSubmit,
+  onClose,
+  isSubmitting,
+}) {
+  const totalDepositar = (form.distribucionCuentas || []).reduce(
+    (sum, row) => sum + Number(row.monto || 0),
+    0
+  );
+  const totalEsperado = Number(sesionActiva?.totalVentasEfectivo || 0);
+
+  return (
+    <ModalShell
+      isOpen={isOpen && Boolean(sesionActiva)}
+      title="Depositar y cerrar turno"
+      description="Distribuye el dinero en efectivo en las cuentas para cerrar definitivamente la caja."
+      onClose={onClose}
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={isSubmitting}
+            className="inline-flex h-9 items-center rounded-md bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {isSubmitting ? "Cerrando..." : "Cerrar turno"}
+          </button>
+        </>
+      }
+    >
+      {sesionActiva ? (
+        <div className="space-y-4">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-300">
+            <div className="flex items-center gap-2 font-semibold">
+              <Banknote className="h-4 w-4" />
+              <span>Total esperado de ventas en efectivo</span>
+            </div>
+            <p className="mt-1 text-lg font-black">{money(totalEsperado)}</p>
+          </div>
+
+          {form.distribucionCuentas.map((row, index) => (
+            <div key={`${row.cuentaId || "row"}-${index}`} className="grid gap-3 sm:grid-cols-[1fr_140px_auto]">
+              <Field label={`Cuenta ${index + 1}`}>
+                <input
+                  value={row.cuentaId}
+                  onChange={(e) => onChange(index, "cuentaId", e.target.value)}
+                  className={inputClass}
+                  placeholder="ID de cuenta"
+                />
+              </Field>
+              <Field label="Monto">
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={row.monto}
+                  onChange={(e) => onChange(index, "monto", e.target.value)}
+                  className={inputClass}
+                  placeholder="0.00"
+                />
+              </Field>
+              <button
+                type="button"
+                onClick={() => onRemoveRow(index)}
+                disabled={(form.distribucionCuentas || []).length === 1}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 px-3 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={onAddRow}
+            className="inline-flex items-center gap-2 rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            <Plus className="h-4 w-4" />
+            Agregar cuenta
+          </button>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Total a depositar</span>
+              <span className="font-bold text-slate-950 dark:text-slate-50">{money(totalDepositar)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-slate-500">Diferencia</span>
+              <span className={totalDepositar === totalEsperado ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>
+                {money(totalDepositar - totalEsperado)}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </ModalShell>
+  );
+}
+
 export default function CajasView() {
   const f = useOutletContext();
   const { isCajero } = f; // ← agregar esta línea
 
   useEffect(() => {
     f.reloadCajas();
+    f.reloadSesionesRevision();
   }, []);
 
   return (
     <div className="space-y-4">
-      {f.isCajero &&
-        (f.sesionActiva ? (
-          <div
-            className={`rounded-2xl border p-4 ${
-              f.sesionActiva.estado === "ABIERTA"
-                ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20"
-                : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20"
-            }`}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className={labelClass}>Tu turno activo</p>
-                <p className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">
-                  {f.sesionActiva.caja?.codigo} —{" "}
-                  {f.sesionActiva.caja?.descripcion}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Apertura: $
-                  {Number(f.sesionActiva.montoApertura || 0).toFixed(2)} ·
-                  Facturas: {f.sesionActiva.cantidadFacturas} · Estado:{" "}
-                  <strong>{f.sesionActiva.estado}</strong>
-                </p>
-              </div>
-              {f.sesionActiva.estado === "ABIERTA" && (
-                <button
-                  type="button"
-                  onClick={f.openRevisarModal}
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600"
-                >
-                  <ClipboardCheck className="h-4 w-4" />
-                  Enviar a revisión
-                </button>
-              )}
+      {f.sesionActiva ? (
+        <div
+          className={`rounded-2xl border p-4 ${
+            f.sesionActiva.estado === "ABIERTA"
+              ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20"
+              : f.sesionActiva.estado === "EN_REVISION"
+              ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20"
+              : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900"
+          }`}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className={labelClass}>
+                {f.isCajero ? "Tu turno activo" : "Turno de caja actual"}
+              </p>
+              <p className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">
+                {f.sesionActiva.caja?.codigo} — {f.sesionActiva.caja?.descripcion}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Apertura: ${Number(f.sesionActiva.montoApertura || 0).toFixed(2)} ·
+                Facturas: {f.sesionActiva.cantidadFacturas} · Estado: {" "}
+                <strong>{f.sesionActiva.estado}</strong>
+              </p>
             </div>
+            {f.sesionActiva.estado === "ABIERTA" && f.isCajero && (
+              <button
+                type="button"
+                onClick={f.openRevisarModal}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                Enviar a revisión
+              </button>
+            )}
+            {!f.isCajero && f.sesionActiva.estado === "EN_REVISION" && (
+              <button
+                type="button"
+                onClick={() => f.openCerrarModal?.(f.sesionActiva)}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Depositar y cerrar
+              </button>
+            )}
           </div>
-        ) : null)}
+        </div>
+      ) : null}
 
       <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
         <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
@@ -463,6 +589,17 @@ export default function CajasView() {
         }
         onSubmit={f.handleRevisarSesion}
         onClose={f.closeRevisarModal}
+        isSubmitting={f.isSubmitting}
+      />
+      <CerrarModal
+        isOpen={f.showCerrarModal}
+        sesionActiva={f.sesionActiva}
+        form={f.cierreForm}
+        onChange={(index, field, value) => f.updateDistribucionCuenta(index, field, value)}
+        onAddRow={f.addDistribucionCuenta}
+        onRemoveRow={f.removeDistribucionCuenta}
+        onSubmit={f.handleCerrarSesion}
+        onClose={f.closeCerrarModal}
         isSubmitting={f.isSubmitting}
       />
     </div>
