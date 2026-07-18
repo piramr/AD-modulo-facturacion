@@ -37,6 +37,7 @@ import {
 } from '../api/facturacionService'
 
 import { getStoredUser } from '../api/authService'
+import { getRoleFlags } from '../utils/roles'
 
 const THEME_KEY = 'facturacion-theme'
 const INITIAL_CLIENT_FORM = {
@@ -76,6 +77,9 @@ const getSectionFromPath = (pathname) => {
   if (pathname.includes('/reportes')) return 'Reportes'
   if (pathname.includes('/cajas')) return 'Cajas'
   if (pathname.includes('/cuentas')) return 'Cuentas'
+  if (pathname.includes('/turnos-revision')) return 'Turnos en revision'
+  if (pathname.includes('/saldos')) return 'Saldos'
+  if (pathname.includes('/ajustes')) return 'Ajustes'
   return 'Resumen'
 }
 
@@ -113,17 +117,7 @@ export function useFacturacion() {
 
   // ── ROL DEL USUARIO ───────────────────────────────────────────────────────────
   const storedUser = getStoredUser()
-  const userRoles = useMemo(() => (
-    (storedUser?.roles || [])
-      .map((rol) => {
-        if (typeof rol === 'string') return rol
-        return rol?.nombreRol || rol?.name || ''
-      })
-      .map((rol) => rol.toUpperCase())
-      .filter(Boolean)
-  ), [storedUser])
-  const isAdmin = userRoles.some((rol) => rol.includes('ADMIN') || rol.includes('FAC_ADMIN'))
-  const isCajero = userRoles.some((rol) => rol.includes('CAJERO') || rol.includes('FAC_CAJERO'))
+  const { roles: userRoles, isAdmin, isCajero } = useMemo(() => getRoleFlags(storedUser), [storedUser])
 
   // ── SESIÓN INICIAL ────────────────────────────────────────────────────────────
   const [sesionCargada, setSesionCargada] = useState(false)

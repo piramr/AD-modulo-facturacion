@@ -7,42 +7,48 @@ import {
   ChevronsRight,
   ClipboardList,
   Clock3,
-  CreditCard,
   FileText,
   LayoutDashboard,
   LogOut,
   Menu,
   Moon,
   Search,
+  Settings,
   Sun,
   Users,
+  WalletCards,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { getRoleFlags } from '../../utils/roles'
 
 const navigationGroups = [
   {
     label: 'Principal',
     items: [
-      { label: 'Resumen', to: '/facturacion/resumen', icon: LayoutDashboard },
-      { label: 'Cajas', to: '/facturacion/cajas', icon: BadgeDollarSign },
-      { label: 'Turnos revisión', to: '/facturacion/turnos-revision', icon: Clock3, adminOnly: true },
-      { label: 'Cuentas', to: '/facturacion/cuentas', icon: CreditCard },
+      { label: 'Resumen', to: '/facturacion/resumen', icon: LayoutDashboard, roles: ['admin', 'cajero'] },
     ],
   },
   {
-    label: 'Operacion',
+    label: 'Administrador',
     items: [
-      { label: 'Clientes', to: '/facturacion/clientes', icon: Users },
-      { label: 'Facturas', to: '/facturacion/facturas', icon: FileText },
-      { label: 'Reportes', to: '/facturacion/reportes', icon: ClipboardList },
+      { label: 'Cajas', to: '/facturacion/cajas', icon: BadgeDollarSign, roles: ['admin'] },
+      { label: 'Turnos revision', to: '/facturacion/turnos-revision', icon: Clock3, roles: ['admin'] },
+      { label: 'Saldos', to: '/facturacion/saldos', icon: WalletCards, roles: ['admin'] },
+      { label: 'Ajustes', to: '/facturacion/ajustes', icon: Settings, roles: ['admin'] },
+    ],
+  },
+  {
+    label: 'Cajero',
+    items: [
+      { label: 'Facturacion', to: '/facturacion/facturas', icon: FileText, roles: ['cajero'] },
+      { label: 'Clientes', to: '/facturacion/clientes', icon: Users, roles: ['cajero'] },
+      { label: 'Reportes', to: '/facturacion/reportes', icon: ClipboardList, roles: ['cajero'] },
     ],
   },
 ]
 
-function SidebarLink({ item, sidebarOpen, isAdmin }) {
+function SidebarLink({ item, sidebarOpen }) {
   const Icon = item.icon
-
-  if (item.adminOnly && !isAdmin) return null
 
   return (
     <NavLink
@@ -75,12 +81,22 @@ export default function FacturacionLayout({
   onToggleUserMenu,
   onLogout,
   user,
-  isCajero,
   children,
 }) {
   const displayName = user?.userName || user?.user_name || 'Usuario'
   const displayEmail = user?.email || 'Sesion de facturacion'
   const roles = user?.roles || []
+  const roleFlags = getRoleFlags(user)
+  const visibleGroups = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => (
+        item.roles.includes('admin') && roleFlags.isAdmin
+      ) || (
+        item.roles.includes('cajero') && roleFlags.isCajero
+      )),
+    }))
+    .filter((group) => group.items.length > 0)
   const roleLabel = Array.isArray(roles) && roles.length > 0
     ? roles.map((rol) => rol.nombreRol || rol).join(', ')
     : 'Operador'
@@ -107,7 +123,7 @@ export default function FacturacionLayout({
           </div>
 
           <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
-            {navigationGroups.map((group) => (
+            {visibleGroups.map((group) => (
               <div key={group.label}>
                 {sidebarOpen ? (
                   <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
@@ -116,7 +132,7 @@ export default function FacturacionLayout({
                 ) : null}
                 <div className="space-y-1">
                   {group.items.map((item) => (
-                    <SidebarLink key={item.to} item={item} sidebarOpen={sidebarOpen} isAdmin={!isCajero} />
+                    <SidebarLink key={item.to} item={item} sidebarOpen={sidebarOpen} />
                   ))}
                 </div>
               </div>

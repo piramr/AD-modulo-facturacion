@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
+  ArrowLeft,
   BadgeCheck,
   Building2,
   Eye,
   EyeOff,
   KeyRound,
   LockKeyhole,
+  Mail,
   Moon,
   ShieldCheck,
   Sparkles,
@@ -14,15 +16,21 @@ import {
   UserRound,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
-import { getStoredToken, login } from '../api/authService'
+import { getStoredToken, login, requestPasswordResetCode, resetPassword } from '../api/authService'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [authStep, setAuthStep] = useState('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [recoveryEmail, setRecoveryEmail] = useState('')
+  const [recoveryCode, setRecoveryCode] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [themeMode, setThemeMode] = useState(() =>
     typeof window !== 'undefined' && window.document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   )
@@ -50,6 +58,65 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleRequestCode = async (event) => {
+    event.preventDefault()
+    const email = recoveryEmail.trim()
+    if (!email) {
+      toast.error('Ingresa tu correo electronico.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await requestPasswordResetCode(email)
+      toast.success(response.message || 'Codigo enviado al correo.')
+      setAuthStep('reset')
+    } catch (error) {
+      toast.error(error.message || 'No fue posible enviar el codigo.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault()
+    if (!recoveryEmail.trim() || !recoveryCode.trim() || !newPassword || !confirmPassword) {
+      toast.error('Completa todos los campos.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contrasenas no coinciden.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await resetPassword({
+        email: recoveryEmail.trim(),
+        codigo: recoveryCode.trim(),
+        newPassword,
+      })
+      toast.success(response.message || 'Contrasena actualizada con exito.')
+      setAuthStep('login')
+      setPassword('')
+      setRecoveryCode('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      toast.error(error.message || 'No fue posible restablecer la contrasena.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const goToLogin = () => {
+    setAuthStep('login')
+    setRecoveryCode('')
+    setNewPassword('')
+    setConfirmPassword('')
   }
 
   return (
@@ -117,67 +184,208 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30"
-            >
+            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/30">
               <div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-md bg-slate-950 text-white dark:bg-slate-100 dark:text-slate-950">
-                  <LockKeyhole className="h-5 w-5" />
+                  {authStep === 'login' ? <LockKeyhole className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
                 </div>
-                <h2 className="mt-5 text-2xl font-semibold tracking-normal">Iniciar sesion</h2>
+                <h2 className="mt-5 text-2xl font-semibold tracking-normal">
+                  {authStep === 'login' && 'Iniciar sesion'}
+                  {authStep === 'forgot' && 'Recuperar contrasena'}
+                  {authStep === 'reset' && 'Restablecer contrasena'}
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Usa las credenciales asignadas en el modulo de Seguridad.
+                  {authStep === 'login'
+                    ? 'Usa las credenciales asignadas en el modulo de Seguridad.'
+                    : 'El modulo de Seguridad enviara y validara el codigo de recuperacion.'}
                 </p>
               </div>
 
-              <div className="mt-6 space-y-4">
-                <label className="block space-y-1.5">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Usuario</span>
-                  <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition-within focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
-                    <UserRound className="h-4 w-4" />
-                    <input
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
-                      placeholder="Ingresa tu usuario"
-                      autoComplete="username"
-                    />
-                  </span>
-                </label>
+              {authStep === 'login' ? (
+                <form onSubmit={handleSubmit}>
+                  <div className="mt-6 space-y-4">
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Usuario</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition-within focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <UserRound className="h-4 w-4" />
+                        <input
+                          value={username}
+                          onChange={(event) => setUsername(event.target.value)}
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="Ingresa tu usuario"
+                          autoComplete="username"
+                        />
+                      </span>
+                    </label>
 
-                <label className="block space-y-1.5">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Contrasena</span>
-                  <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
-                    <KeyRound className="h-4 w-4" />
-                    <input
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      type={showPassword ? 'text' : 'password'}
-                      className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
-                      placeholder="Ingresa tu contrasena"
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((current) => !current)}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                      aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </span>
-                </label>
-              </div>
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Contrasena</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <KeyRound className="h-4 w-4" />
+                        <input
+                          value={password}
+                          onChange={(event) => setPassword(event.target.value)}
+                          type={showPassword ? 'text' : 'password'}
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="Ingresa tu contrasena"
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((current) => !current)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                          aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </span>
+                    </label>
+                  </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting || !username.trim() || !password}
-                className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
-              >
-                {isSubmitting ? 'Validando acceso...' : 'Ingresar al modulo'}
-              </button>
-            </form>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !username.trim() || !password}
+                    className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+                  >
+                    {isSubmitting ? 'Validando acceso...' : 'Ingresar al modulo'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAuthStep('forgot')}
+                    className="mt-3 inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+                  >
+                    Recuperar contrasena
+                  </button>
+                </form>
+              ) : null}
+
+              {authStep === 'forgot' ? (
+                <form onSubmit={handleRequestCode}>
+                  <div className="mt-6 space-y-4">
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Correo electronico</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <Mail className="h-4 w-4" />
+                        <input
+                          value={recoveryEmail}
+                          onChange={(event) => setRecoveryEmail(event.target.value)}
+                          type="email"
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="correo@ejemplo.com"
+                          autoComplete="email"
+                        />
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !recoveryEmail.trim()}
+                    className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+                  >
+                    {isSubmitting ? 'Enviando codigo...' : 'Enviar codigo'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToLogin}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Volver al login
+                  </button>
+                </form>
+              ) : null}
+
+              {authStep === 'reset' ? (
+                <form onSubmit={handleResetPassword}>
+                  <div className="mt-6 space-y-4">
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Correo electronico</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-slate-100 px-3 text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                        <Mail className="h-4 w-4" />
+                        <input
+                          value={recoveryEmail}
+                          onChange={(event) => setRecoveryEmail(event.target.value)}
+                          type="email"
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="correo@ejemplo.com"
+                          autoComplete="email"
+                        />
+                      </span>
+                    </label>
+
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Codigo de recuperacion</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <KeyRound className="h-4 w-4" />
+                        <input
+                          value={recoveryCode}
+                          onChange={(event) => setRecoveryCode(event.target.value)}
+                          className="min-w-0 flex-1 bg-transparent text-sm uppercase text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="A1B2C3"
+                          autoComplete="one-time-code"
+                        />
+                      </span>
+                    </label>
+
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Nueva contrasena</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <LockKeyhole className="h-4 w-4" />
+                        <input
+                          value={newPassword}
+                          onChange={(event) => setNewPassword(event.target.value)}
+                          type={showNewPassword ? 'text' : 'password'}
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="Nueva contrasena"
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword((current) => !current)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                          aria-label={showNewPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </span>
+                    </label>
+
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Confirmar contrasena</span>
+                      <span className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-500 transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:focus-within:border-slate-600 dark:focus-within:ring-slate-800">
+                        <LockKeyhole className="h-4 w-4" />
+                        <input
+                          value={confirmPassword}
+                          onChange={(event) => setConfirmPassword(event.target.value)}
+                          type={showNewPassword ? 'text' : 'password'}
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                          placeholder="Confirma tu contrasena"
+                          autoComplete="new-password"
+                        />
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !recoveryEmail.trim() || !recoveryCode.trim() || !newPassword || !confirmPassword}
+                    className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+                  >
+                    {isSubmitting ? 'Actualizando...' : 'Restablecer contrasena'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToLogin}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Volver al login
+                  </button>
+                </form>
+              ) : null}
+            </div>
           </div>
         </section>
       </div>

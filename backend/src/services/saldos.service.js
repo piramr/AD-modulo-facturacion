@@ -21,6 +21,20 @@ async function obtenerSaldoCuenta(cuentaId) {
   return cuenta;
 }
 
+async function listarSaldosCuenta() {
+  return await SaldoCuenta.findAll({
+    order: [['ultimaActualizacion', 'DESC']],
+    include: [{ model: MovimientoCuenta, as: 'movimientos' }]
+  });
+}
+
+async function listarMovimientosCuenta(limit = 10) {
+  return await MovimientoCuenta.findAll({
+    limit,
+    order: [['fechaMovimiento', 'DESC']]
+  });
+}
+
 /**
  * Lista todas las cuentas bancarias registradas con sus movimientos.
  */
@@ -141,6 +155,7 @@ async function inactivarSaldoCuenta(id) {
 module.exports = {
   obtenerSaldoCuenta,
   obtenerSaldosCuentas,
+  listarMovimientosCuenta,
   registrarMovimiento,
   crearSaldoCuenta,
   actualizarSaldoCuenta,

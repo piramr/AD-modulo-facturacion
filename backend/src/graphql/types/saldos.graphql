@@ -44,6 +44,7 @@ extend type Query {
   saldoCuenta(cuentaId: ID!): SaldoCuenta!
   """Lista todas las cuentas bancarias registradas con sus saldos y movimientos"""
   obtenerSaldosCuentas: [SaldoCuenta!]!
+  movimientosCuenta(limit: Int): [MovimientoCuenta!]!
 }
 
 extend type Mutation {

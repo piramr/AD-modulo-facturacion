@@ -2,6 +2,10 @@ const AUTH_TOKEN_KEY = 'facturacion-auth-token'
 const AUTH_USER_KEY = 'facturacion-auth-user'
 const SEGURIDAD_GRAPHQL_URL =
   import.meta.env.VITE_SEGURIDAD_GRAPHQL_URL || 'https://proyecto-moduloseguridad.onrender.com/graphql'
+const SEGURIDAD_API_URL = (
+  import.meta.env.VITE_SEGURIDAD_API_URL ||
+  SEGURIDAD_GRAPHQL_URL.replace(/\/graphql\/?$/, '')
+).replace(/\/$/, '')
 
 async function requestSeguridad(query, variables = {}, token = '') {
   const headers = { 'Content-Type': 'application/json' }
@@ -18,6 +22,21 @@ async function requestSeguridad(query, variables = {}, token = '') {
     throw new Error(json.errors[0]?.message || 'No fue posible comunicarse con Seguridad.')
   }
   return json.data
+}
+
+async function requestSeguridadRest(path, body) {
+  const response = await fetch(`${SEGURIDAD_API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  const json = await response.json().catch(() => ({}))
+  if (!response.ok || json.success === false) {
+    throw new Error(json.message || 'No fue posible completar la solicitud en Seguridad.')
+  }
+
+  return json
 }
 
 export function getStoredToken() {
@@ -100,4 +119,16 @@ export async function getCurrentUser(token = getStoredToken()) {
 
   const data = await requestSeguridad(query, {}, token)
   return data?.me || null
+}
+
+export async function requestPasswordResetCode(email) {
+  return requestSeguridadRest('/api/auth/forgot-password/', { email })
+}
+
+export async function resetPassword({ email, codigo, newPassword }) {
+  return requestSeguridadRest('/api/auth/reset-password/', {
+    email,
+    codigo,
+    new_password: newPassword,
+  })
 }

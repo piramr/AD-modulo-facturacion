@@ -7,6 +7,9 @@ const saldoResolvers = {
     },
     obtenerSaldosCuentas: async () => {
       return await saldosService.obtenerSaldosCuentas();
+    },
+    movimientosCuenta: async (_, { limit }) => {
+      return await saldosService.listarMovimientosCuenta(limit || 10);
     }
   },
 

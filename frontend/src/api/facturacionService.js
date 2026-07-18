@@ -361,21 +361,6 @@ export const downloadReporteClientesPdf = (token = '') =>
 export const downloadReporteFacturasPdf = (token = '') =>
   downloadPdf('/api/reportes/facturas?format=pdf', 'reporte-facturas.pdf', token)
 
-export async function getPreferencias(token = '') {
-  const query = `
-    query ObtenerPreferencias {
-      obtenerPreferencias {
-        id
-        nombreEmpresa
-        rucEmpresa
-        porcentajeIva
-        cuentaBancariaDefaultId
-      }
-    }
-  `
-  return (await fetchGraphQL(query, {}, token)).obtenerPreferencias
-}
-
 export async function getSaldosCuentas(token = '') {
   const query = `
     query ObtenerSaldosCuentas {
@@ -527,4 +512,86 @@ export async function cerrarSesionCaja(input, token = '') {
     }
   `
   return (await fetchGraphQL(mutation, { input }, token)).cerrarSesionCaja
+}
+
+export async function getPreferencias(token = '') {
+  const query = `
+    query ObtenerPreferencias {
+      obtenerPreferencias {
+        id
+        nombreEmpresa
+        rucEmpresa
+        porcentajeIva
+        cuentaBancariaDefaultId
+      }
+    }
+  `
+  return (await fetchGraphQL(query, {}, token)).obtenerPreferencias
+}
+
+export async function updatePreferencias(input, token = '') {
+  const mutation = `
+    mutation ActualizarPreferencias($input: ActualizarPreferenciasInput!) {
+      actualizarPreferencias(input: $input) {
+        id
+        nombreEmpresa
+        rucEmpresa
+        porcentajeIva
+        cuentaBancariaDefaultId
+      }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).actualizarPreferencias
+}
+
+export async function getMovimientosCuenta(limit = 10, token = '') {
+  const query = `
+    query MovimientosCuenta($limit: Int) {
+      movimientosCuenta(limit: $limit) {
+        id
+        cuentaId
+        tipo
+        monto
+        descripcion
+        referencia
+        fechaMovimiento
+      }
+    }
+  `
+  return (await fetchGraphQL(query, { limit }, token)).movimientosCuenta
+}
+
+export async function getSaldoCuenta(cuentaId, token = '') {
+  const query = `
+    query SaldoCuenta($cuentaId: ID!) {
+      saldoCuenta(cuentaId: $cuentaId) {
+        cuentaId
+        saldoActual
+        ultimaActualizacion
+        movimientos {
+          id
+          cuentaId
+          tipo
+          monto
+          descripcion
+          referencia
+          fechaMovimiento
+        }
+      }
+    }
+  `
+  return (await fetchGraphQL(query, { cuentaId }, token)).saldoCuenta
+}
+
+export async function createSaldoCuenta(input, token = '') {
+  const mutation = `
+    mutation CrearSaldoCuenta($input: CrearSaldoCuentaInput!) {
+      crearSaldoCuenta(input: $input) {
+        cuentaId
+        saldoActual
+        ultimaActualizacion
+      }
+    }
+  `
+  return (await fetchGraphQL(mutation, { input }, token)).crearSaldoCuenta
 }
