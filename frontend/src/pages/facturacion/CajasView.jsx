@@ -405,7 +405,8 @@ function CerrarModal({
 
 export default function CajasView() {
   const f = useOutletContext();
-  const { isCajero } = f; // ← agregar esta línea
+  const { isAdmin, isCajero } = f;
+  const canManageCajas = isAdmin;
 
   useEffect(() => {
     f.reloadCajas();
@@ -414,6 +415,7 @@ export default function CajasView() {
 
   return (
     <div className="space-y-4">
+<<<<<<< HEAD
       {f.sesionActiva ? (
         <div
           className={`rounded-2xl border p-4 ${
@@ -437,6 +439,41 @@ export default function CajasView() {
                 Facturas: {f.sesionActiva.cantidadFacturas} · Estado: {" "}
                 <strong>{f.sesionActiva.estado}</strong>
               </p>
+=======
+      {f.isCajero &&
+        (f.sesionActiva ? (
+          <div
+            className={`rounded-2xl border p-4 ${
+              f.sesionActiva.estado === "ABIERTA"
+                ? "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20"
+                : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20"
+            }`}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className={labelClass}>Tu turno activo</p>
+                <p className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">
+                  {f.sesionActiva.caja?.codigo} -{" "}
+                  {f.sesionActiva.caja?.descripcion}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Apertura: $
+                  {Number(f.sesionActiva.montoApertura || 0).toFixed(2)} -
+                  Facturas: {f.sesionActiva.cantidadFacturas} - Estado:{" "}
+                  <strong>{f.sesionActiva.estado}</strong>
+                </p>
+              </div>
+              {f.sesionActiva.estado === "ABIERTA" && (
+                <button
+                  type="button"
+                  onClick={f.openRevisarModal}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white hover:bg-amber-600"
+                >
+                  <ClipboardCheck className="h-4 w-4" />
+                  Enviar a revision
+                </button>
+              )}
+>>>>>>> c5cee7f123899442713366d4de8fd137e6e3c09a
             </div>
             {f.sesionActiva.estado === "ABIERTA" && f.isCajero && (
               <button
@@ -472,14 +509,16 @@ export default function CajasView() {
               {f.cajas.length} cajas registradas
             </p>
           </div>
-          <button
-            type="button"
-            onClick={f.openCajaModal}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva caja
-          </button>
+          {canManageCajas ? (
+            <button
+              type="button"
+              onClick={f.openCajaModal}
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva caja
+            </button>
+          ) : null}
         </div>
 
         <div className="overflow-x-auto">
@@ -528,7 +567,7 @@ export default function CajasView() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        {!isCajero && (
+                        {canManageCajas ? (
                           <button
                             type="button"
                             onClick={() => f.openEditCajaModal(caja)}
@@ -537,8 +576,8 @@ export default function CajasView() {
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
-                        )}
-                        {caja.estado === "ACTIVO" ? (
+                        ) : null}
+                        {canManageCajas && caja.estado === "ACTIVO" ? (
                           <button
                             type="button"
                             onClick={() =>
