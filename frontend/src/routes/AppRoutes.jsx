@@ -8,8 +8,6 @@ import FacturasView from "../pages/facturacion/FacturasView";
 import ReportesView from "../pages/facturacion/ReportesView";
 import ResumenView from "../pages/facturacion/ResumenView";
 import CajasView from "../pages/facturacion/CajasView";
-import CuentasView from "../pages/facturacion/CuentasView";
-import TurnosRevisionView from "../pages/facturacion/TurnosRevisionView";
 import LoginPage from "../pages/LoginPage";
 import SaldosView from "../pages/facturacion/SaldosView";
 
@@ -41,8 +39,6 @@ export default function AppRoutes() {
         <Route path="facturas" element={<RoleRoute allowedRoles={["cajero"]}><FacturasView /></RoleRoute>} />
         <Route path="reportes" element={<RoleRoute allowedRoles={["cajero"]}><ReportesView /></RoleRoute>} />
         <Route path="cajas" element={<RoleRoute allowedRoles={["admin"]}><CajasView /></RoleRoute>} />
-        <Route path="turnos-revision" element={<RoleRoute allowedRoles={["admin"]}><TurnosRevisionView /></RoleRoute>} />
-        <Route path="cuentas" element={<RoleRoute allowedRoles={["admin"]}><CuentasView /></RoleRoute>} />
         <Route path="saldos" element={<RoleRoute allowedRoles={["admin"]}><SaldosView /></RoleRoute>} />
         <Route path="ajustes" element={<RoleRoute allowedRoles={["admin"]}><AjustesView /></RoleRoute>} />
       </Route>

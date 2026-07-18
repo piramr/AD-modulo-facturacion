@@ -3,13 +3,11 @@ import { Search, WalletCards } from 'lucide-react'
 import { toast } from 'react-toastify'
 import PanelCard from '../../components/facturacion/PanelCard'
 import {
-  createSaldoCuenta,
   getMovimientosCuenta,
   getSaldoCuenta,
   getSaldosCuentas,
 } from '../../api/facturacionService'
 
-const inputClass = 'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100 disabled:text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-600 dark:focus:ring-slate-800 dark:disabled:bg-slate-900'
 const money = (value) => `$${Number(value || 0).toFixed(2)}`
 const dateText = (value) => (value ? new Date(value).toLocaleString() : 'Sin fecha')
 
@@ -18,8 +16,6 @@ export default function SaldosView() {
   const [movimientos, setMovimientos] = useState([])
   const [selectedSaldo, setSelectedSaldo] = useState(null)
   const [searchCuentaId, setSearchCuentaId] = useState('')
-  const [newCuentaId, setNewCuentaId] = useState('')
-  const [newSaldoInicial, setNewSaldoInicial] = useState('0')
   const [isLoading, setIsLoading] = useState(true)
   const [busyAction, setBusyAction] = useState('')
 
@@ -66,33 +62,9 @@ export default function SaldosView() {
     }
   }
 
-  const handleCrearCuenta = async (event) => {
-    event.preventDefault()
-    if (!newCuentaId.trim()) {
-      toast.error('Ingresa el ID de la cuenta bancaria.')
-      return
-    }
-
-    setBusyAction('crear')
-    try {
-      await createSaldoCuenta({
-        cuentaId: newCuentaId.trim(),
-        saldoActual: Number(newSaldoInicial || 0),
-      })
-      toast.success('Cuenta inicializada correctamente.')
-      setNewCuentaId('')
-      setNewSaldoInicial('0')
-      await reload()
-    } catch (error) {
-      toast.error(error.message || 'No fue posible inicializar la cuenta.')
-    } finally {
-      setBusyAction('')
-    }
-  }
-
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+      <section>
         <PanelCard title="Saldos de cuentas bancarias">
           <div className="space-y-4">
             <form onSubmit={handleBuscarCuenta} className="flex flex-col gap-2 sm:flex-row">
@@ -148,40 +120,6 @@ export default function SaldosView() {
               )}
             </div>
           </div>
-        </PanelCard>
-
-        <PanelCard title="Inicializar cuenta">
-          <form onSubmit={handleCrearCuenta} className="space-y-4">
-            <label className="block space-y-1">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Cuenta bancaria CXC</span>
-              <input
-                value={newCuentaId}
-                onChange={(event) => setNewCuentaId(event.target.value)}
-                disabled={busyAction === 'crear'}
-                className={inputClass}
-                placeholder="UUID de cuenta"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Saldo inicial</span>
-              <input
-                value={newSaldoInicial}
-                onChange={(event) => setNewSaldoInicial(event.target.value)}
-                disabled={busyAction === 'crear'}
-                type="number"
-                min={0}
-                step="0.01"
-                className={inputClass}
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={busyAction === 'crear'}
-              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
-            >
-              {busyAction === 'crear' ? 'Inicializando...' : 'Inicializar cuenta'}
-            </button>
-          </form>
         </PanelCard>
       </section>
 

@@ -6,9 +6,11 @@ import {
   MonitorCheck,
   Plus,
   Power,
+  Settings,
   X,
 } from "lucide-react";
 import StatusBadge from "../../components/facturacion/StatusBadge";
+import TurnosRevisionView from "./TurnosRevisionView";
 
 const inputClass =
   "w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-600 dark:focus:ring-slate-800";
@@ -291,7 +293,6 @@ function RevisarModal({
 
 export default function CajasView() {
   const f = useOutletContext();
-  const { isCajero } = f; // ← agregar esta línea
 
   useEffect(() => {
     f.reloadCajas();
@@ -299,7 +300,7 @@ export default function CajasView() {
 
   return (
     <div className="space-y-4">
-      {f.isCajero &&
+      {false && f.isCajero &&
         (f.sesionActiva ? (
           <div
             className={`rounded-2xl border p-4 ${
@@ -402,16 +403,22 @@ export default function CajasView() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        {!isCajero && (
-                          <button
-                            type="button"
-                            onClick={() => f.openEditCajaModal(caja)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                            title="Editar"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => f.openEditCajaModal(caja)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                          title="Editar"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => f.openEditCajaModal(caja)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                          title="Configurar"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </button>
                         {caja.estado === "ACTIVO" ? (
                           <button
                             type="button"
@@ -433,6 +440,8 @@ export default function CajasView() {
           )}
         </div>
       </section>
+
+      <TurnosRevisionView />
 
       <CajaModal
         isOpen={f.showCajaModal}

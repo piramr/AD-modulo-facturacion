@@ -56,11 +56,13 @@
 
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { ClipboardCheck } from 'lucide-react'
 import FilterPanel from '../../components/facturacion/FilterPanel'
 import InvoicesTable from '../../components/facturacion/InvoicesTable'
 import PaginationControls from '../../components/facturacion/PaginationControls'
 import RecordModal from '../../components/facturacion/RecordModal'
 import RecordsToolbar from '../../components/facturacion/RecordsToolbar'
+import RevisarSesionModal from '../../components/facturacion/RevisarSesionModal'
 
 export default function FacturasView() {
   const facturacion = useOutletContext()
@@ -90,6 +92,29 @@ export default function FacturasView() {
 
   return (
     <div className="space-y-4">
+      {facturacion.sesionActiva?.estado === 'ABIERTA' ? (
+        <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/20">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                Turno activo en {facturacion.sesionActiva.caja?.codigo || 'caja'}
+              </p>
+              <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
+                Al finalizar, cuenta el efectivo fisico y envia el turno a revision para ver el resumen.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={facturacion.openRevisarModal}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-amber-500 px-4 text-sm font-bold text-white transition hover:bg-amber-600"
+            >
+              <ClipboardCheck className="h-4 w-4" />
+              Enviar turno a revision
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <RecordsToolbar
         count={records.length}
         searchQuery={facturacion.searchQuery}
@@ -111,6 +136,15 @@ export default function FacturasView() {
       <InvoicesTable records={records} onDelete={facturacion.handleDeleteFactura} onPrint={facturacion.handlePrintFactura} isDeleting={facturacion.isSubmitting} />
       <PaginationControls pageInfo={facturacion.facturasPageInfo} onPageChange={facturacion.setFacturasPage} />
       <RecordModal isOpen={facturacion.showFacturaModal} mode="factura" title="Emitir factura" form={facturacion.facturaForm} onFieldChange={facturacion.handleInvoiceFieldChange} onClose={facturacion.closeModal} onSubmit={facturacion.handleSubmit} clients={facturacion.availableClients} products={facturacion.availableProducts} isSubmitting={facturacion.isSubmitting} detailForm={facturacion.detalleForm} detailItems={facturacion.detalleItems} onDetailFieldChange={facturacion.handleDetalleFieldChange} onAddDetail={facturacion.addDetalleItem} onRemoveDetail={facturacion.removeDetalleItem} totals={facturacion.facturaTotals} />
+      <RevisarSesionModal
+        isOpen={facturacion.showRevisarModal}
+        sesionActiva={facturacion.sesionActiva}
+        form={facturacion.revisarForm}
+        onChange={(field, value) => facturacion.setRevisarForm((prev) => ({ ...prev, [field]: value }))}
+        onSubmit={facturacion.handleRevisarSesion}
+        onClose={facturacion.closeRevisarModal}
+        isSubmitting={facturacion.isSubmitting}
+      />
     </div>
   )
 }

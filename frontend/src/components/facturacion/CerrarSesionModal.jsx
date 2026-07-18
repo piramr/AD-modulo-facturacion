@@ -60,6 +60,8 @@ export default function CerrarSesionModal({
     0
   );
   const totalEsperado = Number(sesionActiva?.totalVentasEfectivo || 0);
+  const diferencia = Number((totalDepositar - totalEsperado).toFixed(2));
+  const puedeCerrar = Math.abs(diferencia) < 0.0001;
 
   return (
     <ModalShell
@@ -79,7 +81,7 @@ export default function CerrarSesionModal({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !puedeCerrar}
             className="inline-flex h-9 items-center rounded-md bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
           >
             {isSubmitting ? "Cerrando..." : "Cerrar turno"}
@@ -145,8 +147,8 @@ export default function CerrarSesionModal({
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-slate-500">Diferencia</span>
-              <span className={totalDepositar === totalEsperado ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>
-                {money(totalDepositar - totalEsperado)}
+              <span className={puedeCerrar ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>
+                {money(diferencia)}
               </span>
             </div>
           </div>

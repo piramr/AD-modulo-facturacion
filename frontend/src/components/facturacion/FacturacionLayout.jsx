@@ -6,7 +6,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
-  Clock3,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -32,7 +31,6 @@ const navigationGroups = [
     label: 'Administrador',
     items: [
       { label: 'Cajas', to: '/facturacion/cajas', icon: BadgeDollarSign, roles: ['admin'] },
-      { label: 'Turnos revision', to: '/facturacion/turnos-revision', icon: Clock3, roles: ['admin'] },
       { label: 'Saldos', to: '/facturacion/saldos', icon: WalletCards, roles: ['admin'] },
       { label: 'Ajustes', to: '/facturacion/ajustes', icon: Settings, roles: ['admin'] },
     ],

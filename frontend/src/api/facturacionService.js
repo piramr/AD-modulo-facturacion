@@ -483,8 +483,21 @@ export async function abrirSesionCaja(input, token = '') {
   const mutation = `
     mutation AbrirSesion($input: AbrirSesionCajaInput!) {
       abrirSesionCaja(input: $input) {
-        id cajaId caja { codigo descripcion } usuarioId
-        fechaApertura montoApertura estado
+        id
+        cajaId
+        caja { id codigo descripcion establecimiento puntoEmision }
+        usuarioId
+        fechaApertura
+        montoApertura
+        cantidadFacturas
+        totalVentasEfectivo
+        totalVentasCredito
+        fechaCierre
+        montoCierreEsperado
+        montoCierreReal
+        faltante
+        sobrante
+        estado
       }
     }
   `

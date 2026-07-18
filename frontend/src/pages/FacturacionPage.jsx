@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import FacturacionLayout from "../components/facturacion/FacturacionLayout";
 import { useFacturacion } from "../hooks/useFacturacion";
 import ConfirmDialog from "../components/facturacion/ConfirmDialog";
@@ -8,6 +8,7 @@ import SeleccionCajaView from "./facturacion/SeleccionCajaView";
 export default function FacturacionPage() {
   const facturacion = useFacturacion();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getStoredUser();
 
   const handleLogout = () => {
@@ -24,8 +25,11 @@ export default function FacturacionPage() {
     );
   }
 
+  const requiereCajaAbierta = location.pathname.startsWith("/facturacion/facturas");
+
   if (
     facturacion.isCajero &&
+    requiereCajaAbierta &&
     (!facturacion.sesionActiva || facturacion.sesionActiva.estado !== "ABIERTA")
   ) {
     return (
