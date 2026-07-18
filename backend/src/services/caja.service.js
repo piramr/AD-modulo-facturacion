@@ -121,6 +121,14 @@ async function obtenerSesionActiva(usuarioId) {
   });
 }
 
+async function obtenerSesionesRevision() {
+  return await SesionCaja.findAll({
+    where: { estado: 'EN_REVISION' },
+    include: [{ model: Caja, as: 'caja' }],
+    order: [['fechaApertura', 'DESC']]
+  });
+}
+
 async function abrirSesionCaja(input) {
   const { cajaId, montoApertura } = input;
 
@@ -196,9 +204,11 @@ async function revisarSesionCaja(input) {
 
   // 1. Contabilizar ventas
   const facturas = await Factura.findAll({
-    where: { 
+    where: {
       sesionCajaId: sesion.id,
-      estado: { [Op.ne]: 'ANULADA' } 
+      estado: {
+        [Op.in]: ['PAGADA', 'PAGO_PENDIENTE']
+      }
     }
   });
 
@@ -339,6 +349,7 @@ module.exports = {
   actualizarCaja,
   inactivarCaja,
   obtenerSesionActiva,
+  obtenerSesionesRevision,
   abrirSesionCaja,
   revisarSesionCaja,
   cerrarSesionCaja

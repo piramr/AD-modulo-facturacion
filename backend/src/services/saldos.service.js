@@ -22,6 +22,17 @@ async function obtenerSaldoCuenta(cuentaId) {
 }
 
 /**
+ * Lista todas las cuentas bancarias registradas con sus movimientos.
+ */
+async function obtenerSaldosCuentas() {
+  return await SaldoCuenta.findAll({
+    where: { estado: 'ACTIVO' },
+    include: [{ model: MovimientoCuenta, as: 'movimientos', order: [['fechaMovimiento', 'DESC']] }],
+    order: [['saldoActual', 'DESC']]
+  });
+}
+
+/**
  * Registra un movimiento y actualiza el saldo en un solo bloque seguro.
  */
 async function registrarMovimiento(input) {
@@ -129,6 +140,7 @@ async function inactivarSaldoCuenta(id) {
 
 module.exports = {
   obtenerSaldoCuenta,
+  obtenerSaldosCuentas,
   registrarMovimiento,
   crearSaldoCuenta,
   actualizarSaldoCuenta,

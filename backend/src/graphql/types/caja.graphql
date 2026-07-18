@@ -80,6 +80,8 @@ extend type Query {
   obtenerCaja(id: ID!): Caja
   """Útil para validar si el usuario actual ya tiene un turno abierto"""
   obtenerSesionActiva(usuarioId: String!): SesionCaja
+  """Lista los turnos que están pendientes de cierre por revisión"""
+  obtenerSesionesRevision: [SesionCaja!]!
 }
 
 extend type Mutation {

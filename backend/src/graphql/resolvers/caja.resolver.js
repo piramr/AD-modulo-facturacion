@@ -10,6 +10,9 @@ const cajaResolvers = {
     },
     obtenerSesionActiva: async (_, { usuarioId }) => {
       return await cajaService.obtenerSesionActiva(usuarioId);
+    },
+    obtenerSesionesRevision: async () => {
+      return await cajaService.obtenerSesionesRevision();
     }
   },
 

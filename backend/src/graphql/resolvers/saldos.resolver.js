@@ -4,6 +4,9 @@ const saldoResolvers = {
   Query: {
     saldoCuenta: async (_, { cuentaId }) => {
       return await saldosService.obtenerSaldoCuenta(cuentaId);
+    },
+    obtenerSaldosCuentas: async () => {
+      return await saldosService.obtenerSaldosCuentas();
     }
   },
 

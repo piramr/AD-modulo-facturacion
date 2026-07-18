@@ -116,6 +116,7 @@ const permissions = {
     obtenerCaja: requiereEstarLogeado,
     obtenerSesionActiva: requiereEstarLogeado,
     saldoCuenta: requiereEstarLogeado,
+    obtenerSaldosCuentas: requiereEstarLogeado,
     facturas: requiereEstarLogeado,
     factura: requiereEstarLogeado,
     productos: requiereEstarLogeado,

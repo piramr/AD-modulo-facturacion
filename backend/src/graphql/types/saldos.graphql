@@ -42,6 +42,8 @@ input MovimientoInput {
 extend type Query {
   """Moreta usará esto para ver cuánto dinero hay en una cuenta específica"""
   saldoCuenta(cuentaId: ID!): SaldoCuenta!
+  """Lista todas las cuentas bancarias registradas con sus saldos y movimientos"""
+  obtenerSaldosCuentas: [SaldoCuenta!]!
 }
 
 extend type Mutation {
