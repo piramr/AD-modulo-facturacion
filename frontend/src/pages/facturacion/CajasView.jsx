@@ -300,7 +300,8 @@ export default function CajasView() {
 
   return (
     <div className="space-y-4">
-      {false && f.isCajero &&
+      {false &&
+        f.isCajero &&
         (f.sesionActiva ? (
           <div
             className={`rounded-2xl border p-4 ${
@@ -403,14 +404,14 @@ export default function CajasView() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        <button
+                        {/* <button
                           type="button"
                           onClick={() => f.openEditCajaModal(caja)}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                           title="Editar"
                         >
                           <Edit2 className="h-4 w-4" />
-                        </button>
+                        </button> */}
                         <button
                           type="button"
                           onClick={() => f.openEditCajaModal(caja)}
@@ -425,12 +426,23 @@ export default function CajasView() {
                             onClick={() =>
                               f.handleInactivarCaja(caja.id, caja.codigo)
                             }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                            className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40"
                             title="Inactivar"
                           >
                             <Power className="h-4 w-4" />
                           </button>
-                        ) : null}
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              f.handleActivarCaja(caja.id, caja.codigo)
+                            }
+                            className="rounded-lg p-2 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                            title="Activar"
+                          >
+                            <Power className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

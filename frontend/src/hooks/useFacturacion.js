@@ -557,7 +557,7 @@ export function useFacturacion() {
   }
 
   // ── Sesión activa ─────────────────────────────────────────────────────────────
- const reloadSesionActiva = async (usuarioId, sesionExplicita = null) => {
+  const reloadSesionActiva = async (usuarioId, sesionExplicita = null) => {
     try {
       if (sesionExplicita) {
         setSesionActiva(sesionExplicita)
@@ -660,6 +660,27 @@ export function useFacturacion() {
           toast.success('Caja inactivada correctamente.')
         } catch (error) {
           toast.error(error.message || 'No fue posible inactivar la caja.')
+        } finally {
+          setBusyAction(null)
+        }
+      },
+    })
+  }
+
+  const handleActivarCaja = (id, codigo) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Activar caja?',
+      message: `La caja "${codigo}" se activará y estará disponible para operar.`,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isOpen: false }))
+        setBusyAction(`activar-caja-${id}`)
+        try {
+          await actualizarCaja(id, { estado: 'ACTIVO' })
+          await reloadCajas()
+          toast.success('Caja activada correctamente.')
+        } catch (error) {
+          toast.error(error.message || 'No fue posible activar la caja.')
         } finally {
           setBusyAction(null)
         }
@@ -929,6 +950,7 @@ export function useFacturacion() {
     handleCajaFieldChange,
     submitCaja,
     handleInactivarCaja,
+    handleActivarCaja,
     openSesionModal,
     closeSesionModal,
     setSesionForm,
