@@ -1,9 +1,31 @@
 import { normalizeDocument, sanitizeText } from '../utils/validators'
 import { API_BASE, API_GRAPHQL, CXC_AUTH_TOKEN, CXC_CUENTAS_BANCARIAS_URL } from '../config/api'
-import { getStoredToken } from './authService'
+import { clearSession, getStoredToken } from './authService'
 
 const TOKEN_STORAGE_KEY = 'facturacion-demo-token'
 const RESUMEN_PAGE_SIZE = 1000
+const LOGIN_MESSAGE_KEY = 'facturacion-login-message'
+const SESSION_EXPIRED_MESSAGE = 'Tu sesion termino. Inicia sesion nuevamente.'
+
+function redirectToLogin(message = SESSION_EXPIRED_MESSAGE) {
+  if (typeof window === 'undefined') return
+
+  clearSession()
+  window.localStorage.removeItem(TOKEN_STORAGE_KEY)
+  window.sessionStorage.setItem(LOGIN_MESSAGE_KEY, message)
+
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login')
+  }
+}
+
+function isUnauthorizedGraphQLError(error) {
+  const message = String(error?.message || '').toLowerCase()
+  const code = String(error?.code || '').toLowerCase()
+  const status = Number(error?.status || error?.extensions?.status || 0)
+
+  return status === 401 || code === 'unauthorized' || message.includes('no autorizado')
+}
 
 export async function getAuthToken() {
   const savedToken = getStoredToken() || window.localStorage.getItem(TOKEN_STORAGE_KEY)
@@ -22,10 +44,20 @@ async function fetchGraphQL(query, variables = {}, token = '') {
     body: JSON.stringify({ query, variables }),
   })
 
-  const json = await response.json()
+  const json = await response.json().catch(() => ({}))
+
+  if (response.status === 401) {
+    redirectToLogin()
+    throw new Error(SESSION_EXPIRED_MESSAGE)
+  }
 
   if (json.errors) {
-    throw new Error(json.errors[0].message || 'Error en la peticion GraphQL')
+    const firstError = json.errors[0]
+    if (isUnauthorizedGraphQLError(firstError)) {
+      redirectToLogin()
+      throw new Error(SESSION_EXPIRED_MESSAGE)
+    }
+    throw new Error(firstError.message || 'Error en la peticion GraphQL')
   }
 
   return json.data
@@ -41,6 +73,10 @@ async function downloadPdf(path, filename, token = '') {
 
   if (!response.ok) {
     const text = await response.text()
+    if (response.status === 401 || text.toLowerCase().includes('no autorizado')) {
+      redirectToLogin()
+      throw new Error(SESSION_EXPIRED_MESSAGE)
+    }
     throw new Error(text || 'No fue posible descargar el PDF.')
   }
 

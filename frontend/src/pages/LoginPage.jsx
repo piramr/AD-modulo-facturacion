@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -18,6 +18,8 @@ import {
 import { toast } from 'react-toastify'
 import { getStoredToken, login, requestPasswordResetCode, resetPassword } from '../api/authService'
 
+const LOGIN_MESSAGE_KEY = 'facturacion-login-message'
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -34,6 +36,14 @@ export default function LoginPage() {
   const [themeMode, setThemeMode] = useState(() =>
     typeof window !== 'undefined' && window.document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   )
+
+  useEffect(() => {
+    const message = window.sessionStorage.getItem(LOGIN_MESSAGE_KEY)
+    if (!message) return
+
+    window.sessionStorage.removeItem(LOGIN_MESSAGE_KEY)
+    toast.info(message)
+  }, [])
 
   if (getStoredToken()) {
     return <Navigate to="/facturacion/resumen" replace />
