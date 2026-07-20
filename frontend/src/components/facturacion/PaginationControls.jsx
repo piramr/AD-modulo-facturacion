@@ -16,6 +16,7 @@ export default function PaginationControls({
     ? 'mb-3 flex flex-col gap-3 border-t border-slate-100 pt-3 text-xs dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between'
     : 'flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-center sm:justify-between'
 
+  if (totalCount === 0) return null
   if (totalCount <= pageSizeOptions[0] && totalPages <= 1 && !onPageSizeChange) return null
 
   return (

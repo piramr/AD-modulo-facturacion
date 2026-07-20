@@ -48,6 +48,7 @@ export default function CerrarSesionModal({
   isOpen,
   sesionActiva,
   form,
+  cuentas = [],
   onChange,
   onAddRow,
   onRemoveRow,
@@ -102,12 +103,20 @@ export default function CerrarSesionModal({
           {(form?.distribucionCuentas || []).map((row, index) => (
             <div key={`${row.cuentaId || "row"}-${index}`} className="grid gap-3 sm:grid-cols-[1fr_140px_auto]">
               <Field label={`Cuenta ${index + 1}`}>
-                <input
+                <select
                   value={row.cuentaId}
                   onChange={(e) => onChange(index, "cuentaId", e.target.value)}
                   className={inputClass}
-                  placeholder="ID de cuenta"
-                />
+                >
+                  <option value="">Selecciona una cuenta</option>
+                  {cuentas.map((cuenta) => (
+                    <option key={cuenta.cuentaId} value={cuenta.cuentaId}>
+                      {cuenta.entidadBancaria || cuenta.nombre || cuenta.cuentaId}
+                      {cuenta.nroCuenta ? ` - ${cuenta.nroCuenta}` : ""}
+                      {cuenta.titular ? ` (${cuenta.titular})` : ""}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field label="Monto">
                 <input

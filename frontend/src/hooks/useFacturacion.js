@@ -28,6 +28,7 @@ import {
   getSesionActiva,
   getSesionesRevision,
   getPreferencias,
+  getSaldosCuentas,
   crearCaja,
   actualizarCaja,
   inactivarCaja,
@@ -164,6 +165,7 @@ export function useFacturacion() {
   const [cajas, setCajas] = useState([])
   const [sesionActiva, setSesionActiva] = useState(null)
   const [sesionesRevision, setSesionesRevision] = useState([])
+  const [cuentasBancarias, setCuentasBancarias] = useState([])
   const [cajasLoading, setCajasLoading] = useState(false)
 
   const INITIAL_CAJA_FORM = {
@@ -772,7 +774,11 @@ export function useFacturacion() {
     setSesionActiva(sesion)
 
     try {
-      const preferencias = await getPreferencias()
+      const [preferencias, cuentas] = await Promise.all([
+        getPreferencias(),
+        getSaldosCuentas(),
+      ])
+      setCuentasBancarias(cuentas || [])
       const cuentaDefault = preferencias?.cuentaBancariaDefaultId || ''
       const montoDefault = String(Number(sesion.totalVentasEfectivo || 0).toFixed(2))
       setCierreForm({
@@ -783,6 +789,7 @@ export function useFacturacion() {
           : [{ cuentaId: '', monto: montoDefault }],
       })
     } catch {
+      setCuentasBancarias([])
       setCierreForm({
         sesionCajaId: sesion.id,
         totalVentasEfectivo: Number(sesion.totalVentasEfectivo || 0),
@@ -938,6 +945,7 @@ export function useFacturacion() {
     showCerrarModal,
     sesionActiva,
     sesionesRevision,
+    cuentasBancarias,
     sesionForm,
     revisarForm,
     cierreForm,

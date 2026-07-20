@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   ClipboardCheck,
@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import StatusBadge from "../../components/facturacion/StatusBadge";
+import PaginationControls from "../../components/facturacion/PaginationControls";
 import TurnosRevisionView from "./TurnosRevisionView";
 
 const inputClass =
@@ -293,6 +294,19 @@ function RevisarModal({
 
 export default function CajasView() {
   const f = useOutletContext();
+  const [cajasPage, setCajasPage] = useState(1);
+  const [cajasLimit, setCajasLimit] = useState(5);
+  const totalCajas = f.cajas.length;
+  const totalCajasPages = Math.max(1, Math.ceil(totalCajas / cajasLimit));
+  const currentCajasPage = Math.min(cajasPage, totalCajasPages);
+  const cajasPageInfo = {
+    currentPage: currentCajasPage,
+    totalPages: totalCajasPages,
+    totalCount: totalCajas,
+    hasPreviousPage: currentCajasPage > 1,
+    hasNextPage: currentCajasPage < totalCajasPages,
+  };
+  const cajasVisibles = f.cajas.slice((currentCajasPage - 1) * cajasLimit, currentCajasPage * cajasLimit);
 
   useEffect(() => {
     f.reloadCajas();
@@ -379,7 +393,7 @@ export default function CajasView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {f.cajas.map((caja) => (
+                {cajasVisibles.map((caja) => (
                   <tr
                     key={caja.id}
                     className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-900"
@@ -452,6 +466,15 @@ export default function CajasView() {
           )}
         </div>
       </section>
+      <PaginationControls
+        pageInfo={cajasPageInfo}
+        onPageChange={setCajasPage}
+        pageSize={cajasLimit}
+        onPageSizeChange={(limit) => {
+          setCajasLimit(limit);
+          setCajasPage(1);
+        }}
+      />
 
       <TurnosRevisionView />
 

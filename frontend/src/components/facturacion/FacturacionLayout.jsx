@@ -91,8 +91,8 @@ export default function FacturacionLayout({
       items: group.items.filter((item) => (
         item.roles.includes('admin') && roleFlags.isAdmin
       ) || (
-        item.roles.includes('cajero') && roleFlags.isCajero
-      )),
+          item.roles.includes('cajero') && roleFlags.isCajero
+        )),
     }))
     .filter((group) => group.items.length > 0)
   const roleLabel = Array.isArray(roles) && roles.length > 0
@@ -171,10 +171,6 @@ export default function FacturacionLayout({
                 </h1>
               </div>
 
-              <div className="hidden min-w-72 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 md:flex">
-                <Search className="h-4 w-4" />
-                <span className="truncate">Buscar clientes, facturas o cajas</span>
-              </div>
 
               <button
                 type="button"

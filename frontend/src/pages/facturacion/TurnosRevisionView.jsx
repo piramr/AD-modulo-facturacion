@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, Clock3 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import CerrarSesionModal from '../../components/facturacion/CerrarSesionModal'
+import PaginationControls from '../../components/facturacion/PaginationControls'
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`
 const dateText = (value) => (value ? new Date(value).toLocaleString('es-EC') : 'Sin fecha')
@@ -10,6 +11,19 @@ export default function TurnosRevisionView() {
   const f = useOutletContext()
   const [loading, setLoading] = useState(true)
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(5)
+  const sesiones = f.sesionesRevision || []
+  const totalPages = Math.max(1, Math.ceil(sesiones.length / limit))
+  const currentPage = Math.min(page, totalPages)
+  const pageInfo = {
+    currentPage,
+    totalPages,
+    totalCount: sesiones.length,
+    hasPreviousPage: currentPage > 1,
+    hasNextPage: currentPage < totalPages,
+  }
+  const sesionesVisibles = sesiones.slice((currentPage - 1) * limit, currentPage * limit)
 
   useEffect(() => {
     let mounted = true
@@ -54,7 +68,7 @@ export default function TurnosRevisionView() {
         </div>
       ) : (
         <div className="space-y-3">
-          {f.sesionesRevision.map((sesion) => (
+          {sesionesVisibles.map((sesion) => (
             <div key={sesion.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
@@ -98,6 +112,15 @@ export default function TurnosRevisionView() {
               </div>
             </div>
           ))}
+          <PaginationControls
+            pageInfo={pageInfo}
+            onPageChange={setPage}
+            pageSize={limit}
+            onPageSizeChange={(nextLimit) => {
+              setLimit(nextLimit)
+              setPage(1)
+            }}
+          />
         </div>
       )}
 
@@ -105,6 +128,7 @@ export default function TurnosRevisionView() {
         isOpen={f.showCerrarModal}
         sesionActiva={sesionSeleccionada || f.sesionActiva}
         form={f.cierreForm}
+        cuentas={f.cuentasBancarias}
         onChange={(index, field, value) => f.updateDistribucionCuenta(index, field, value)}
         onAddRow={f.addDistribucionCuenta}
         onRemoveRow={f.removeDistribucionCuenta}

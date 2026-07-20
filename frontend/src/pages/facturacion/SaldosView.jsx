@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, WalletCards } from 'lucide-react'
 import { toast } from 'react-toastify'
 import PanelCard from '../../components/facturacion/PanelCard'
+import PaginationControls from '../../components/facturacion/PaginationControls'
 import {
   getMovimientosCuenta,
   getSaldoCuenta,
@@ -10,12 +11,34 @@ import {
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`
 const dateText = (value) => (value ? new Date(value).toLocaleString() : 'Sin fecha')
+const pageInfoFor = (items, page, limit) => {
+  const totalCount = items.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit))
+  const currentPage = Math.min(page, totalPages)
+  return {
+    currentPage,
+    totalPages,
+    totalCount,
+    hasPreviousPage: currentPage > 1,
+    hasNextPage: currentPage < totalPages,
+  }
+}
+const slicePage = (items, page, limit) => {
+  const safePage = pageInfoFor(items, page, limit).currentPage
+  return items.slice((safePage - 1) * limit, safePage * limit)
+}
 
 export default function SaldosView() {
   const [saldos, setSaldos] = useState([])
   const [movimientos, setMovimientos] = useState([])
   const [selectedSaldo, setSelectedSaldo] = useState(null)
   const [searchCuentaId, setSearchCuentaId] = useState('')
+  const [saldosPage, setSaldosPage] = useState(1)
+  const [saldosLimit, setSaldosLimit] = useState(5)
+  const [movimientosPage, setMovimientosPage] = useState(1)
+  const [movimientosLimit, setMovimientosLimit] = useState(5)
+  const [detallePage, setDetallePage] = useState(1)
+  const [detalleLimit, setDetalleLimit] = useState(5)
   const [isLoading, setIsLoading] = useState(true)
   const [busyAction, setBusyAction] = useState('')
 
@@ -23,16 +46,24 @@ export default function SaldosView() {
     () => selectedSaldo?.movimientos || [],
     [selectedSaldo],
   )
+  const saldosPageInfo = pageInfoFor(saldos, saldosPage, saldosLimit)
+  const movimientosPageInfo = pageInfoFor(movimientos, movimientosPage, movimientosLimit)
+  const detallePageInfo = pageInfoFor(movimientosDetalle, detallePage, detalleLimit)
+  const saldosVisibles = slicePage(saldos, saldosPage, saldosLimit)
+  const movimientosVisibles = slicePage(movimientos, movimientosPage, movimientosLimit)
+  const movimientosDetalleVisibles = slicePage(movimientosDetalle, detallePage, detalleLimit)
 
   const reload = async () => {
     setIsLoading(true)
     try {
       const [saldosData, movimientosData] = await Promise.all([
         getSaldosCuentas(),
-        getMovimientosCuenta(10),
+        getMovimientosCuenta(100),
       ])
       setSaldos(saldosData || [])
       setMovimientos(movimientosData || [])
+      setSaldosPage(1)
+      setMovimientosPage(1)
     } catch (error) {
       toast.error(error.message || 'No fue posible cargar saldos.')
     } finally {
@@ -55,6 +86,7 @@ export default function SaldosView() {
     try {
       const saldo = await getSaldoCuenta(searchCuentaId.trim())
       setSelectedSaldo(saldo)
+      setDetallePage(1)
     } catch (error) {
       toast.error(error.message || 'No fue posible consultar la cuenta.')
     } finally {
@@ -105,7 +137,7 @@ export default function SaldosView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {saldos.map((saldo) => (
+                    {saldosVisibles.map((saldo) => (
                       <tr
                         key={saldo.cuentaId}
                         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900"
@@ -131,6 +163,15 @@ export default function SaldosView() {
                 </table>
               )}
             </div>
+            <PaginationControls
+              pageInfo={saldosPageInfo}
+              onPageChange={setSaldosPage}
+              pageSize={saldosLimit}
+              onPageSizeChange={(limit) => {
+                setSaldosLimit(limit)
+                setSaldosPage(1)
+              }}
+            />
           </div>
         </PanelCard>
       </section>
@@ -140,7 +181,7 @@ export default function SaldosView() {
           <div className="space-y-3">
             {movimientos.length === 0 ? (
               <p className="text-sm text-slate-500">No hay movimientos recientes.</p>
-            ) : movimientos.map((movimiento) => (
+            ) : movimientosVisibles.map((movimiento) => (
               <div key={movimiento.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-semibold">{movimiento.tipo}</span>
@@ -158,6 +199,16 @@ export default function SaldosView() {
                 </p>
               </div>
             ))}
+            <PaginationControls
+              compact
+              pageInfo={movimientosPageInfo}
+              onPageChange={setMovimientosPage}
+              pageSize={movimientosLimit}
+              onPageSizeChange={(limit) => {
+                setMovimientosLimit(limit)
+                setMovimientosPage(1)
+              }}
+            />
           </div>
         </PanelCard>
 
@@ -182,7 +233,7 @@ export default function SaldosView() {
               <div className="space-y-3">
                 {movimientosDetalle.length === 0 ? (
                   <p className="text-sm text-slate-500">Esta cuenta no tiene movimientos.</p>
-                ) : movimientosDetalle.map((movimiento) => (
+                ) : movimientosDetalleVisibles.map((movimiento) => (
                   <div key={movimiento.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold">{movimiento.tipo}</span>
@@ -192,6 +243,16 @@ export default function SaldosView() {
                     <p className="mt-1 text-xs text-slate-400">{dateText(movimiento.fechaMovimiento)}</p>
                   </div>
                 ))}
+                <PaginationControls
+                  compact
+                  pageInfo={detallePageInfo}
+                  onPageChange={setDetallePage}
+                  pageSize={detalleLimit}
+                  onPageSizeChange={(limit) => {
+                    setDetalleLimit(limit)
+                    setDetallePage(1)
+                  }}
+                />
               </div>
             </div>
           )}
