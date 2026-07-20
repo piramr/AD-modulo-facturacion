@@ -16,6 +16,10 @@ async function crearApp() {
   app.use(express.json());
   app.use(morgan('dev'));
 
+  app.route('/health').get((req, res) => {
+    res.status(200).json({ status: 'ok', message: 'Servidor en funcionamiento' });
+  });
+
   app.use((req, res, next) => {
     const authHeader = req.headers.authorization;
     const tokenLimpio = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
