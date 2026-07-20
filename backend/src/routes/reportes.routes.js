@@ -2,10 +2,10 @@ const { Router } = require('express');
 const router = Router();
 const reporteFacturaService = require('../services/reporteFactura.service');
 const reporteClienteService = require('../services/reporteCliente.service');
-const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
+const { verificarTokenConSeguridad, verificarRol } = require('../middlewares/auth.middleware');
 
-router.use(verificarToken);
-router.use(verificarRol(['admin', 'facturador']));
+router.use(verificarTokenConSeguridad);
+router.use(verificarRol(['FAC_ADMINISTRADOR', 'FAC_CAJERO']));
 
 // 1. GET /api/reportes/facturas/:id/pdf
 router.get('/facturas/:id/pdf', async (req, res) => {

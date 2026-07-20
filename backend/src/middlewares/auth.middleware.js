@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { getCurrentContext } = require('../store/contextStore');
+const { validarTokenConSeguridad } = require('../services/external/seguridad.service');
 
 function decodificarToken(authHeader) {
   if (!authHeader) throw new Error('No se proporciono un token de autenticacion');
@@ -37,7 +38,13 @@ function obtenerUsuarioDesdeToken(authHeader) {
 
 function verificarRol(rolesPermitidos = []) {
   return (req, res, next) => {
-    if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
+    const rolesUsuario = Array.isArray(req.usuario?.roles)
+      ? req.usuario.roles
+      : [req.usuario?.rol].filter(Boolean);
+
+    const tieneRolPermitido = rolesUsuario.some((rol) => rolesPermitidos.includes(rol));
+
+    if (!req.usuario || !tieneRolPermitido) {
       return res.status(403).json({
         error: 'Prohibido',
         mensaje: 'No tiene permisos suficientes para esta accion'
@@ -45,6 +52,50 @@ function verificarRol(rolesPermitidos = []) {
     }
     next();
   };
+}
+
+async function verificarTokenConSeguridad(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      error: 'No autorizado',
+      mensaje: 'No se proporciono un token de autenticacion'
+    });
+  }
+
+  const partes = authHeader.split(' ');
+  if (partes.length !== 2 || partes[0] !== 'Bearer') {
+    return res.status(401).json({
+      error: 'No autorizado',
+      mensaje: 'Formato de token invalido. Use: Bearer <token>'
+    });
+  }
+
+  try {
+    const usuario = await validarTokenConSeguridad(partes[1]);
+    if (!usuario) {
+      return res.status(401).json({
+        error: 'No autorizado',
+        mensaje: 'El token proporcionado ha expirado o es invalido.'
+      });
+    }
+
+    req.usuario = usuario;
+
+    const context = getCurrentContext();
+    if (context) {
+      context.user = usuario;
+    }
+
+    return next();
+  } catch (error) {
+    const status = error.code === 'SECURITY_SERVICE_UNAVAILABLE' ? 503 : 401;
+    return res.status(status).json({
+      error: 'No autorizado',
+      mensaje: error.message || 'No fue posible validar el token con Seguridad.'
+    });
+  }
 }
 
 /* EJEMPLO DE PAYLOAD DECODIFICADO DEL TOKEN
@@ -93,4 +144,4 @@ function getCurrentUsername() {
   return payload ? payload.user_name : null;
 }
 
-module.exports = { verificarToken, verificarRol, obtenerUsuarioDesdeToken, decodificarToken, extractPayloadFromToken, getCurrentUsername, getCurrentUserId };
+module.exports = { verificarToken, verificarTokenConSeguridad, verificarRol, obtenerUsuarioDesdeToken, decodificarToken, extractPayloadFromToken, getCurrentUsername, getCurrentUserId };
