@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import {
   CLIENTE_ESTADOS,
@@ -10,6 +11,12 @@ const inputClass = 'w-full rounded-md border border-slate-200 bg-white px-3 py-2
 const readonlyClass = 'w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
 const labelClass = 'text-xs font-medium text-slate-500 dark:text-slate-400'
 const money = (value) => new Intl.NumberFormat('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value) || 0)
+const clientLabel = (cliente) => `${cliente?.nombre ?? 'Sin nombre'} - ${cliente?.cedula ?? 'Sin cedula'}`
+const productLabel = (producto) => `${producto?.codigo ?? 'Sin codigo'} - ${producto?.nombre ?? 'Sin nombre'}`
+const normalizeText = (value) => String(value ?? '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
 
 function Field({ label, className = '', children }) {
   return (
@@ -67,16 +74,107 @@ function FacturaForm({
   onRemoveDetail,
   totals,
 }) {
+  const [clienteSearch, setClienteSearch] = useState('')
+  const [showClientOptions, setShowClientOptions] = useState(false)
+  const [productSearch, setProductSearch] = useState('')
+  const [showProductOptions, setShowProductOptions] = useState(false)
+  const selectedClient = useMemo(
+    () => clients.find((cliente) => String(cliente.id) === String(form.cliente_id)),
+    [clients, form.cliente_id],
+  )
+  const selectedProduct = useMemo(
+    () => products.find((producto) => String(producto.codigo) === String(detailForm?.producto_id)),
+    [products, detailForm?.producto_id],
+  )
+  const filteredClients = useMemo(() => {
+    const search = normalizeText(clienteSearch)
+    const source = search
+      ? clients.filter((cliente) => normalizeText(`${cliente.nombre} ${cliente.cedula}`).includes(search))
+      : clients
+
+    return source.slice(0, 8)
+  }, [clients, clienteSearch])
+  const filteredProducts = useMemo(() => {
+    const search = normalizeText(productSearch)
+    const source = search
+      ? products.filter((producto) => normalizeText(`${producto.codigo} ${producto.nombre}`).includes(search))
+      : products
+
+    return source.slice(0, 8)
+  }, [products, productSearch])
+
+  useEffect(() => {
+    if (selectedClient) setClienteSearch(clientLabel(selectedClient))
+  }, [selectedClient])
+  useEffect(() => {
+    if (selectedProduct) setProductSearch(productLabel(selectedProduct))
+  }, [selectedProduct])
+
+  const handleClientSearch = (value) => {
+    setClienteSearch(value)
+    setShowClientOptions(true)
+    if (selectedClient && value !== clientLabel(selectedClient)) {
+      onFieldChange('cliente_id', '')
+    }
+  }
+
+  const handleClientSelect = (cliente) => {
+    onFieldChange('cliente_id', cliente.id)
+    setClienteSearch(clientLabel(cliente))
+    setShowClientOptions(false)
+  }
+  const handleProductSearch = (value) => {
+    setProductSearch(value)
+    setShowProductOptions(true)
+    if (selectedProduct && value !== productLabel(selectedProduct)) {
+      onDetailFieldChange('producto_id', '')
+    }
+  }
+
+  const handleProductSelect = (producto) => {
+    onDetailFieldChange('producto_id', producto.codigo)
+    setProductSearch(productLabel(producto))
+    setShowProductOptions(false)
+  }
+
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Cliente" className="md:col-span-2">
-          <select value={form.cliente_id} onChange={(e) => onFieldChange('cliente_id', e.target.value)} className={inputClass}>
-            <option value="">Selecciona un cliente</option>
-            {clients.map((cliente) => (
-              <option key={cliente.id} value={cliente.id}>{cliente.nombre} - {cliente.cedula}</option>
-            ))}
-          </select>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Field label="Cliente" className="relative md:col-span-3">
+          <input
+            value={clienteSearch}
+            onChange={(e) => handleClientSearch(e.target.value)}
+            onFocus={() => setShowClientOptions(true)}
+            onBlur={() => window.setTimeout(() => setShowClientOptions(false), 120)}
+            type="text"
+            className={inputClass}
+            placeholder="Busca por nombre o cedula"
+            autoComplete="off"
+          />
+          {showClientOptions && (
+            <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-800 dark:bg-slate-950">
+              {filteredClients.length === 0 ? (
+                <p className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No se encontraron clientes.</p>
+              ) : (
+                filteredClients.map((cliente) => {
+                  const isSelected = String(cliente.id) === String(form.cliente_id)
+
+                  return (
+                    <button
+                      key={cliente.id}
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleClientSelect(cliente)}
+                      className={`block w-full px-3 py-2 text-left text-sm transition hover:bg-slate-100 dark:hover:bg-slate-900 ${isSelected ? 'bg-slate-100 font-medium text-slate-950 dark:bg-slate-900 dark:text-slate-50' : 'text-slate-700 dark:text-slate-200'}`}
+                    >
+                      <span className="block">{cliente.nombre}</span>
+                      <span className="block text-xs text-slate-500 dark:text-slate-400">{cliente.cedula}</span>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          )}
         </Field>
         <Field label="Tipo pago">
           <select value={form.tipo_pago} onChange={(e) => onFieldChange('tipo_pago', e.target.value)} className={inputClass}>
@@ -86,7 +184,7 @@ function FacturaForm({
         <Field label="Fecha emision">
           <input value={form.fecha_emision} onChange={(e) => onFieldChange('fecha_emision', e.target.value)} type="date" className={inputClass} />
         </Field>
-        <Field label="Estado" className="md:col-span-2">
+        <Field label="Estado">
           <select value={form.estado} onChange={(e) => onFieldChange('estado', e.target.value)} className={inputClass}>
             {FACTURA_ESTADOS.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
           </select>
@@ -106,13 +204,41 @@ function FacturaForm({
         </div>
 
         <div className="grid gap-3 md:grid-cols-[1fr_120px]">
-          <Field label="Producto">
-            <select value={detailForm?.producto_id ?? ''} onChange={(e) => onDetailFieldChange('producto_id', e.target.value)} className={inputClass}>
-              <option value="">Selecciona un producto disponible</option>
-              {products.map((producto) => (
-                <option key={producto.codigo} value={producto.codigo}>{producto.codigo} - {producto.nombre} - Stock {producto.stockActual}</option>
-              ))}
-            </select>
+          <Field label="Producto" className="relative">
+            <input
+              value={productSearch}
+              onChange={(e) => handleProductSearch(e.target.value)}
+              onFocus={() => setShowProductOptions(true)}
+              onBlur={() => window.setTimeout(() => setShowProductOptions(false), 120)}
+              type="text"
+              className={inputClass}
+              placeholder="Busca por codigo o nombre"
+              autoComplete="off"
+            />
+            {showProductOptions && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-800 dark:bg-slate-950">
+                {filteredProducts.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No se encontraron productos.</p>
+                ) : (
+                  filteredProducts.map((producto) => {
+                    const isSelected = String(producto.codigo) === String(detailForm?.producto_id)
+
+                    return (
+                      <button
+                        key={producto.codigo}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleProductSelect(producto)}
+                        className={`block w-full px-3 py-2 text-left text-sm transition hover:bg-slate-100 dark:hover:bg-slate-900 ${isSelected ? 'bg-slate-100 font-medium text-slate-950 dark:bg-slate-900 dark:text-slate-50' : 'text-slate-700 dark:text-slate-200'}`}
+                      >
+                        <span className="block">{producto.nombre}</span>
+                        <span className="block text-xs text-slate-500 dark:text-slate-400">{producto.codigo} · Stock {producto.stockActual ?? 0}</span>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            )}
           </Field>
           <Field label="Cantidad">
             <input value={detailForm?.cantidad ?? ''} onChange={(e) => onDetailFieldChange('cantidad', e.target.value)} type="number" min="1" step="1" className={inputClass} />
