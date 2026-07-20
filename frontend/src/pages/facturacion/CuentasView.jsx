@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CreditCard, Landmark, TrendingUp } from 'lucide-react'
-import { getSaldosCuentas } from '../../api/facturacionService'
+import { enrichCuentasConCXC, getSaldosCuentas } from '../../api/facturacionService'
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`
 
@@ -12,7 +12,13 @@ export default function CuentasView() {
     let mounted = true
     getSaldosCuentas()
       .then((result) => {
-        if (mounted) setCuentas(Array.isArray(result) ? result : [])
+        const cuentasLocales = Array.isArray(result) ? result : []
+        if (mounted) setCuentas(cuentasLocales)
+        enrichCuentasConCXC(cuentasLocales)
+          .then((cuentasEnriquecidas) => {
+            if (mounted) setCuentas(cuentasEnriquecidas)
+          })
+          .catch(() => {})
       })
       .finally(() => {
         if (mounted) setLoading(false)
@@ -61,7 +67,7 @@ export default function CuentasView() {
                     <Landmark className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-950 dark:text-slate-50">{cuenta.cuentaId}</p>
+                    <p className="text-sm font-semibold text-slate-950 dark:text-slate-50">{cuenta.entidadBancaria || cuenta.nombre || cuenta.cuentaId}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       Última actualización: {cuenta.ultimaActualizacion ? new Date(cuenta.ultimaActualizacion).toLocaleString('es-EC') : 'Sin datos'}
                     </p>

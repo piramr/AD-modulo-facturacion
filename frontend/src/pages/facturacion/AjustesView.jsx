@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import PanelCard from '../../components/facturacion/PanelCard'
-import { getPreferencias, getSaldosCuentas, updatePreferencias } from '../../api/facturacionService'
+import { enrichCuentasConCXC, getPreferencias, getSaldosCuentas, updatePreferencias } from '../../api/facturacionService'
 
 const inputClass = 'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100 disabled:text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-600 dark:focus:ring-slate-800 dark:disabled:bg-slate-900'
 const labelClass = 'text-xs font-medium text-slate-500 dark:text-slate-400'
@@ -23,7 +23,11 @@ export default function AjustesView() {
     Promise.all([getPreferencias(), getSaldosCuentas()])
       .then(([preferencias, cuentasData]) => {
         if (!mounted) return
-        setCuentas(cuentasData || [])
+        const cuentasLocales = cuentasData || []
+        setCuentas(cuentasLocales)
+        enrichCuentasConCXC(cuentasLocales)
+          .then(setCuentas)
+          .catch(() => {})
         setForm({
           nombreEmpresa: preferencias.nombreEmpresa || '',
           rucEmpresa: preferencias.rucEmpresa || '',

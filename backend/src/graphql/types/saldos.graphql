@@ -2,15 +2,8 @@
 
 type SaldoCuenta {
   cuentaId: ID!
-  nombre: String
-  codigo: String
-  entidadBancaria: String
-  titular: String
-  tipoCuenta: String
-  nroCuenta: String
-  ruc: String
   saldoActual: Float!
-  saldoDisponible: Float
+  estado: String!
   ultimaActualizacion: DateTime
   movimientos: [MovimientoCuenta!]!
 }
@@ -18,11 +11,6 @@ type SaldoCuenta {
 type MovimientoCuenta {
   id: ID!
   cuentaId: ID!
-  cuentaNombre: String
-  entidadBancaria: String
-  titular: String
-  tipoCuenta: String
-  nroCuenta: String
   tipo: String! # 'INGRESO' o 'EGRESO'
   monto: Float!
   descripcion: String!

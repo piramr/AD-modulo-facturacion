@@ -1,5 +1,5 @@
 import { normalizeDocument, sanitizeText } from '../utils/validators'
-import { API_BASE, API_GRAPHQL } from '../config/api'
+import { API_BASE, API_GRAPHQL, CXC_AUTH_TOKEN, CXC_CUENTAS_BANCARIAS_URL } from '../config/api'
 import { getStoredToken } from './authService'
 
 const TOKEN_STORAGE_KEY = 'facturacion-demo-token'
@@ -478,15 +478,8 @@ export async function getSaldosCuentas(token = '') {
     query ObtenerSaldosCuentas {
       obtenerSaldosCuentas {
         cuentaId
-        nombre
-        codigo
-        entidadBancaria
-        titular
-        tipoCuenta
-        nroCuenta
-        ruc
         saldoActual
-        saldoDisponible
+        estado
         ultimaActualizacion
         movimientos {
           id
@@ -504,6 +497,54 @@ export async function getSaldosCuentas(token = '') {
 }
 
 // ── CAJAS - MATEO ─────────────────────────────────────────────────────────────────────
+
+function normalizeCuentaCXC(cuenta) {
+  const cuentaId = cuenta.id || cuenta.cuentaId || cuenta.cuenta_id
+
+  return {
+    cuentaId,
+    nombre: cuenta.nombreCuenta || cuenta.nombre || cuenta.codigo || cuentaId,
+    codigo: cuenta.codigo || '',
+    entidadBancaria: cuenta.entidadBancaria || '',
+    titular: cuenta.titular || '',
+    tipoCuenta: cuenta.tipoCuenta || '',
+    nroCuenta: cuenta.nroCuenta || cuenta.numeroCuenta || '',
+    ruc: cuenta.ruc || '',
+  }
+}
+
+export async function getCuentasBancariasCXC() {
+  if (!CXC_CUENTAS_BANCARIAS_URL) return []
+
+  const headers = { 'Content-Type': 'application/json' }
+  if (CXC_AUTH_TOKEN) {
+    headers.Authorization = CXC_AUTH_TOKEN.startsWith('Bearer ') ? CXC_AUTH_TOKEN : `Bearer ${CXC_AUTH_TOKEN}`
+  }
+
+  const response = await fetch(CXC_CUENTAS_BANCARIAS_URL, { headers })
+  const json = await response.json().catch(() => [])
+
+  if (!response.ok) {
+    throw new Error(json.message || json.error || 'No fue posible cargar cuentas bancarias desde CXC.')
+  }
+
+  const cuentas = Array.isArray(json) ? json : json.data || json.items || []
+  return cuentas.map(normalizeCuentaCXC).filter((cuenta) => cuenta.cuentaId)
+}
+
+export async function enrichCuentasConCXC(cuentas = []) {
+  const cuentasCXC = await getCuentasBancariasCXC()
+  const cuentasPorId = cuentasCXC.reduce((acc, cuenta) => {
+    acc[cuenta.cuentaId] = cuenta
+    return acc
+  }, {})
+
+  return cuentas.map((cuenta) => ({
+    ...cuentasPorId[cuenta.cuentaId],
+    ...cuenta,
+    saldoDisponible: cuenta.saldoActual,
+  }))
+}
 
 export async function getCajas(token = '') {
   const query = `
@@ -683,11 +724,6 @@ export async function getMovimientosCuenta(limit = 10, token = '') {
       movimientosCuenta(limit: $limit) {
         id
         cuentaId
-        cuentaNombre
-        entidadBancaria
-        titular
-        tipoCuenta
-        nroCuenta
         tipo
         monto
         descripcion
@@ -704,15 +740,8 @@ export async function getSaldoCuenta(cuentaId, token = '') {
     query SaldoCuenta($cuentaId: ID!) {
       saldoCuenta(cuentaId: $cuentaId) {
         cuentaId
-        nombre
-        codigo
-        entidadBancaria
-        titular
-        tipoCuenta
-        nroCuenta
-        ruc
         saldoActual
-        saldoDisponible
+        estado
         ultimaActualizacion
         movimientos {
           id

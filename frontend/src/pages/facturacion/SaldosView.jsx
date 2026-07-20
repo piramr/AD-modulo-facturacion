@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import PanelCard from '../../components/facturacion/PanelCard'
 import PaginationControls from '../../components/facturacion/PaginationControls'
 import {
+  enrichCuentasConCXC,
   getMovimientosCuenta,
   getSaldoCuenta,
   getSaldosCuentas,
@@ -46,6 +47,13 @@ export default function SaldosView() {
     () => selectedSaldo?.movimientos || [],
     [selectedSaldo],
   )
+  const saldosPorCuentaId = useMemo(
+    () => saldos.reduce((acc, saldo) => {
+      acc[saldo.cuentaId] = saldo
+      return acc
+    }, {}),
+    [saldos],
+  )
   const saldosPageInfo = pageInfoFor(saldos, saldosPage, saldosLimit)
   const movimientosPageInfo = pageInfoFor(movimientos, movimientosPage, movimientosLimit)
   const detallePageInfo = pageInfoFor(movimientosDetalle, detallePage, detalleLimit)
@@ -60,10 +68,24 @@ export default function SaldosView() {
         getSaldosCuentas(),
         getMovimientosCuenta(100),
       ])
-      setSaldos(saldosData || [])
+      const saldosLocales = saldosData || []
+      setSaldos(saldosLocales)
       setMovimientos(movimientosData || [])
       setSaldosPage(1)
       setMovimientosPage(1)
+
+      enrichCuentasConCXC(saldosLocales)
+        .then((saldosEnriquecidos) => {
+          setSaldos(saldosEnriquecidos)
+          setSelectedSaldo((current) => (
+            current
+              ? saldosEnriquecidos.find((saldo) => saldo.cuentaId === current.cuentaId) || current
+              : current
+          ))
+        })
+        .catch(() => {
+          toast.info('Saldos cargados. No fue posible obtener informacion adicional de CXC.')
+        })
     } catch (error) {
       toast.error(error.message || 'No fue posible cargar saldos.')
     } finally {
@@ -87,6 +109,11 @@ export default function SaldosView() {
       const saldo = await getSaldoCuenta(searchCuentaId.trim())
       setSelectedSaldo(saldo)
       setDetallePage(1)
+      enrichCuentasConCXC([saldo])
+        .then(([saldoEnriquecido]) => {
+          if (saldoEnriquecido) setSelectedSaldo(saldoEnriquecido)
+        })
+        .catch(() => {})
     } catch (error) {
       toast.error(error.message || 'No fue posible consultar la cuenta.')
     } finally {
@@ -124,7 +151,7 @@ export default function SaldosView() {
               ) : saldos.length === 0 ? (
                 <div className="p-6 text-center">
                   <WalletCards className="mx-auto h-8 w-8 text-slate-400" />
-                  <p className="mt-3 text-sm font-semibold">No hay cuentas disponibles desde CXC.</p>
+                  <p className="mt-3 text-sm font-semibold">No hay saldos registrados.</p>
                 </div>
               ) : (
                 <table className="min-w-full text-left text-sm">
@@ -181,24 +208,28 @@ export default function SaldosView() {
           <div className="space-y-3">
             {movimientos.length === 0 ? (
               <p className="text-sm text-slate-500">No hay movimientos recientes.</p>
-            ) : movimientosVisibles.map((movimiento) => (
-              <div key={movimiento.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold">{movimiento.tipo}</span>
-                  <span className={movimiento.tipo === 'INGRESO' ? 'text-sm font-bold text-emerald-600' : 'text-sm font-bold text-red-600'}>
-                    {money(movimiento.monto)}
-                  </span>
+            ) : movimientosVisibles.map((movimiento) => {
+              const cuenta = saldosPorCuentaId[movimiento.cuentaId] || {}
+
+              return (
+                <div key={movimiento.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold">{movimiento.tipo}</span>
+                    <span className={movimiento.tipo === 'INGRESO' ? 'text-sm font-bold text-emerald-600' : 'text-sm font-bold text-red-600'}>
+                      {money(movimiento.monto)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{movimiento.descripcion}</p>
+                  <p className="mt-1 truncate text-xs text-slate-400">
+                    {cuenta.entidadBancaria || cuenta.nombre || movimiento.cuentaId}
+                    {cuenta.nroCuenta ? ` - ${cuenta.nroCuenta}` : ''}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-slate-400">
+                    {cuenta.titular ? `${cuenta.titular} - ` : ''}{dateText(movimiento.fechaMovimiento)}
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-slate-500">{movimiento.descripcion}</p>
-                <p className="mt-1 truncate text-xs text-slate-400">
-                  {movimiento.entidadBancaria || movimiento.cuentaNombre || 'Cuenta bancaria'}
-                  {movimiento.nroCuenta ? ` - ${movimiento.nroCuenta}` : ''}
-                </p>
-                <p className="mt-1 truncate text-xs text-slate-400">
-                  {movimiento.titular ? `${movimiento.titular} - ` : ''}{dateText(movimiento.fechaMovimiento)}
-                </p>
-              </div>
-            ))}
+              )
+            })}
             <PaginationControls
               compact
               pageInfo={movimientosPageInfo}

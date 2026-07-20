@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
+  enrichCuentasConCXC,
   createCliente,
   createFactura,
   deleteCliente,
@@ -808,7 +809,11 @@ export function useFacturacion() {
         getPreferencias(),
         getSaldosCuentas(),
       ])
-      setCuentasBancarias(cuentas || [])
+      const cuentasLocales = cuentas || []
+      setCuentasBancarias(cuentasLocales)
+      enrichCuentasConCXC(cuentasLocales)
+        .then(setCuentasBancarias)
+        .catch(() => {})
       const cuentaDefault = preferencias?.cuentaBancariaDefaultId || ''
       const montoDefault = String(Number(sesion.totalVentasEfectivo || 0).toFixed(2))
       setCierreForm({
