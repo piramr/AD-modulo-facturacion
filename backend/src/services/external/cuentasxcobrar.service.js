@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const clienteCXC = axios.create({
   baseURL: process.env.CUENTASXCOBRAR_URL,
-  timeout: 5000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     'api-key': process.env.CUENTASXCOBRAR_API_KEY
@@ -11,7 +11,7 @@ const clienteCXC = axios.create({
 
 const clienteCXCSalida = axios.create({
   baseURL: process.env.CUENTASXCOBRAR_SALIDA_URL || process.env.CUENTASXCOBRAR_URL,
-  timeout: 5000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }
