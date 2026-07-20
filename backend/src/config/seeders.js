@@ -3,8 +3,8 @@ const { PreferenciaSistema, SaldoCuenta, MovimientoCuenta } = require('../models
 async function ejecutarSeeders() {
   try {
     // 1. Definimos los UUIDs de las pocas cuentas que vamos a inicializar (Vienen de CXC)
-    const cuentaGuayaquilId = 'df9bd17a-4c31-4e36-9485-a87968b5c9c4'; 
-    const cuentaProdubancoId = '66fc1303-18c3-48e6-9b69-fba06ad8f903';
+    const cuentaBancaria1ID = 'a4d97f3e-04ba-4f9f-97eb-8f046b22360b'; 
+    const cuentaBancaria2ID = '6f8ab23b-53ff-4888-88fe-0932815e0237';
 
     // 2. Preferencias del Sistema (Ahora con la cuenta por defecto)
     await PreferenciaSistema.findOrCreate({
@@ -13,18 +13,18 @@ async function ejecutarSeeders() {
         nombreEmpresa: 'Módulo Facturación',
         rucEmpresa: '1790000000001',
         porcentajeIva: 15.00,
-        cuentaBancariaDefaultId: cuentaGuayaquilId,
+        cuentaBancariaDefaultId: cuentaBancaria1ID, // Asignamos la cuenta bancaria por defecto
       }
     });
 
     // 3. Saldos Iniciales (La Libreta Maestra)
     await SaldoCuenta.findOrCreate({
-      where: { cuentaId: cuentaGuayaquilId },
+      where: { cuentaId: cuentaBancaria1ID },
       defaults: { saldoActual: 1000.00, ultimaActualizacion: new Date() }
     });
 
     await SaldoCuenta.findOrCreate({
-      where: { cuentaId: cuentaProdubancoId },
+      where: { cuentaId: cuentaBancaria2ID },
       defaults: { saldoActual: 2500.00, ultimaActualizacion: new Date() }
     });
 
@@ -34,7 +34,7 @@ async function ejecutarSeeders() {
       where: { referencia: 'INIT-GYE-001' },
       defaults: {
         fechaMovimiento: new Date(),
-        cuentaId: cuentaGuayaquilId,
+        cuentaId: cuentaBancaria1ID,
         tipo: 'INGRESO',
         monto: 1000.00,
         descripcion: 'Apertura de saldo inicial',
@@ -45,7 +45,7 @@ async function ejecutarSeeders() {
       where: { referencia: 'INIT-PRO-001' },
       defaults: {
         fechaMovimiento: new Date(),
-        cuentaId: cuentaProdubancoId,
+        cuentaId: cuentaBancaria2ID,
         tipo: 'INGRESO',
         monto: 2500.00,
         descripcion: 'Apertura de saldo inicial',
