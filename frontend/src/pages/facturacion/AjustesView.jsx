@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import PanelCard from '../../components/facturacion/PanelCard'
-import { getPreferencias, updatePreferencias } from '../../api/facturacionService'
+import { getPreferencias, getSaldosCuentas, updatePreferencias } from '../../api/facturacionService'
 
 const inputClass = 'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100 disabled:text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-600 dark:focus:ring-slate-800 dark:disabled:bg-slate-900'
 const labelClass = 'text-xs font-medium text-slate-500 dark:text-slate-400'
@@ -15,13 +15,15 @@ export default function AjustesView() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [cuentas, setCuentas] = useState([])
 
   useEffect(() => {
     let mounted = true
 
-    getPreferencias()
-      .then((preferencias) => {
+    Promise.all([getPreferencias(), getSaldosCuentas()])
+      .then(([preferencias, cuentasData]) => {
         if (!mounted) return
+        setCuentas(cuentasData || [])
         setForm({
           nombreEmpresa: preferencias.nombreEmpresa || '',
           rucEmpresa: preferencias.rucEmpresa || '',
@@ -115,13 +117,20 @@ export default function AjustesView() {
           </label>
           <label className="space-y-1">
             <span className={labelClass}>Cuenta bancaria por defecto</span>
-            <input
+            <select
               value={form.cuentaBancariaDefaultId}
               onChange={(event) => updateField('cuentaBancariaDefaultId', event.target.value)}
               disabled={isLoading || isSaving}
               className={inputClass}
-              placeholder="UUID de cuenta CXC"
-            />
+            >
+              <option value="">Sin cuenta por defecto</option>
+              {cuentas.map((cuenta) => (
+                <option key={cuenta.cuentaId} value={cuenta.cuentaId}>
+                  {cuenta.entidadBancaria || cuenta.nombre || cuenta.cuentaId}
+                  {cuenta.nroCuenta ? ` - ${cuenta.nroCuenta}` : ''}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 

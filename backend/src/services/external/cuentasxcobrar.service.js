@@ -9,6 +9,14 @@ const clienteCXC = axios.create({
   }
 });
 
+const clienteCXCSalida = axios.create({
+  baseURL: process.env.CUENTASXCOBRAR_SALIDA_URL || process.env.CUENTASXCOBRAR_URL,
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
 async function registrarCuentaPorCobrar(factura) {
   try {
     const body = {
@@ -41,6 +49,61 @@ async function validarDeudaCliente(clienteId) {
   }
 }
 
+async function generarTokenSalidaCXC() {
+  const respuesta = await clienteCXCSalida.post('/cxc/token');
+  return respuesta.data?.token;
+}
+
+async function obtenerCuentasSaldosDesdeCXC() {
+  try {
+    const token = await generarTokenSalidaCXC();
+    if (!token) {
+      throw new Error('CXC no retorno token para API de salida.');
+    }
+
+    const respuesta = await clienteCXCSalida.get('/cxc/cuentas-saldos', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = respuesta.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.value)) return data.value;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+
+  } catch (error) {
+    console.error('No se pudo obtener cuentas con saldos desde CXC:', error.message);
+    throw error;
+  }
+}
+
+async function obtenerCuentasBancariasDesdeCXC() {
+  try {
+    const token = await generarTokenSalidaCXC();
+    if (!token) {
+      throw new Error('CXC no retorno token para API de salida.');
+    }
+
+    const respuesta = await clienteCXCSalida.get('/cuentas-bancarias', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = respuesta.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.value)) return data.value;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+
+  } catch (error) {
+    console.error('No se pudo obtener cuentas bancarias desde CXC:', error.message);
+    throw error;
+  }
+}
+
 /**
  * Consulta la API de CXC para validar la existencia y estado de una cuenta.
  */
@@ -66,4 +129,10 @@ async function obtenerCuentaDesdeCXC(cuentaId) {
   }
 }
 
-module.exports = { registrarCuentaPorCobrar, validarDeudaCliente, obtenerCuentaDesdeCXC };
+module.exports = {
+  registrarCuentaPorCobrar,
+  validarDeudaCliente,
+  obtenerCuentaDesdeCXC,
+  obtenerCuentasBancariasDesdeCXC,
+  obtenerCuentasSaldosDesdeCXC
+};

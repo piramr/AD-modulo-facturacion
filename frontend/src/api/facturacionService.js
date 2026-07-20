@@ -366,7 +366,15 @@ export async function getSaldosCuentas(token = '') {
     query ObtenerSaldosCuentas {
       obtenerSaldosCuentas {
         cuentaId
+        nombre
+        codigo
+        entidadBancaria
+        titular
+        tipoCuenta
+        nroCuenta
+        ruc
         saldoActual
+        saldoDisponible
         ultimaActualizacion
         movimientos {
           id
@@ -563,6 +571,11 @@ export async function getMovimientosCuenta(limit = 10, token = '') {
       movimientosCuenta(limit: $limit) {
         id
         cuentaId
+        cuentaNombre
+        entidadBancaria
+        titular
+        tipoCuenta
+        nroCuenta
         tipo
         monto
         descripcion
@@ -579,7 +592,15 @@ export async function getSaldoCuenta(cuentaId, token = '') {
     query SaldoCuenta($cuentaId: ID!) {
       saldoCuenta(cuentaId: $cuentaId) {
         cuentaId
+        nombre
+        codigo
+        entidadBancaria
+        titular
+        tipoCuenta
+        nroCuenta
+        ruc
         saldoActual
+        saldoDisponible
         ultimaActualizacion
         movimientos {
           id

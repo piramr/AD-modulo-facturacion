@@ -1,24 +1,81 @@
 const { SaldoCuenta, MovimientoCuenta } = require('../models');
 const sequelize = require('../config/db');
-const { obtenerCuentaDesdeCXC } = require('../services/external/cuentasxcobrar.service');
+const {
+  obtenerCuentasBancariasDesdeCXC,
+  obtenerCuentaDesdeCXC,
+  obtenerCuentasSaldosDesdeCXC
+} = require('../services/external/cuentasxcobrar.service');
+
+function normalizarCuentaCXC(cuenta, movimientos = []) {
+  const cuentaId = cuenta.cuentaId || cuenta.id || cuenta.cuenta_id;
+  const saldoActual = Number(cuenta.saldo_disponible ?? cuenta.saldoDisponible ?? cuenta.saldoActual ?? 0);
+  const nombre = cuenta.nombre || cuenta.nombreCuenta || cuenta.entidadBancaria || cuenta.codigo || cuentaId;
+
+  return {
+    cuentaId,
+    nombre,
+    codigo: cuenta.codigo || null,
+    entidadBancaria: cuenta.entidadBancaria || cuenta.nombre || null,
+    titular: cuenta.titular || null,
+    tipoCuenta: cuenta.tipoCuenta || null,
+    nroCuenta: cuenta.nroCuenta || cuenta.numeroCuenta || null,
+    ruc: cuenta.ruc || null,
+    saldoActual,
+    saldoDisponible: saldoActual,
+    ultimaActualizacion: cuenta.ultimaActualizacion || cuenta.updatedAt || null,
+    movimientos
+  };
+}
+
+function normalizarMovimientoConCuenta(movimiento, detalleCuenta = null) {
+  const data = typeof movimiento.toJSON === 'function' ? movimiento.toJSON() : movimiento;
+
+  return {
+    ...data,
+    cuentaNombre: detalleCuenta?.nombreCuenta || detalleCuenta?.nombre || detalleCuenta?.codigo || null,
+    entidadBancaria: detalleCuenta?.entidadBancaria || detalleCuenta?.nombre || null,
+    titular: detalleCuenta?.titular || null,
+    tipoCuenta: detalleCuenta?.tipoCuenta || null,
+    nroCuenta: detalleCuenta?.nroCuenta || detalleCuenta?.numeroCuenta || null
+  };
+}
 
 
 /**
  * Devuelve el saldo actual. Si la cuenta es nueva y no existe, devuelve 0.
  */
 async function obtenerSaldoCuenta(cuentaId) {
-  const cuenta = await SaldoCuenta.findByPk(cuentaId);
-  if (!cuenta) {
-    throw new Error('La cuenta no esta registrada para obtener su saldo.');
-  }
-
   const movimientos = await MovimientoCuenta.findAll({
     where: { cuentaId },
     order: [['createdAt', 'DESC']]
   });
 
-  cuenta.movimientos = movimientos;
-  return cuenta;
+  const [cuentasCXC, cuentasBancariasCXC] = await Promise.all([
+    obtenerCuentasSaldosDesdeCXC(),
+    obtenerCuentasBancariasDesdeCXC()
+  ]);
+  const cuentaCXC = cuentasCXC.find((cuenta) => (
+    cuenta.cuentaId === cuentaId ||
+    cuenta.id === cuentaId ||
+    cuenta.cuenta_id === cuentaId
+  ));
+  const detalleCuenta = cuentasBancariasCXC.find((cuenta) => (
+    cuenta.id === cuentaId ||
+    cuenta.cuentaId === cuentaId ||
+    cuenta.cuenta_id === cuentaId
+  ));
+
+  if (cuentaCXC || detalleCuenta) {
+    return normalizarCuentaCXC({ ...(detalleCuenta || {}), ...(cuentaCXC || {}) }, movimientos);
+  }
+
+  const cuentaLocal = await SaldoCuenta.findByPk(cuentaId);
+  if (!cuentaLocal) {
+    throw new Error('La cuenta no esta registrada para obtener su saldo.');
+  }
+
+  cuentaLocal.movimientos = movimientos;
+  return cuentaLocal;
 }
 
 async function listarSaldosCuenta() {
@@ -29,21 +86,62 @@ async function listarSaldosCuenta() {
 }
 
 async function listarMovimientosCuenta(limit = 10) {
-  return await MovimientoCuenta.findAll({
+  const [movimientos, cuentasBancariasCXC] = await Promise.all([
+    MovimientoCuenta.findAll({
     limit,
     order: [['fechaMovimiento', 'DESC']]
-  });
+    }),
+    obtenerCuentasBancariasDesdeCXC()
+  ]);
+
+  const cuentasBancariasPorId = cuentasBancariasCXC.reduce((acc, cuenta) => {
+    const cuentaId = cuenta.id || cuenta.cuentaId || cuenta.cuenta_id;
+    if (cuentaId) acc[cuentaId] = cuenta;
+    return acc;
+  }, {});
+
+  return movimientos
+    .filter((movimiento) => Boolean(cuentasBancariasPorId[movimiento.cuentaId]))
+    .map((movimiento) => (
+      normalizarMovimientoConCuenta(movimiento, cuentasBancariasPorId[movimiento.cuentaId])
+    ));
 }
 
 /**
  * Lista todas las cuentas bancarias registradas con sus movimientos.
  */
 async function obtenerSaldosCuentas() {
-  return await SaldoCuenta.findAll({
-    where: { estado: 'ACTIVO' },
-    include: [{ model: MovimientoCuenta, as: 'movimientos', order: [['fechaMovimiento', 'DESC']] }],
-    order: [['saldoActual', 'DESC']]
-  });
+  const [cuentasSaldosCXC, cuentasBancariasCXC, movimientos] = await Promise.all([
+    obtenerCuentasSaldosDesdeCXC(),
+    obtenerCuentasBancariasDesdeCXC(),
+    MovimientoCuenta.findAll({
+      order: [['fechaMovimiento', 'DESC']]
+    })
+  ]);
+
+  const cuentasBancariasPorId = cuentasBancariasCXC.reduce((acc, cuenta) => {
+    const cuentaId = cuenta.id || cuenta.cuentaId || cuenta.cuenta_id;
+    if (cuentaId) acc[cuentaId] = cuenta;
+    return acc;
+  }, {});
+
+  const movimientosPorCuenta = movimientos.reduce((acc, movimiento) => {
+    const cuentaId = movimiento.cuentaId;
+    if (!acc[cuentaId]) acc[cuentaId] = [];
+    acc[cuentaId].push(movimiento);
+    return acc;
+  }, {});
+
+  return cuentasSaldosCXC
+    .map((cuenta) => {
+      const cuentaId = cuenta.cuentaId || cuenta.id || cuenta.cuenta_id;
+      const detalleCuenta = cuentasBancariasPorId[cuentaId] || {};
+      return normalizarCuentaCXC(
+        { ...detalleCuenta, ...cuenta },
+        movimientosPorCuenta[cuentaId] || []
+      );
+    })
+    .sort((a, b) => Number(b.saldoActual || 0) - Number(a.saldoActual || 0));
 }
 
 /**

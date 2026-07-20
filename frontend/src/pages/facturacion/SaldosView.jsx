@@ -92,14 +92,15 @@ export default function SaldosView() {
               ) : saldos.length === 0 ? (
                 <div className="p-6 text-center">
                   <WalletCards className="mx-auto h-8 w-8 text-slate-400" />
-                  <p className="mt-3 text-sm font-semibold">No hay cuentas inicializadas.</p>
+                  <p className="mt-3 text-sm font-semibold">No hay cuentas disponibles desde CXC.</p>
                 </div>
               ) : (
                 <table className="min-w-full text-left text-sm">
                   <thead className="bg-slate-50 text-xs font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                     <tr>
-                      <th className="px-4 py-3">Cuenta</th>
-                      <th className="px-4 py-3">Saldo</th>
+                      <th className="px-4 py-3">Banco / cuenta</th>
+                      <th className="px-4 py-3">Titular</th>
+                      <th className="px-4 py-3">Saldo disponible</th>
                       <th className="px-4 py-3">Actualizacion</th>
                     </tr>
                   </thead>
@@ -110,8 +111,19 @@ export default function SaldosView() {
                         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900"
                         onClick={() => setSelectedSaldo(saldo)}
                       >
-                        <td className="max-w-[240px] truncate px-4 py-3 font-medium">{saldo.cuentaId}</td>
-                        <td className="px-4 py-3">{money(saldo.saldoActual)}</td>
+                        <td className="max-w-[280px] px-4 py-3">
+                          <p className="truncate font-medium text-slate-900 dark:text-slate-100">
+                            {saldo.entidadBancaria || saldo.nombre || saldo.cuentaId}
+                          </p>
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                            {saldo.nombre || saldo.codigo || 'Cuenta bancaria'} {saldo.nroCuenta ? `- ${saldo.nroCuenta}` : ''}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          <p className="truncate">{saldo.titular || '-'}</p>
+                          <p className="truncate text-xs text-slate-400">{saldo.tipoCuenta || ''}</p>
+                        </td>
+                        <td className="px-4 py-3">{money(saldo.saldoDisponible ?? saldo.saldoActual)}</td>
                         <td className="px-4 py-3 text-slate-500">{dateText(saldo.ultimaActualizacion)}</td>
                       </tr>
                     ))}
@@ -137,7 +149,13 @@ export default function SaldosView() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{movimiento.descripcion}</p>
-                <p className="mt-1 truncate text-xs text-slate-400">{movimiento.cuentaId} - {dateText(movimiento.fechaMovimiento)}</p>
+                <p className="mt-1 truncate text-xs text-slate-400">
+                  {movimiento.entidadBancaria || movimiento.cuentaNombre || 'Cuenta bancaria'}
+                  {movimiento.nroCuenta ? ` - ${movimiento.nroCuenta}` : ''}
+                </p>
+                <p className="mt-1 truncate text-xs text-slate-400">
+                  {movimiento.titular ? `${movimiento.titular} - ` : ''}{dateText(movimiento.fechaMovimiento)}
+                </p>
               </div>
             ))}
           </div>
@@ -149,8 +167,17 @@ export default function SaldosView() {
           ) : (
             <div className="space-y-4">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-                <p className="truncate text-sm font-semibold">{selectedSaldo.cuentaId}</p>
-                <p className="mt-1 text-2xl font-bold">{money(selectedSaldo.saldoActual)}</p>
+                <p className="truncate text-sm font-semibold">
+                  {selectedSaldo.entidadBancaria || selectedSaldo.nombre || selectedSaldo.cuentaId}
+                </p>
+                <p className="mt-1 truncate text-xs text-slate-500">
+                  {selectedSaldo.nombre || selectedSaldo.codigo || 'Cuenta bancaria'}
+                  {selectedSaldo.nroCuenta ? ` - ${selectedSaldo.nroCuenta}` : ''}
+                </p>
+                <p className="mt-1 truncate text-xs text-slate-500">
+                  Titular: {selectedSaldo.titular || '-'} {selectedSaldo.tipoCuenta ? `(${selectedSaldo.tipoCuenta})` : ''}
+                </p>
+                <p className="mt-2 text-2xl font-bold">{money(selectedSaldo.saldoDisponible ?? selectedSaldo.saldoActual)}</p>
               </div>
               <div className="space-y-3">
                 {movimientosDetalle.length === 0 ? (
