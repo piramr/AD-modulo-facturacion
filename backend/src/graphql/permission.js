@@ -99,12 +99,12 @@ const requierePermiso = (permiso) => crearMiddleware(async (context) => {
     && usuario.permissions.includes(permiso);
 
   if (!tienePermiso) {
-    throw crearError('No autorizado: No tienes los privilegios necesarios para esta accion.');
+    throw crearError('No tienes los privilegios necesarios para esta accion.', 'FORBIDDEN', 403);
   }
 });
 
 const denegar = crearMiddleware(async () => {
-  throw crearError('No autorizado: No tienes los privilegios necesarios para esta accion.');
+  throw crearError('No tienes los privilegios necesarios para esta accion.', 'FORBIDDEN', 403);
 });
 
 const permissions = {
@@ -147,7 +147,7 @@ const permissions = {
     // Clientes
     crearCliente: requierePermiso('FAC_CLIENTES_CREAR'),
     actualizarCliente: requierePermiso('FAC_CLIENTES_EDITAR'),
-    inactivarCliente: requierePermiso('FAC_CLIENTES_INACTIVAR'),
+    inactivarCliente: requiereEstarLogeado,
 
     // Saldos de cuenta y movimientos bancarios
     crearSaldoCuenta: requierePermiso('FAC_SALDO_CUENTA_CREAR'),

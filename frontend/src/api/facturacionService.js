@@ -24,7 +24,17 @@ function isUnauthorizedGraphQLError(error) {
   const code = String(error?.code || '').toLowerCase()
   const status = Number(error?.status || error?.extensions?.status || 0)
 
-  return status === 401 || code === 'unauthorized' || message.includes('no autorizado')
+  return (
+    status === 401 ||
+    code === 'token_expired' ||
+    message.includes('token proporcionado ha expirado') ||
+    message.includes('token invalido') ||
+    message.includes('token inválido') ||
+    message.includes('no se proporciono un token') ||
+    message.includes('no se proporcionó un token') ||
+    message.includes('sesion ha expirado') ||
+    message.includes('sesión ha expirado')
+  )
 }
 
 export async function getAuthToken() {

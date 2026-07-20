@@ -36,7 +36,7 @@ type ReporteClientes {
 type ArticuloFacturaReporte {
   productoCodigo: String!
   productoNombre: String!
-  cantidad: Int!
+  cantidad: Float!
   precioUnitario: Float!
   subtotalLinea: Float!
 }

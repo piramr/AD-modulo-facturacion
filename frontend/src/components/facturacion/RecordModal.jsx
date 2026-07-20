@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import {
   CLIENTE_ESTADOS,
+  getAdultBirthdateMax,
   TIPO_CLIENTE_OPTIONS,
   TIPO_PAGO_OPTIONS,
 } from '../../utils/validators'
@@ -33,7 +34,7 @@ function ClienteForm({ form, onFieldChange }) {
         <input value={form.cedula} onChange={(e) => onFieldChange('cedula', e.target.value)} type="text" inputMode="numeric" className={inputClass} placeholder="123456789" />
       </Field>
       <Field label="Fecha nacimiento">
-        <input value={form.fecha_nacimiento} onChange={(e) => onFieldChange('fecha_nacimiento', e.target.value)} type="date" className={inputClass} />
+        <input value={form.fecha_nacimiento} onChange={(e) => onFieldChange('fecha_nacimiento', e.target.value)} type="date" max={getAdultBirthdateMax()} className={inputClass} />
       </Field>
       <Field label="Nombre" className="md:col-span-2">
         <input value={form.nombre} onChange={(e) => onFieldChange('nombre', e.target.value)} type="text" className={inputClass} placeholder="Nombre completo o razon social" />

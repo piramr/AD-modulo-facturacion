@@ -30,6 +30,23 @@ const isValidPastOrTodayDate = (value) => {
   return parsedDate.getTime() <= today.getTime()
 }
 
+const formatDateInput = (date) => date.toISOString().split('T')[0]
+
+export const getAdultBirthdateMax = () => {
+  const maxDate = new Date()
+  maxDate.setHours(0, 0, 0, 0)
+  maxDate.setFullYear(maxDate.getFullYear() - 18)
+  return formatDateInput(maxDate)
+}
+
+const isAtLeast18YearsOld = (value) => {
+  if (!isValidPastOrTodayDate(value)) return false
+
+  const birthDate = new Date(`${value}T00:00:00`)
+  const maxDate = new Date(`${getAdultBirthdateMax()}T00:00:00`)
+  return birthDate.getTime() <= maxDate.getTime()
+}
+
 export const getFirstError = (errors) => Object.values(errors).find(Boolean) || ''
 
 export const validateClienteForm = (form, existingClientes = []) => {
@@ -60,6 +77,8 @@ export const validateClienteForm = (form, existingClientes = []) => {
 
   if (!isValidPastOrTodayDate(values.fecha_nacimiento)) {
     errors.fecha_nacimiento = 'La fecha de nacimiento no puede ser vacia ni mayor a la fecha actual.'
+  } else if (!isAtLeast18YearsOld(values.fecha_nacimiento)) {
+    errors.fecha_nacimiento = 'El cliente debe tener al menos 18 anos.'
   }
 
   if (!TIPO_CLIENTE_OPTIONS.includes(values.tipo_cliente)) {

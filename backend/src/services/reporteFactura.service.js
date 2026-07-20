@@ -42,7 +42,7 @@ function mapearFacturaReporte(factura) {
     articulos: (data.detalles || []).map((detalle) => ({
       productoCodigo: pick(detalle, 'codigoProducto', 'codigo_producto'),
       productoNombre: pick(detalle, 'nombreProducto', 'nombre_producto'),
-      cantidad: detalle.cantidad,
+      cantidad: Number(detalle.cantidad),
       precioUnitario: Number(pick(detalle, 'pvpUnitario', 'pvp_unitario')),
       subtotalLinea: Number(detalle.subtotal)
     }))

@@ -332,6 +332,7 @@ export function useFacturacion() {
   const openEditClienteModal = (cliente) => {
     setEditingClienteId(cliente.id)
     setClienteForm({
+      id: cliente.id,
       cedula: cliente.cedula,
       nombre: cliente.nombre,
       fecha_nacimiento: cliente.fecha_nacimiento,
