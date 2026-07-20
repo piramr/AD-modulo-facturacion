@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import {
   CLIENTE_ESTADOS,
-  FACTURA_ESTADOS,
   TIPO_CLIENTE_OPTIONS,
   TIPO_PAGO_OPTIONS,
 } from '../../utils/validators'
@@ -185,9 +184,7 @@ function FacturaForm({
           <input value={form.fecha_emision} onChange={(e) => onFieldChange('fecha_emision', e.target.value)} type="date" className={inputClass} />
         </Field>
         <Field label="Estado">
-          <select value={form.estado} onChange={(e) => onFieldChange('estado', e.target.value)} className={inputClass}>
-            {FACTURA_ESTADOS.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
-          </select>
+          <input value={form.estado} readOnly type="text" className={readonlyClass} />
         </Field>
       </div>
 

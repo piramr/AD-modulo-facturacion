@@ -10,6 +10,7 @@ import {
   downloadReporteClientesPdf,
   downloadReporteFacturasPdf,
   getFacturacionSnapshot,
+  getResumenFacturacion,
   updateCliente,
 } from '../api/facturacionService'
 import {
@@ -71,6 +72,7 @@ const DEFAULT_PAGE_SIZE = 10
 const CLIENTE_ESTADOS = ['ACTIVO', 'INACTIVO']
 
 const formatMoney = (value) => `$${new Intl.NumberFormat('es-CO').format(Number(value) || 0)}`
+const getEstadoPorTipoPago = (tipoPago) => (tipoPago === 'CREDITO' ? 'PAGO_PENDIENTE' : 'PAGADA')
 
 const getSectionFromPath = (pathname) => {
   if (pathname.includes('/clientes')) return 'Clientes'
@@ -88,7 +90,9 @@ export function useFacturacion() {
   const location = useLocation()
   const [clientes, setClientes] = useState([])
   const [facturas, setFacturas] = useState([])
+  const [resumenData, setResumenData] = useState({ clientes: [], facturas: [], clientesTotalCount: 0, facturasTotalCount: 0 })
   const [productos, setProductos] = useState([])
+  const [preferencias, setPreferencias] = useState(null)
   const [auditoria, setAuditoria] = useState([])
   const [clientesPage, setClientesPage] = useState(1)
   const [facturasPage, setFacturasPage] = useState(1)
@@ -136,6 +140,7 @@ export function useFacturacion() {
     setClientes(snapshot.clientes)
     setFacturas(snapshot.facturas)
     setProductos(snapshot.productos)
+    setPreferencias(snapshot.preferencias || null)
     setAuditoria(snapshot.auditoria || [])
     setClientesPageInfo(snapshot.clientesPageInfo)
     setFacturasPageInfo(snapshot.facturasPageInfo)
@@ -160,6 +165,12 @@ export function useFacturacion() {
     facturasLimit: overrides.facturasLimit || facturasLimit,
     facturasFilter: overrides.facturasFilter ?? snapshotFilters.facturasFilter,
   })
+
+  const reloadResumen = async () => {
+    const resumen = await getResumenFacturacion()
+    setResumenData(resumen)
+    return resumen
+  }
 
   // ── CAJAS ────────────────────────────────────────────────────────────────────
   const [cajas, setCajas] = useState([])
@@ -211,6 +222,10 @@ export function useFacturacion() {
         if (mounted) setIsLoading(false)
       })
 
+    reloadResumen().catch(() => {
+      toast.error('No fue posible cargar el resumen real de facturacion.')
+    })
+
     return () => {
       mounted = false
     }
@@ -230,12 +245,16 @@ export function useFacturacion() {
   const availableClients = useMemo(() => clientes, [clientes])
   const availableProducts = useMemo(() => productos.filter((producto) => producto.stockActual > 0), [productos])
   const facturaTotals = useMemo(() => calculateFacturaTotals(detalleItems), [detalleItems])
+  const resumenClientes = resumenData.clientes.length || resumenData.clientesTotalCount ? resumenData.clientes : clientes
+  const resumenFacturas = resumenData.facturas.length || resumenData.facturasTotalCount ? resumenData.facturas : facturas
 
   const kpis = useMemo(() => {
-    const totalFacturado = facturas.reduce((accumulator, factura) => accumulator + Number(factura.total || 0), 0)
-    const pagadasCount = facturas.filter((factura) => factura.estado === 'PAGADA').length
-    const pendientesCount = facturas.filter((factura) => factura.estado === 'PAGO_PENDIENTE').length
-    const clientesActivos = clientes.filter((cliente) => cliente.estado === 'ACTIVO').length
+    const sourceFacturas = currentSection === 'Resumen' ? resumenFacturas : facturas
+    const sourceClientes = currentSection === 'Resumen' ? resumenClientes : clientes
+    const totalFacturado = sourceFacturas.reduce((accumulator, factura) => accumulator + Number(factura.total || 0), 0)
+    const pagadasCount = sourceFacturas.filter((factura) => factura.estado === 'PAGADA').length
+    const pendientesCount = sourceFacturas.filter((factura) => factura.estado === 'PAGO_PENDIENTE').length
+    const clientesActivos = sourceClientes.filter((cliente) => cliente.estado === 'ACTIVO').length
 
     if (currentSection === 'Clientes') {
       return [
@@ -257,11 +276,11 @@ export function useFacturacion() {
 
     return [
       { title: 'Facturado total', value: formatMoney(totalFacturado), sub: 'Total consolidado', tone: 'indigo' },
-      { title: 'IVA acumulado', value: formatMoney(facturas.reduce((acc, factura) => acc + Number(factura.total_iva || 0), 0)), sub: 'Impuesto generado', tone: 'emerald' },
+      { title: 'IVA acumulado', value: formatMoney(sourceFacturas.reduce((acc, factura) => acc + Number(factura.total_iva || 0), 0)), sub: 'Impuesto generado', tone: 'emerald' },
       { title: 'Facturas pagadas', value: pagadasCount, sub: 'Flujo de caja', tone: 'amber' },
       { title: 'Clientes activos', value: clientesActivos, sub: 'Cartera vigente', tone: 'blue' },
     ]
-  }, [clientes, currentSection, facturas])
+  }, [clientes, currentSection, facturas, resumenClientes, resumenFacturas])
 
   const filteredClients = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -337,11 +356,18 @@ export function useFacturacion() {
     ...INITIAL_FACTURA_FORM,
     fecha_emision: new Date().toISOString().split('T')[0],
   })
-  const resetDetalleForm = () => setDetalleForm(INITIAL_DETALLE_FORM)
+  const resetDetalleForm = () => setDetalleForm({
+    ...INITIAL_DETALLE_FORM,
+    porcentaje_iva_aplicado: Number(preferencias?.porcentajeIva ?? INITIAL_DETALLE_FORM.porcentaje_iva_aplicado),
+  })
   const resetDetalleItems = () => setDetalleItems([])
 
   const handleClienteFieldChange = (field, value) => setClienteForm((currentForm) => ({ ...currentForm, [field]: value }))
-  const handleInvoiceFieldChange = (field, value) => setFacturaForm((currentForm) => ({ ...currentForm, [field]: value }))
+  const handleInvoiceFieldChange = (field, value) => setFacturaForm((currentForm) => (
+    field === 'tipo_pago'
+      ? { ...currentForm, tipo_pago: value, estado: getEstadoPorTipoPago(value) }
+      : { ...currentForm, [field]: value }
+  ))
   const handleDetalleFieldChange = (field, value) => {
     if (field === 'producto_id') {
       const producto = productos.find((item) => item.codigo === value)
@@ -352,7 +378,7 @@ export function useFacturacion() {
           producto_nombre: producto.nombre,
           precio_unitario: producto.pvp,
           graba_iva: producto.grabaIva,
-          porcentaje_iva_aplicado: producto.porcentajeIvaAplicado,
+          porcentaje_iva_aplicado: Number(preferencias?.porcentajeIva ?? producto.porcentajeIvaAplicado ?? INITIAL_DETALLE_FORM.porcentaje_iva_aplicado),
           stock_actual: producto.stockActual,
         }))
         return
@@ -400,6 +426,7 @@ export function useFacturacion() {
         setClientesPage(1)
       }
       applySnapshot(await reloadSnapshot(editingClienteId ? {} : { clientesPage: 1 }))
+      await reloadResumen()
       toast.success(`Cliente "${validation.values.nombre}" ${editingClienteId ? 'actualizado' : 'registrado'} correctamente.`)
       setEditingClienteId(null)
       resetClientForm()
@@ -437,6 +464,7 @@ export function useFacturacion() {
       })
       setFacturasPage(1)
       applySnapshot(await reloadSnapshot({ facturasPage: 1 }))
+      await reloadResumen()
       toast.success(`Factura emitida por ${formatMoney(totals.total)}.`)
       resetInvoiceForm()
       resetDetalleItems()
@@ -463,6 +491,7 @@ export function useFacturacion() {
         try {
           await deleteCliente(id)
           applySnapshot(await reloadSnapshot())
+          await reloadResumen()
           toast.success('Cliente eliminado correctamente.')
         } catch (error) {
           toast.error(error.message || 'No fue posible eliminar el cliente.')
@@ -484,6 +513,7 @@ export function useFacturacion() {
         try {
           await deleteFactura(id)
           applySnapshot(await reloadSnapshot())
+          await reloadResumen()
           toast.success('Factura eliminada correctamente.')
         } catch (error) {
           toast.error(error.message || 'No fue posible eliminar la factura.')
@@ -873,7 +903,11 @@ export function useFacturacion() {
     currentSection,
     clientes,
     facturas,
+    resumenClientes,
+    resumenFacturas,
+    resumenData,
     productos,
+    preferencias,
     auditoria,
     kpis,
     availableClients,

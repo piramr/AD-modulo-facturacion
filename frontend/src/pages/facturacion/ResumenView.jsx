@@ -36,12 +36,14 @@ const TooltipPersonalizado = ({ active, payload, label }) => {
 }
 
 export default function ResumenView() {
-  const { kpis, facturas, clientes } = useOutletContext()
+  const { kpis, resumenFacturas, resumenClientes, facturas, clientes } = useOutletContext()
+  const facturasResumen = resumenFacturas?.length ? resumenFacturas : facturas
+  const clientesResumen = resumenClientes?.length ? resumenClientes : clientes
 
   // ── Distribución de facturas por estado ──────────────────────────────────────
   const dataPorEstado = useMemo(() => {
     const conteo = {}
-    facturas.forEach((f) => {
+    facturasResumen.forEach((f) => {
       conteo[f.estado] = (conteo[f.estado] || 0) + 1
     })
     return Object.entries(conteo).map(([estado, cantidad]) => ({
@@ -49,12 +51,12 @@ export default function ResumenView() {
       value: cantidad,
       fill: COLORES_ESTADO[estado] || '#94a3b8',
     }))
-  }, [facturas])
+  }, [facturasResumen])
 
   // ── Ventas por tipo de pago ───────────────────────────────────────────────────
   const dataPorTipoPago = useMemo(() => {
     const totales = {}
-    facturas
+    facturasResumen
       .filter((f) => f.estado !== 'ANULADA')
       .forEach((f) => {
         totales[f.tipo_pago] = (totales[f.tipo_pago] || 0) + Number(f.total || 0)
@@ -64,12 +66,12 @@ export default function ResumenView() {
       total: Number(total.toFixed(2)),
       fill: COLORES_PAGO[tipo] || '#94a3b8',
     }))
-  }, [facturas])
+  }, [facturasResumen])
 
   // ── Top 5 clientes por monto facturado ───────────────────────────────────────
   const dataTopClientes = useMemo(() => {
     const totalesPorCliente = {}
-    facturas
+    facturasResumen
       .filter((f) => f.estado !== 'ANULADA')
       .forEach((f) => {
         const nombre = f.clienteNombre || 'Sin nombre'
@@ -82,19 +84,19 @@ export default function ResumenView() {
         nombre: nombre.length > 16 ? nombre.slice(0, 16) + '…' : nombre,
         total: Number(total.toFixed(2)),
       }))
-  }, [facturas])
+  }, [facturasResumen])
 
   // ── Canales de ingreso reales ─────────────────────────────────────────────────
   const canalesIngreso = useMemo(() => {
-    const totalGeneral = facturas
+    const totalGeneral = facturasResumen
       .filter((f) => f.estado !== 'ANULADA')
       .reduce((sum, f) => sum + Number(f.total || 0), 0)
 
-    const pagadas = facturas
+    const pagadas = facturasResumen
       .filter((f) => f.estado === 'PAGADA')
       .reduce((sum, f) => sum + Number(f.total || 0), 0)
 
-    const pendientes = facturas
+    const pendientes = facturasResumen
       .filter((f) => f.estado === 'PAGO_PENDIENTE')
       .reduce((sum, f) => sum + Number(f.total || 0), 0)
 
@@ -105,9 +107,9 @@ export default function ResumenView() {
       { label: 'Cobros completados', value: `${pctPagadas}%`, width: `${pctPagadas}%`, tone: 'bg-emerald-500' },
       { label: 'Por conciliar', value: `${pctPendientes}%`, width: `${pctPendientes}%`, tone: 'bg-amber-500' },
     ]
-  }, [facturas])
+  }, [facturasResumen])
 
-  const sinDatos = facturas.length === 0
+  const sinDatos = facturasResumen.length === 0
 
   return (
     <div className="space-y-6">
@@ -234,12 +236,12 @@ export default function ResumenView() {
                   <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>Total clientes activos</span>
                     <span className="font-bold text-slate-900 dark:text-slate-100">
-                      {clientes.filter((c) => c.estado === 'ACTIVO').length}
+                      {clientesResumen.filter((c) => c.estado === 'ACTIVO').length}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <span>Total facturas emitidas</span>
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{facturas.length}</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100">{facturasResumen.length}</span>
                   </div>
                 </div>
               </div>

@@ -135,7 +135,8 @@ export const calculateFacturaTotals = (detalles = []) => {
   const totalIva = detalles.reduce((accumulator, detalle) => {
     if (!detalle.graba_iva) return accumulator
     const porcentaje = Number(detalle.porcentaje_iva_aplicado ?? IVA_PERCENT)
-    return accumulator + Number(detalle.subtotal_linea || 0) * (porcentaje / 100)
+    const ivaLinea = Number((Number(detalle.subtotal_linea || 0) * (porcentaje / 100)).toFixed(2))
+    return accumulator + ivaLinea
   }, 0)
 
   return {

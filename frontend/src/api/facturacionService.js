@@ -3,6 +3,7 @@ import { API_BASE, API_GRAPHQL } from '../config/api'
 import { getStoredToken } from './authService'
 
 const TOKEN_STORAGE_KEY = 'facturacion-demo-token'
+const RESUMEN_PAGE_SIZE = 1000
 
 export async function getAuthToken() {
   const savedToken = getStoredToken() || window.localStorage.getItem(TOKEN_STORAGE_KEY)
@@ -129,6 +130,13 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
         grabaIva
         porcentajeIvaAplicado
       }
+      obtenerPreferencias {
+        id
+        nombreEmpresa
+        rucEmpresa
+        porcentajeIva
+        cuentaBancariaDefaultId
+      }
     }
   `
   const data = await fetchGraphQL(query, { clientesPage, clientesLimit, clientesFilter, facturasPage, facturasLimit, facturasFilter }, token)
@@ -181,7 +189,111 @@ export async function getFacturacionSnapshot(token = '', options = {}) {
       subtotal_linea: detalle.subtotal,
     }))),
     productos: data.productos || [],
+    preferencias: data.obtenerPreferencias || null,
     auditoria: [],
+  }
+}
+
+async function getReporteFacturasPage(token = '', page = 1) {
+  const query = `
+    query GetReporteFacturasResumen($page: Int, $limit: Int) {
+      reporteFacturas(page: $page, limit: $limit) {
+        totalCount
+        pageInfo {
+          currentPage
+          totalPages
+          hasNextPage
+        }
+        items {
+          id
+          numeroFactura
+          clienteId
+          clienteNombre
+          clienteCedula
+          tipoPago
+          fechaEmision
+          subtotal
+          totalIva
+          total
+          estado
+        }
+      }
+    }
+  `
+  const data = await fetchGraphQL(query, { page, limit: RESUMEN_PAGE_SIZE }, token)
+  return data.reporteFacturas
+}
+
+async function getReporteClientesPage(token = '', page = 1) {
+  const query = `
+    query GetReporteClientesResumen($page: Int, $limit: Int) {
+      reporteClientes(page: $page, limit: $limit) {
+        totalCount
+        pageInfo {
+          currentPage
+          totalPages
+          hasNextPage
+        }
+        items {
+          id
+          cedula
+          nombre
+          tipoCliente
+          estado
+        }
+      }
+    }
+  `
+  const data = await fetchGraphQL(query, { page, limit: RESUMEN_PAGE_SIZE }, token)
+  return data.reporteClientes
+}
+
+async function getAllReportItems(loadPage, token = '') {
+  const firstPage = await loadPage(token, 1)
+  const totalPages = firstPage?.pageInfo?.totalPages || 1
+  const items = [...(firstPage?.items || [])]
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const nextPage = await loadPage(token, page)
+    items.push(...(nextPage?.items || []))
+  }
+
+  return {
+    totalCount: firstPage?.totalCount || items.length,
+    pageInfo: firstPage?.pageInfo || { currentPage: 1, totalPages: 1 },
+    items,
+  }
+}
+
+export async function getResumenFacturacion(token = '') {
+  const [clientesReporte, facturasReporte] = await Promise.all([
+    getAllReportItems(getReporteClientesPage, token),
+    getAllReportItems(getReporteFacturasPage, token),
+  ])
+
+  return {
+    clientesTotalCount: clientesReporte.totalCount,
+    facturasTotalCount: facturasReporte.totalCount,
+    clientes: clientesReporte.items.map((cliente) => ({
+      id: cliente.id,
+      cedula: cliente.cedula,
+      nombre: cliente.nombre,
+      tipo_cliente: cliente.tipoCliente,
+      estado: cliente.estado,
+    })),
+    facturas: facturasReporte.items.map((factura) => ({
+      id: factura.id,
+      numero_factura: factura.numeroFactura,
+      cliente_id: factura.clienteId,
+      clienteNombre: factura.clienteNombre || 'Sin cliente',
+      clienteCedula: factura.clienteCedula || '',
+      tipo_pago: factura.tipoPago,
+      fecha_emision: factura.fechaEmision,
+      subtotal: factura.subtotal,
+      total_iva: factura.totalIva,
+      total: factura.total,
+      estado: factura.estado,
+    })),
   }
 }
 
